@@ -56,6 +56,13 @@ int rtl821x_read_status(struct phy_device *phydev)
   {
     int value;
 
+    value = phy_read(phydev, RTL821x_INSR);
+    if (value&(1<<8))
+    {
+      /* false carrier detected - restarting auto negotiation */
+      genphy_restart_aneg(phydev);
+    }
+
     value = phy_read(phydev, RTL821x_PHYCR);
 
     if (phydev->speed == SPEED_1000)
