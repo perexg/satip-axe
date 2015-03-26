@@ -1,5 +1,20 @@
 CPUS=4
+TOOLPATH=/opt/STM/STLinux-2.4/host/bin
 TOOLCHAIN_KERNEL=$(shell pwd)/toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4
+
+#
+# all
+#
+
+.PHONY: all
+all: kernel-axe-modules kernel
+
+#
+# create CPIO
+#
+
+fs.cpio:
+	tools/do_min_fs.py
 
 #
 # kernel
@@ -9,9 +24,11 @@ kernel/.config: toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4/bin/sh4-linux-
 	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- idl4k_defconfig
 
 .PHONY: kernel
-kernel: toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4/bin/sh4-linux-gcc-4.5.3 kernel/.config
+kernel: toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4/bin/sh4-linux-gcc-4.5.3 kernel/.config fs.cpio
+	mv fs.cpio kernel/rootfs-idl4k.cpio
 	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- modules
-	make -C kernel -j ${CPUS} ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- vmlinux
+	make -C kernel -j ${CPUS} PATH="$(PATH):$(TOOLPATH)" \
+	                          ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- uImage.gz
 
 .PHONY: kernel-mrproper
 kernel-mrproper:
@@ -41,6 +58,7 @@ firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32BITS/axe_dmx.ko:
 #
 # clean all
 #
+
 .PHONY: clean
 clean: kernel-mrproper
 	rm -rf firmware/initramfs
