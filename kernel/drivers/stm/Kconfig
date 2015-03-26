@@ -1,0 +1,252 @@
+#
+# STM specific device configuration
+#
+
+config STM_DRIVERS
+	boolean
+	default y if CPU_SUBTYPE_ST40
+	default n
+
+menu "STM specific devices"
+        depends on STM_DRIVERS
+
+config STM_PCI_EMISS
+	bool "STMicroelectronics PCI controller"
+	depends on PCI && (CPU_SUBTYPE_FLI7510 || CPU_SUBTYPE_STX5206 || \
+			   CPU_SUBTYPE_STX7105 || CPU_SUBTYPE_STX7108 || \
+			   CPU_SUBTYPE_STX7111)
+	def_bool n
+	select GENERIC_IOMAP
+	---help---
+	  This option adds support for the PCI controller found on some
+	  STMicroelectronics SOCs.
+
+# PCIe controller from synopsys, wrapped for HVD parts
+config STM_PCIE
+	bool "STMicroelectronics PCI express controller"
+	depends on PCI && (CPU_SUBTYPE_STX7108 || CPU_SUBTYPE_FLI7510)
+	def_bool n
+	select ARCH_SUPPORTS_MSI
+	---help---
+	  This option adds support for the PCI express controller found on some
+	  STMicroelectronics SOCs.
+
+config STM_MIPHY
+	def_bool y
+	depends on (SATA_STM || STM_PCIE)
+
+config STM_MIPHY_TAP
+	bool
+	depends on STM_MIPHY
+	default y if CPU_SUBTYPE_STX7105
+	default y if CPU_SUBTYPE_STX7108
+	default y if CPU_SUBTYPE_STX7141
+	default y if CPU_SUBTYPE_STX7200
+	default n
+
+config STM_MIPHY_PCIE_MP
+	bool
+	depends on STM_MIPHY
+	default y if (CPU_SUBTYPE_STX7108 || CPU_SUBTYPE_FLI7510)
+	default n
+
+config STM_MIPHY_DUMMY
+	bool
+	depends on STM_MIPHY
+	default y if (CPU_SUBTYPE_STX7100 || CPU_SUBTYPE_FLI7510)
+	default n
+
+config STPIO
+	bool "Legacy stpio API"
+	default n
+	help
+	  Select this option to enable the legacy stpio interface. No
+	  code within the kernel uses this API, it is retained only for
+	  drivers outside the kernel which might still need it.
+
+config STM_DMA
+	bool "STMicroelectronics DMA API"
+	select SH_DMA_API
+	select LIBELF
+	default y
+	---help---
+	  Selecting this option will provide support for STMicroelectronics'
+	  custom DMA API. This API provides support for data transfers of
+	  various dimensions and complex linked list operations. In addition
+	  to these free-running operations it also allows management of the
+	  paced-transfer peripherals on recent STM parts.
+
+	  If you have a device from STMicroelectronics, then say Y here.
+	  Otherwise say N.
+
+config STM_DMA_DEBUG
+	bool "STMicroelectronics DMA Debug"
+	depends on STM_DMA
+	default n
+
+config STM_COPROCESSOR_SUPPORT
+	bool "STMicroelectronics coprocessor support"
+	default y
+	depends on (CPU_SUBTYPE_STX7100 || CPU_SUBTYPE_STX7105 \
+		|| CPU_SUBTYPE_STX7111 || CPU_SUBTYPE_STX7141 \
+		|| CPU_SUBTYPE_STX7200 || CPU_SUBTYPE_STX7108 \
+		|| CPU_SUBTYPE_STX5206 \
+		|| CPU_SUBTYPE_FLI7510)
+	---help---
+        Many of the ST system-on-chip devices have multiple CPUs, where a
+        master CPU running Linux has control over a number of slave CPUs,
+        which are usually used to run dedicated algorithms.
+        Enabling this option will add support to the Linux kernel to
+        control these slave CPUs, reserve memory for them, and thus allow
+        code to be downloaded onto them and executed.
+        Adding in the command line the following string:
+        coprocessor_mem=[offset]:size0[,size1][,size2]...
+        where:
+        offset defines where the co-processors region starts.
+               It's an offset from ST40 RAM start.
+        size{n} defines the region size for the n.th slave core (max 16M).
+
+        Example: coprocessor_mem=32m:16m,16m
+
+config STM_NUM_COPROCESSOR
+	int
+	depends on STM_COPROCESSOR_SUPPORT
+	default 2 if CPU_SUBTYPE_STX7100
+	default 2 if CPU_SUBTYPE_STX7105
+	default 2 if CPU_SUBTYPE_STX7111
+	default 2 if CPU_SUBTYPE_STX7141
+	default 2 if CPU_SUBTYPE_STX5206
+	default 4 if CPU_SUBTYPE_STX7200
+	default 3 if CPU_SUBTYPE_STX7108
+	default 3 if CPU_SUBTYPE_FLI7510
+	default 0
+
+choice
+	prompt "STM coprocessor loading strategy"
+        depends on STM_COPROCESSOR_SUPPORT
+        default STM_COPROCESSOR
+
+config  STM_COPROCESSOR
+	bool "STM coprocessor support"
+	help
+	  Select this option to enable support for the slave coprocessors
+	  found on many ST system-on-chip devices.
+
+config  STM_COPROCESSOR_FRMW
+	bool "The new STM coprocessor firmware support "
+	select FW_LOADER
+	help
+	  Select this option to enable support for the slave coprocessors
+	  found on many ST system-on-chip devices.
+
+endchoice
+
+config  COPROCESSOR_DEBUG
+        depends on STM_COPROCESSOR_SUPPORT
+        bool "STM coprocessor debug"
+        default n
+        ---help---
+        Enable this option to print out information about the slave CPUs
+        addresses and operations you are using for coprocessor.
+
+config STM_RNG
+       bool "STM Random Number Generator Support"
+       default y
+       ---help---
+         This option adds support for the hardware Random Number Generator
+         (RNG) present on different STMicroelectronics SoCs.  It allows the
+         RNG to feed /dev/random with entropy thereby ensuring real
+         random numbers from this device.
+
+         Without this option, /dev/random has little entropy and is not
+         useful.  In fact, it may block for a long time while waiting for
+         entropy.
+
+         This option should always be enabled for relevant SoCs.
+
+         This option can be used in conjunction with the /dev/hw_random
+         driver found in the char drivers menu.
+
+config STM_MALI
+	depends on CPU_SUBTYPE_STX7108
+	tristate "STM Mali GPU support"
+	default n
+	help
+	  Enable this option to support Mali GPU Driver.
+	  
+config STM_MALI_DEBUG
+	depends on STM_MALI
+	bool "Enable debug tracing"
+	default y
+	---help---
+	  Enable this option to enable debug trace messages on the console
+
+config STM_LPC
+	bool "Low power control"
+	depends on PM
+	default n
+	---help---
+	  This option adds support for the hardware Low Power Control
+	  tu support the wakeup_on_timeout in the suspend operation.
+
+config STM_LPC_DEBUG
+	depends on STM_LPC
+	bool "LPC debug"
+	default n
+	---help---
+	  Enable this option to print out information about the LPC
+
+config PMS
+	bool "Power Management Scheme"
+	default n
+	depends on PM
+	select PM_RUNTIME
+	help
+	  This option enables the STMicroelectronics Power Management
+	  Scheme (PMS).
+
+	  This is a kernel framework based around power profiles (pms_state),
+	  where the designer can specify devices power states and the
+	  clock frequency rates.
+	  Moving the system between pms_states the user application can
+	  tune the power consumption according with what the system is doing.
+
+config PMS_CHECK_GROUP
+	bool "PMS always checks the state group"
+	depends on PMS
+	default n
+	help
+	  Enable this option if the state group has to be controlled.
+	  When a group of pms_states are enabled in the same time, this option
+	  forces the PMS to check that there is no conflict inside the group
+	  itself. In case of conflict the group is rejected.
+
+config PMS_DEBUG
+	bool "PMS debug"
+	default n
+	depends on PMS
+	help
+	  Enable this option to print out information about the PMS
+
+config STM_LPM
+	bool "STM Low Power Monitor"
+	depends on STM_DRIVERS
+	default n
+	---help---
+	  This option adds support for the hardware low power monitor.
+
+config STM_LPM_RD_MONITOR
+	bool "STM Low Power Monitor power key press on GPIO"
+	depends on STM_LPM
+	default n
+	---help---
+	  This enable intercept of GPIO activity by STLPM_POWER
+
+config STM_LPM_DEBUG
+	bool "STM Low Power Monitor debug"
+	depends on STM_LPM
+	default n
+	---help---
+	  Enable this option to print out information about the LPM
+
+endmenu

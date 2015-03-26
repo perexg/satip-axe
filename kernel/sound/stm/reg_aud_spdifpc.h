@@ -1,0 +1,2692 @@
+#ifndef __SND_STM_AUD_SPDIFPC_H
+#define __SND_STM_AUD_SPDIFPC_H
+
+/*
+ * AUD_SPDIFPC_CFG
+ */
+
+#define offset__AUD_SPDIFPC_CFG(ip) 0x000
+#define get__AUD_SPDIFPC_CFG(ip) readl(ip->base + \
+	offset__AUD_SPDIFPC_CFG(ip))
+#define set__AUD_SPDIFPC_CFG(ip, value) writel(value, ip->base + \
+	offset__AUD_SPDIFPC_CFG(ip))
+
+/* DEVICE_EN */
+
+#define shift__AUD_SPDIFPC_CFG__DEVICE_EN(ip) 0
+#define mask__AUD_SPDIFPC_CFG__DEVICE_EN(ip) 0x1
+#define get__AUD_SPDIFPC_CFG__DEVICE_EN(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_CFG(ip)) >> shift__AUD_SPDIFPC_CFG__DEVICE_EN(ip)) \
+	& mask__AUD_SPDIFPC_CFG__DEVICE_EN(ip))
+#define set__AUD_SPDIFPC_CFG__DEVICE_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_CFG(ip)) & \
+	~(mask__AUD_SPDIFPC_CFG__DEVICE_EN(ip) << \
+	shift__AUD_SPDIFPC_CFG__DEVICE_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_CFG__DEVICE_EN(ip)) << \
+	shift__AUD_SPDIFPC_CFG__DEVICE_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_CFG(ip))
+
+#define value__AUD_SPDIFPC_CFG__DEVICE_EN__DISABLED(ip) 0x0
+#define mask__AUD_SPDIFPC_CFG__DEVICE_EN__DISABLED(ip) \
+	(value__AUD_SPDIFPC_CFG__DEVICE_EN__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_CFG__DEVICE_EN(ip))
+#define set__AUD_SPDIFPC_CFG__DEVICE_EN__DISABLED(ip) \
+	set__AUD_SPDIFPC_CFG__DEVICE_EN(ip, \
+	value__AUD_SPDIFPC_CFG__DEVICE_EN__DISABLED(ip))
+
+#define value__AUD_SPDIFPC_CFG__DEVICE_EN__ENABLED(ip) 0x1
+#define mask__AUD_SPDIFPC_CFG__DEVICE_EN__ENABLED(ip) \
+	(value__AUD_SPDIFPC_CFG__DEVICE_EN__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_CFG__DEVICE_EN(ip))
+#define set__AUD_SPDIFPC_CFG__DEVICE_EN__ENABLED(ip) \
+	set__AUD_SPDIFPC_CFG__DEVICE_EN(ip, \
+	value__AUD_SPDIFPC_CFG__DEVICE_EN__ENABLED(ip))
+
+/* SW_RESET */
+
+#define shift__AUD_SPDIFPC_CFG__SW_RESET(ip) 1
+#define mask__AUD_SPDIFPC_CFG__SW_RESET(ip) 0x1
+#define get__AUD_SPDIFPC_CFG__SW_RESET(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_CFG(ip)) >> shift__AUD_SPDIFPC_CFG__SW_RESET(ip)) \
+	& mask__AUD_SPDIFPC_CFG__SW_RESET(ip))
+#define set__AUD_SPDIFPC_CFG__SW_RESET(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_CFG(ip)) & \
+	~(mask__AUD_SPDIFPC_CFG__SW_RESET(ip) << \
+	shift__AUD_SPDIFPC_CFG__SW_RESET(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_CFG__SW_RESET(ip)) << \
+	shift__AUD_SPDIFPC_CFG__SW_RESET(ip)), ip->base + \
+	offset__AUD_SPDIFPC_CFG(ip))
+
+#define value__AUD_SPDIFPC_CFG__SW_RESET__RUNNING(ip) 0x0
+#define mask__AUD_SPDIFPC_CFG__SW_RESET__RUNNING(ip) \
+	(value__AUD_SPDIFPC_CFG__SW_RESET__RUNNING(ip) << \
+	shift__AUD_SPDIFPC_CFG__SW_RESET(ip))
+#define set__AUD_SPDIFPC_CFG__SW_RESET__RUNNING(ip) \
+	set__AUD_SPDIFPC_CFG__SW_RESET(ip, \
+	value__AUD_SPDIFPC_CFG__SW_RESET__RUNNING(ip))
+
+#define value__AUD_SPDIFPC_CFG__SW_RESET__RESET(ip) 0x1
+#define mask__AUD_SPDIFPC_CFG__SW_RESET__RESET(ip) \
+	(value__AUD_SPDIFPC_CFG__SW_RESET__RESET(ip) << \
+	shift__AUD_SPDIFPC_CFG__SW_RESET(ip))
+#define set__AUD_SPDIFPC_CFG__SW_RESET__RESET(ip) \
+	set__AUD_SPDIFPC_CFG__SW_RESET(ip, \
+	value__AUD_SPDIFPC_CFG__SW_RESET__RESET(ip))
+
+/* FIFO_EN */
+
+#define shift__AUD_SPDIFPC_CFG__FIFO_EN(ip) 2
+#define mask__AUD_SPDIFPC_CFG__FIFO_EN(ip) 0x1
+#define get__AUD_SPDIFPC_CFG__FIFO_EN(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_CFG(ip)) >> shift__AUD_SPDIFPC_CFG__FIFO_EN(ip)) & \
+	mask__AUD_SPDIFPC_CFG__FIFO_EN(ip))
+#define set__AUD_SPDIFPC_CFG__FIFO_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_CFG(ip)) & \
+	~(mask__AUD_SPDIFPC_CFG__FIFO_EN(ip) << \
+	shift__AUD_SPDIFPC_CFG__FIFO_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_CFG__FIFO_EN(ip)) << \
+	shift__AUD_SPDIFPC_CFG__FIFO_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_CFG(ip))
+
+#define value__AUD_SPDIFPC_CFG__FIFO_EN__DISABLED(ip) 0x0
+#define mask__AUD_SPDIFPC_CFG__FIFO_EN__DISABLED(ip) \
+	(value__AUD_SPDIFPC_CFG__FIFO_EN__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_CFG__FIFO_EN(ip))
+#define set__AUD_SPDIFPC_CFG__FIFO_EN__DISABLED(ip) \
+	set__AUD_SPDIFPC_CFG__FIFO_EN(ip, \
+	value__AUD_SPDIFPC_CFG__FIFO_EN__DISABLED(ip))
+
+#define value__AUD_SPDIFPC_CFG__FIFO_EN__ENABLED(ip) 0x1
+#define mask__AUD_SPDIFPC_CFG__FIFO_EN__ENABLED(ip) \
+	(value__AUD_SPDIFPC_CFG__FIFO_EN__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_CFG__FIFO_EN(ip))
+#define set__AUD_SPDIFPC_CFG__FIFO_EN__ENABLED(ip) \
+	set__AUD_SPDIFPC_CFG__FIFO_EN(ip, \
+	value__AUD_SPDIFPC_CFG__FIFO_EN__ENABLED(ip))
+
+/* AUDIO_WORD_SIZE */
+
+#define shift__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE(ip) 3
+#define mask__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE(ip) 0x3
+#define get__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_CFG(ip)) >> \
+	shift__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE(ip)) & \
+	mask__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE(ip))
+#define set__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_CFG(ip)) & \
+	~(mask__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE(ip) << \
+	shift__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE(ip)) << \
+	shift__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE(ip)), ip->base + \
+	offset__AUD_SPDIFPC_CFG(ip))
+
+#define value__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE__16_BITS(ip) 0x0
+#define mask__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE__16_BITS(ip) \
+	(value__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE__16_BITS(ip) << \
+	shift__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE(ip))
+#define set__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE__16_BITS(ip) \
+	set__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE(ip, \
+	value__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE__16_BITS(ip))
+
+#define value__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE__20_BITS(ip) 0x1
+#define mask__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE__20_BITS(ip) \
+	(value__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE__20_BITS(ip) << \
+	shift__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE(ip))
+#define set__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE__20_BITS(ip) \
+	set__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE(ip, \
+	value__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE__20_BITS(ip))
+
+#define value__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE__24_BITS(ip) 0x2
+#define mask__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE__24_BITS(ip) \
+	(value__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE__24_BITS(ip) << \
+	shift__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE(ip))
+#define set__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE__24_BITS(ip) \
+	set__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE(ip, \
+	value__AUD_SPDIFPC_CFG__AUDIO_WORD_SIZE__24_BITS(ip))
+
+/* REQ_ACK_EN */
+
+#define shift__AUD_SPDIFPC_CFG__REQ_ACK_EN(ip) 5
+#define mask__AUD_SPDIFPC_CFG__REQ_ACK_EN(ip) 0x1
+#define get__AUD_SPDIFPC_CFG__REQ_ACK_EN(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_CFG(ip)) >> \
+	shift__AUD_SPDIFPC_CFG__REQ_ACK_EN(ip)) & \
+	mask__AUD_SPDIFPC_CFG__REQ_ACK_EN(ip))
+#define set__AUD_SPDIFPC_CFG__REQ_ACK_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_CFG(ip)) & \
+	~(mask__AUD_SPDIFPC_CFG__REQ_ACK_EN(ip) << \
+	shift__AUD_SPDIFPC_CFG__REQ_ACK_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_CFG__REQ_ACK_EN(ip)) << \
+	shift__AUD_SPDIFPC_CFG__REQ_ACK_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_CFG(ip))
+
+#define value__AUD_SPDIFPC_CFG__REQ_ACK_EN__DISABLED(ip) 0x0
+#define mask__AUD_SPDIFPC_CFG__REQ_ACK_EN__DISABLED(ip) \
+	(value__AUD_SPDIFPC_CFG__REQ_ACK_EN__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_CFG__REQ_ACK_EN(ip))
+#define set__AUD_SPDIFPC_CFG__REQ_ACK_EN__DISABLED(ip) \
+	set__AUD_SPDIFPC_CFG__REQ_ACK_EN(ip, \
+	value__AUD_SPDIFPC_CFG__REQ_ACK_EN__DISABLED(ip))
+
+#define value__AUD_SPDIFPC_CFG__REQ_ACK_EN__ENABLED(ip) 0x1
+#define mask__AUD_SPDIFPC_CFG__REQ_ACK_EN__ENABLED(ip) \
+	(value__AUD_SPDIFPC_CFG__REQ_ACK_EN__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_CFG__REQ_ACK_EN(ip))
+#define set__AUD_SPDIFPC_CFG__REQ_ACK_EN__ENABLED(ip) \
+	set__AUD_SPDIFPC_CFG__REQ_ACK_EN(ip, \
+	value__AUD_SPDIFPC_CFG__REQ_ACK_EN__ENABLED(ip))
+
+/* CHA_STA_BITS */
+
+#define shift__AUD_SPDIFPC_CFG__CHA_STA_BITS(ip) (ip->ver < \
+	4 ? -1 : 6)
+#define mask__AUD_SPDIFPC_CFG__CHA_STA_BITS(ip) (ip->ver < \
+	4 ? -1 : 0x1)
+#define get__AUD_SPDIFPC_CFG__CHA_STA_BITS(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_CFG(ip)) >> \
+	shift__AUD_SPDIFPC_CFG__CHA_STA_BITS(ip)) & \
+	mask__AUD_SPDIFPC_CFG__CHA_STA_BITS(ip))
+#define set__AUD_SPDIFPC_CFG__CHA_STA_BITS(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_CFG(ip)) & \
+	~(mask__AUD_SPDIFPC_CFG__CHA_STA_BITS(ip) << \
+	shift__AUD_SPDIFPC_CFG__CHA_STA_BITS(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_CFG__CHA_STA_BITS(ip)) << \
+	shift__AUD_SPDIFPC_CFG__CHA_STA_BITS(ip)), ip->base + \
+	offset__AUD_SPDIFPC_CFG(ip))
+
+#define value__AUD_SPDIFPC_CFG__CHA_STA_BITS__SUBFRAME(ip) (ip->ver < \
+	4 ? -1 : 0x0)
+#define mask__AUD_SPDIFPC_CFG__CHA_STA_BITS__SUBFRAME(ip) \
+	(value__AUD_SPDIFPC_CFG__CHA_STA_BITS__SUBFRAME(ip) << \
+	shift__AUD_SPDIFPC_CFG__CHA_STA_BITS(ip))
+#define set__AUD_SPDIFPC_CFG__CHA_STA_BITS__SUBFRAME(ip) \
+	set__AUD_SPDIFPC_CFG__CHA_STA_BITS(ip, \
+	value__AUD_SPDIFPC_CFG__CHA_STA_BITS__SUBFRAME(ip))
+
+#define value__AUD_SPDIFPC_CFG__CHA_STA_BITS__FRAME(ip) (ip->ver < \
+	4 ? -1 : 0x1)
+#define mask__AUD_SPDIFPC_CFG__CHA_STA_BITS__FRAME(ip) \
+	(value__AUD_SPDIFPC_CFG__CHA_STA_BITS__FRAME(ip) << \
+	shift__AUD_SPDIFPC_CFG__CHA_STA_BITS(ip))
+#define set__AUD_SPDIFPC_CFG__CHA_STA_BITS__FRAME(ip) \
+	set__AUD_SPDIFPC_CFG__CHA_STA_BITS(ip, \
+	value__AUD_SPDIFPC_CFG__CHA_STA_BITS__FRAME(ip))
+
+
+
+/*
+ * AUD_SPDIFPC_STA
+ */
+
+#define offset__AUD_SPDIFPC_STA(ip) 0x004
+#define get__AUD_SPDIFPC_STA(ip) readl(ip->base + \
+	offset__AUD_SPDIFPC_STA(ip))
+#define set__AUD_SPDIFPC_STA(ip, value) writel(value, ip->base + \
+	offset__AUD_SPDIFPC_STA(ip))
+
+/* SOFT_RESET */
+
+#define shift__AUD_SPDIFPC_STA__SOFT_RESET(ip) 1
+#define mask__AUD_SPDIFPC_STA__SOFT_RESET(ip) 0x1
+#define get__AUD_SPDIFPC_STA__SOFT_RESET(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_STA(ip)) >> \
+	shift__AUD_SPDIFPC_STA__SOFT_RESET(ip)) & \
+	mask__AUD_SPDIFPC_STA__SOFT_RESET(ip))
+#define set__AUD_SPDIFPC_STA__SOFT_RESET(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_STA(ip)) & \
+	~(mask__AUD_SPDIFPC_STA__SOFT_RESET(ip) << \
+	shift__AUD_SPDIFPC_STA__SOFT_RESET(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_STA__SOFT_RESET(ip)) << \
+	shift__AUD_SPDIFPC_STA__SOFT_RESET(ip)), ip->base + \
+	offset__AUD_SPDIFPC_STA(ip))
+
+#define value__AUD_SPDIFPC_STA__SOFT_RESET__ACTIVE(ip) 0x1
+#define mask__AUD_SPDIFPC_STA__SOFT_RESET__ACTIVE(ip) \
+	(value__AUD_SPDIFPC_STA__SOFT_RESET__ACTIVE(ip) << \
+	shift__AUD_SPDIFPC_STA__SOFT_RESET(ip))
+#define set__AUD_SPDIFPC_STA__SOFT_RESET__ACTIVE(ip) \
+	set__AUD_SPDIFPC_STA__SOFT_RESET(ip, \
+	value__AUD_SPDIFPC_STA__SOFT_RESET__ACTIVE(ip))
+
+/* VALIDITY_REG_EMPTY */
+
+#define shift__AUD_SPDIFPC_STA__VALIDITY_REG_EMPTY(ip) 2
+#define mask__AUD_SPDIFPC_STA__VALIDITY_REG_EMPTY(ip) 0x1
+#define get__AUD_SPDIFPC_STA__VALIDITY_REG_EMPTY(ip) ((readl(ip->base \
+	+ offset__AUD_SPDIFPC_STA(ip)) >> \
+	shift__AUD_SPDIFPC_STA__VALIDITY_REG_EMPTY(ip)) & \
+	mask__AUD_SPDIFPC_STA__VALIDITY_REG_EMPTY(ip))
+#define set__AUD_SPDIFPC_STA__VALIDITY_REG_EMPTY(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_STA(ip)) & \
+	~(mask__AUD_SPDIFPC_STA__VALIDITY_REG_EMPTY(ip) << \
+	shift__AUD_SPDIFPC_STA__VALIDITY_REG_EMPTY(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_STA__VALIDITY_REG_EMPTY(ip)) << \
+	shift__AUD_SPDIFPC_STA__VALIDITY_REG_EMPTY(ip)), ip->base + \
+	offset__AUD_SPDIFPC_STA(ip))
+
+#define value__AUD_SPDIFPC_STA__VALIDITY_REG_EMPTY__EMPTY(ip) 0x1
+#define mask__AUD_SPDIFPC_STA__VALIDITY_REG_EMPTY__EMPTY(ip) \
+	(value__AUD_SPDIFPC_STA__VALIDITY_REG_EMPTY__EMPTY(ip) << \
+	shift__AUD_SPDIFPC_STA__VALIDITY_REG_EMPTY(ip))
+#define set__AUD_SPDIFPC_STA__VALIDITY_REG_EMPTY__EMPTY(ip) \
+	set__AUD_SPDIFPC_STA__VALIDITY_REG_EMPTY(ip, \
+	value__AUD_SPDIFPC_STA__VALIDITY_REG_EMPTY__EMPTY(ip))
+
+/* VALIDITY_REG_UNDERRUN */
+
+#define shift__AUD_SPDIFPC_STA__VALIDITY_REG_UNDERRUN(ip) 3
+#define mask__AUD_SPDIFPC_STA__VALIDITY_REG_UNDERRUN(ip) 0x1
+#define get__AUD_SPDIFPC_STA__VALIDITY_REG_UNDERRUN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_STA(ip)) >> \
+	shift__AUD_SPDIFPC_STA__VALIDITY_REG_UNDERRUN(ip)) & \
+	mask__AUD_SPDIFPC_STA__VALIDITY_REG_UNDERRUN(ip))
+#define set__AUD_SPDIFPC_STA__VALIDITY_REG_UNDERRUN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_STA(ip)) & \
+	~(mask__AUD_SPDIFPC_STA__VALIDITY_REG_UNDERRUN(ip) << \
+	shift__AUD_SPDIFPC_STA__VALIDITY_REG_UNDERRUN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_STA__VALIDITY_REG_UNDERRUN(ip)) << \
+	shift__AUD_SPDIFPC_STA__VALIDITY_REG_UNDERRUN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_STA(ip))
+
+#define value__AUD_SPDIFPC_STA__VALIDITY_REG_UNDERRUN__DETECTED(ip) \
+	0x1
+#define mask__AUD_SPDIFPC_STA__VALIDITY_REG_UNDERRUN__DETECTED(ip) \
+	(value__AUD_SPDIFPC_STA__VALIDITY_REG_UNDERRUN__DETECTED(ip) << \
+	shift__AUD_SPDIFPC_STA__VALIDITY_REG_UNDERRUN(ip))
+#define set__AUD_SPDIFPC_STA__VALIDITY_REG_UNDERRUN__DETECTED(ip) \
+	set__AUD_SPDIFPC_STA__VALIDITY_REG_UNDERRUN(ip, \
+	value__AUD_SPDIFPC_STA__VALIDITY_REG_UNDERRUN__DETECTED(ip))
+
+/* USER_DATA_REG_STATUS */
+
+#define shift__AUD_SPDIFPC_STA__USER_DATA_REG_STATUS(ip) 4
+#define mask__AUD_SPDIFPC_STA__USER_DATA_REG_STATUS(ip) 0x1
+#define get__AUD_SPDIFPC_STA__USER_DATA_REG_STATUS(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_STA(ip)) >> \
+	shift__AUD_SPDIFPC_STA__USER_DATA_REG_STATUS(ip)) & \
+	mask__AUD_SPDIFPC_STA__USER_DATA_REG_STATUS(ip))
+#define set__AUD_SPDIFPC_STA__USER_DATA_REG_STATUS(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_STA(ip)) & \
+	~(mask__AUD_SPDIFPC_STA__USER_DATA_REG_STATUS(ip) << \
+	shift__AUD_SPDIFPC_STA__USER_DATA_REG_STATUS(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_STA__USER_DATA_REG_STATUS(ip)) << \
+	shift__AUD_SPDIFPC_STA__USER_DATA_REG_STATUS(ip)), ip->base + \
+	offset__AUD_SPDIFPC_STA(ip))
+
+#define value__AUD_SPDIFPC_STA__USER_DATA_REG_STATUS__EMPTY(ip) 0x1
+#define mask__AUD_SPDIFPC_STA__USER_DATA_REG_STATUS__EMPTY(ip) \
+	(value__AUD_SPDIFPC_STA__USER_DATA_REG_STATUS__EMPTY(ip) << \
+	shift__AUD_SPDIFPC_STA__USER_DATA_REG_STATUS(ip))
+#define set__AUD_SPDIFPC_STA__USER_DATA_REG_STATUS__EMPTY(ip) \
+	set__AUD_SPDIFPC_STA__USER_DATA_REG_STATUS(ip, \
+	value__AUD_SPDIFPC_STA__USER_DATA_REG_STATUS__EMPTY(ip))
+
+/* USER_DATA_REG_UNDERRUN */
+
+#define shift__AUD_SPDIFPC_STA__USER_DATA_REG_UNDERRUN(ip) 5
+#define mask__AUD_SPDIFPC_STA__USER_DATA_REG_UNDERRUN(ip) 0x1
+#define get__AUD_SPDIFPC_STA__USER_DATA_REG_UNDERRUN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_STA(ip)) >> \
+	shift__AUD_SPDIFPC_STA__USER_DATA_REG_UNDERRUN(ip)) & \
+	mask__AUD_SPDIFPC_STA__USER_DATA_REG_UNDERRUN(ip))
+#define set__AUD_SPDIFPC_STA__USER_DATA_REG_UNDERRUN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_STA(ip)) & \
+	~(mask__AUD_SPDIFPC_STA__USER_DATA_REG_UNDERRUN(ip) << \
+	shift__AUD_SPDIFPC_STA__USER_DATA_REG_UNDERRUN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_STA__USER_DATA_REG_UNDERRUN(ip)) << \
+	shift__AUD_SPDIFPC_STA__USER_DATA_REG_UNDERRUN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_STA(ip))
+
+#define value__AUD_SPDIFPC_STA__USER_DATA_REG_UNDERRUN__DETECTED(ip) \
+	0x1
+#define mask__AUD_SPDIFPC_STA__USER_DATA_REG_UNDERRUN__DETECTED(ip) \
+	(value__AUD_SPDIFPC_STA__USER_DATA_REG_UNDERRUN__DETECTED(ip) << \
+	shift__AUD_SPDIFPC_STA__USER_DATA_REG_UNDERRUN(ip))
+#define set__AUD_SPDIFPC_STA__USER_DATA_REG_UNDERRUN__DETECTED(ip) \
+	set__AUD_SPDIFPC_STA__USER_DATA_REG_UNDERRUN(ip, \
+	value__AUD_SPDIFPC_STA__USER_DATA_REG_UNDERRUN__DETECTED(ip))
+
+/* CHL_STS_BUFF_EMPTY */
+
+#define shift__AUD_SPDIFPC_STA__CHL_STS_BUFF_EMPTY(ip) 6
+#define mask__AUD_SPDIFPC_STA__CHL_STS_BUFF_EMPTY(ip) 0x1
+#define get__AUD_SPDIFPC_STA__CHL_STS_BUFF_EMPTY(ip) ((readl(ip->base \
+	+ offset__AUD_SPDIFPC_STA(ip)) >> \
+	shift__AUD_SPDIFPC_STA__CHL_STS_BUFF_EMPTY(ip)) & \
+	mask__AUD_SPDIFPC_STA__CHL_STS_BUFF_EMPTY(ip))
+#define set__AUD_SPDIFPC_STA__CHL_STS_BUFF_EMPTY(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_STA(ip)) & \
+	~(mask__AUD_SPDIFPC_STA__CHL_STS_BUFF_EMPTY(ip) << \
+	shift__AUD_SPDIFPC_STA__CHL_STS_BUFF_EMPTY(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_STA__CHL_STS_BUFF_EMPTY(ip)) << \
+	shift__AUD_SPDIFPC_STA__CHL_STS_BUFF_EMPTY(ip)), ip->base + \
+	offset__AUD_SPDIFPC_STA(ip))
+
+#define value__AUD_SPDIFPC_STA__CHL_STS_BUFF_EMPTY__EMPTY(ip) 0x1
+#define mask__AUD_SPDIFPC_STA__CHL_STS_BUFF_EMPTY__EMPTY(ip) \
+	(value__AUD_SPDIFPC_STA__CHL_STS_BUFF_EMPTY__EMPTY(ip) << \
+	shift__AUD_SPDIFPC_STA__CHL_STS_BUFF_EMPTY(ip))
+#define set__AUD_SPDIFPC_STA__CHL_STS_BUFF_EMPTY__EMPTY(ip) \
+	set__AUD_SPDIFPC_STA__CHL_STS_BUFF_EMPTY(ip, \
+	value__AUD_SPDIFPC_STA__CHL_STS_BUFF_EMPTY__EMPTY(ip))
+
+/* CHL_STS_BUFF_UNDERRUN */
+
+#define shift__AUD_SPDIFPC_STA__CHL_STS_BUFF_UNDERRUN(ip) 7
+#define mask__AUD_SPDIFPC_STA__CHL_STS_BUFF_UNDERRUN(ip) 0x1
+#define get__AUD_SPDIFPC_STA__CHL_STS_BUFF_UNDERRUN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_STA(ip)) >> \
+	shift__AUD_SPDIFPC_STA__CHL_STS_BUFF_UNDERRUN(ip)) & \
+	mask__AUD_SPDIFPC_STA__CHL_STS_BUFF_UNDERRUN(ip))
+#define set__AUD_SPDIFPC_STA__CHL_STS_BUFF_UNDERRUN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_STA(ip)) & \
+	~(mask__AUD_SPDIFPC_STA__CHL_STS_BUFF_UNDERRUN(ip) << \
+	shift__AUD_SPDIFPC_STA__CHL_STS_BUFF_UNDERRUN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_STA__CHL_STS_BUFF_UNDERRUN(ip)) << \
+	shift__AUD_SPDIFPC_STA__CHL_STS_BUFF_UNDERRUN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_STA(ip))
+
+#define value__AUD_SPDIFPC_STA__CHL_STS_BUFF_UNDERRUN__DETECTED(ip) \
+	0x1
+#define mask__AUD_SPDIFPC_STA__CHL_STS_BUFF_UNDERRUN__DETECTED(ip) \
+	(value__AUD_SPDIFPC_STA__CHL_STS_BUFF_UNDERRUN__DETECTED(ip) << \
+	shift__AUD_SPDIFPC_STA__CHL_STS_BUFF_UNDERRUN(ip))
+#define set__AUD_SPDIFPC_STA__CHL_STS_BUFF_UNDERRUN__DETECTED(ip) \
+	set__AUD_SPDIFPC_STA__CHL_STS_BUFF_UNDERRUN(ip, \
+	value__AUD_SPDIFPC_STA__CHL_STS_BUFF_UNDERRUN__DETECTED(ip))
+
+/* I2S_FIFO_OVERRUN */
+
+#define shift__AUD_SPDIFPC_STA__I2S_FIFO_OVERRUN(ip) 8
+#define mask__AUD_SPDIFPC_STA__I2S_FIFO_OVERRUN(ip) 0x1
+#define get__AUD_SPDIFPC_STA__I2S_FIFO_OVERRUN(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_STA(ip)) >> \
+	shift__AUD_SPDIFPC_STA__I2S_FIFO_OVERRUN(ip)) & \
+	mask__AUD_SPDIFPC_STA__I2S_FIFO_OVERRUN(ip))
+#define set__AUD_SPDIFPC_STA__I2S_FIFO_OVERRUN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_STA(ip)) & \
+	~(mask__AUD_SPDIFPC_STA__I2S_FIFO_OVERRUN(ip) << \
+	shift__AUD_SPDIFPC_STA__I2S_FIFO_OVERRUN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_STA__I2S_FIFO_OVERRUN(ip)) << \
+	shift__AUD_SPDIFPC_STA__I2S_FIFO_OVERRUN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_STA(ip))
+
+#define value__AUD_SPDIFPC_STA__I2S_FIFO_OVERRUN__DETECTED(ip) 0x1
+#define mask__AUD_SPDIFPC_STA__I2S_FIFO_OVERRUN__DETECTED(ip) \
+	(value__AUD_SPDIFPC_STA__I2S_FIFO_OVERRUN__DETECTED(ip) << \
+	shift__AUD_SPDIFPC_STA__I2S_FIFO_OVERRUN(ip))
+#define set__AUD_SPDIFPC_STA__I2S_FIFO_OVERRUN__DETECTED(ip) \
+	set__AUD_SPDIFPC_STA__I2S_FIFO_OVERRUN(ip, \
+	value__AUD_SPDIFPC_STA__I2S_FIFO_OVERRUN__DETECTED(ip))
+
+/* CURR_CHL_STS_BUFFER */
+
+#define shift__AUD_SPDIFPC_STA__CURR_CHL_STS_BUFFER(ip) 16
+
+#define value__AUD_SPDIFPC_STA__CURR_CHL_STS_BUFFER__MASK(ip) 0x7
+#define mask__AUD_SPDIFPC_STA__CURR_CHL_STS_BUFFER__MASK(ip) \
+	(value__AUD_SPDIFPC_STA__CURR_CHL_STS_BUFFER__MASK(ip) << \
+	shift__AUD_SPDIFPC_STA__CURR_CHL_STS_BUFFER(ip))
+#define set__AUD_SPDIFPC_STA__CURR_CHL_STS_BUFFER__MASK(ip) \
+	set__AUD_SPDIFPC_STA__CURR_CHL_STS_BUFFER(ip, \
+	value__AUD_SPDIFPC_STA__CURR_CHL_STS_BUFFER__MASK(ip))
+
+
+
+/*
+ * AUD_SPDIFPC_IT_EN
+ */
+
+#define offset__AUD_SPDIFPC_IT_EN(ip) 0x008
+#define get__AUD_SPDIFPC_IT_EN(ip) readl(ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN(ip, value) writel(value, ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip))
+
+/* INTERRUPT_EN */
+
+#define shift__AUD_SPDIFPC_IT_EN__INTERRUPT_EN(ip) 0
+#define mask__AUD_SPDIFPC_IT_EN__INTERRUPT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_EN__INTERRUPT_EN(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip)) >> \
+	shift__AUD_SPDIFPC_IT_EN__INTERRUPT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_EN__INTERRUPT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__INTERRUPT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_EN__INTERRUPT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__INTERRUPT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_EN__INTERRUPT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_EN__INTERRUPT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__INTERRUPT_EN__DISABLED(ip) 0x0
+#define mask__AUD_SPDIFPC_IT_EN__INTERRUPT_EN__DISABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__INTERRUPT_EN__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__INTERRUPT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__INTERRUPT_EN__DISABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__INTERRUPT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__INTERRUPT_EN__DISABLED(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__INTERRUPT_EN__ENABLED(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_EN__INTERRUPT_EN__ENABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__INTERRUPT_EN__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__INTERRUPT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__INTERRUPT_EN__ENABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__INTERRUPT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__INTERRUPT_EN__ENABLED(ip))
+
+/* SOFT_RESET_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN(ip) 1
+#define mask__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN(ip) ((readl(ip->base \
+	+ offset__AUD_SPDIFPC_IT_EN(ip)) >> \
+	shift__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN__DISABLED(ip) 0x0
+#define mask__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN__DISABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN__DISABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN__DISABLED(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN__ENABLED(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN__ENABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN__ENABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__SOFT_RESET_INT_EN__ENABLED(ip))
+
+/* VALIDITY_EMPTY_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN(ip) 2
+#define mask__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) >> \
+	shift__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN__DISABLED(ip) \
+	0x0
+#define mask__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN__DISABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN__DISABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN__DISABLED(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN__ENABLED(ip) \
+	0x1
+#define mask__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN__ENABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN__ENABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__VALIDITY_EMPTY_INT_EN__ENABLED(ip))
+
+/* VALIDITY_UNDERRUN_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN(ip) 3
+#define mask__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) >> \
+	shift__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip))
+
+#define \
+	value__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN__DISABLED(ip) 0x0
+#define \
+	mask__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN__DISABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN__DISABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN__DISABLED(ip))
+
+#define \
+	value__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN__ENABLED(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN__ENABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN__ENABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__VALIDITY_UNDERRUN_INT_EN__ENABLED(ip))
+
+/* USER_DATA_EMPTY_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN(ip) 4
+#define mask__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) >> \
+	shift__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN__DISABLED(ip) \
+	0x0
+#define mask__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN__DISABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN__DISABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN__DISABLED(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN__ENABLED(ip) \
+	0x1
+#define mask__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN__ENABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN__ENABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__USER_DATA_EMPTY_INT_EN__ENABLED(ip))
+
+/* USER_DATA_UNDERRUN_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN(ip) 5
+#define mask__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) >> \
+	shift__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN(ip))) | (((value) \
+	& mask__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip))
+
+#define \
+	value__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN__DISABLED(ip) 0x0
+#define \
+	mask__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN__DISABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN(ip))
+#define \
+	set__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN__DISABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN__DISABLED(ip))
+
+#define \
+	value__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN__ENABLED(ip) 0x1
+#define \
+	mask__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN__ENABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN__ENABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__USER_DATA_UNDERRUN_INT_EN__ENABLED(ip))
+
+/* CHL_STS_EMPTY_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN(ip) 6
+#define mask__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) >> \
+	shift__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN__DISABLED(ip) \
+	0x0
+#define mask__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN__DISABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN__DISABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN__DISABLED(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN__ENABLED(ip) \
+	0x1
+#define mask__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN__ENABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN__ENABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__CHL_STS_EMPTY_INT_EN__ENABLED(ip))
+
+/* CHL_STS_UNDERRUN_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN(ip) 7
+#define mask__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) >> \
+	shift__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip))
+
+#define \
+	value__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN__DISABLED(ip) 0x0
+#define mask__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN__DISABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN__DISABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN__DISABLED(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN__ENABLED(ip) \
+	0x1
+#define mask__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN__ENABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN__ENABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__CHL_STS_UNDERRUN_INT_EN__ENABLED(ip))
+
+/* I2S_FIFO_OVERRUN_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN(ip) 8
+#define mask__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) >> \
+	shift__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip))
+
+#define \
+	value__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN__DISABLED(ip) 0x0
+#define mask__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN__DISABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN__DISABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN__DISABLED(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN__ENABLED(ip) \
+	0x1
+#define mask__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN__ENABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN__ENABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__I2S_FIFO_OVERRUN_INT_EN__ENABLED(ip))
+
+/* RUN_STOP_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN(ip) 16
+#define mask__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip)) >> \
+	shift__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN__DISABLED(ip) 0x0
+#define mask__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN__DISABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN__DISABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN__DISABLED(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN__ENABLED(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN__ENABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN__ENABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__RUN_STOP_INT_EN__ENABLED(ip))
+
+/* UNDERFLOW_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN(ip) 17
+#define mask__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN(ip) ((readl(ip->base \
+	+ offset__AUD_SPDIFPC_IT_EN(ip)) >> \
+	shift__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN__DISABLED(ip) 0x0
+#define mask__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN__DISABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN__DISABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN__DISABLED(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN__ENABLED(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN__ENABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN__ENABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__UNDERFLOW_INT_EN__ENABLED(ip))
+
+/* EODATABURST_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN(ip) 18
+#define mask__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) >> \
+	shift__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN__DISABLED(ip) 0x0
+#define mask__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN__DISABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN__DISABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN__DISABLED(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN__ENABLED(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN__ENABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN__ENABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__EODATABURST_INT_EN__ENABLED(ip))
+
+/* EOBLOCK_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN(ip) 19
+#define mask__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip)) >> \
+	shift__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN__DISABLED(ip) 0x0
+#define mask__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN__DISABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN__DISABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN__DISABLED(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN__ENABLED(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN__ENABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN__ENABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__EOBLOCK_INT_EN__ENABLED(ip))
+
+/* LATENCY_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN(ip) 20
+#define mask__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip)) >> \
+	shift__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN__DISABLED(ip) 0x0
+#define mask__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN__DISABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN__DISABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN__DISABLED(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN__ENABLED(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN__ENABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN__ENABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__LATENCY_INT_EN__ENABLED(ip))
+
+/* PD_DATA_BURST */
+
+#define shift__AUD_SPDIFPC_IT_EN__PD_DATA_BURST(ip) 21
+#define mask__AUD_SPDIFPC_IT_EN__PD_DATA_BURST(ip) 0x1
+#define get__AUD_SPDIFPC_IT_EN__PD_DATA_BURST(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip)) >> \
+	shift__AUD_SPDIFPC_IT_EN__PD_DATA_BURST(ip)) & \
+	mask__AUD_SPDIFPC_IT_EN__PD_DATA_BURST(ip))
+#define set__AUD_SPDIFPC_IT_EN__PD_DATA_BURST(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_EN__PD_DATA_BURST(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__PD_DATA_BURST(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_EN__PD_DATA_BURST(ip)) << \
+	shift__AUD_SPDIFPC_IT_EN__PD_DATA_BURST(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__PD_DATA_BURST__DISABLED(ip) 0x0
+#define mask__AUD_SPDIFPC_IT_EN__PD_DATA_BURST__DISABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__PD_DATA_BURST__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__PD_DATA_BURST(ip))
+#define set__AUD_SPDIFPC_IT_EN__PD_DATA_BURST__DISABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__PD_DATA_BURST(ip, \
+	value__AUD_SPDIFPC_IT_EN__PD_DATA_BURST__DISABLED(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__PD_DATA_BURST__ENABLED(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_EN__PD_DATA_BURST__ENABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__PD_DATA_BURST__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__PD_DATA_BURST(ip))
+#define set__AUD_SPDIFPC_IT_EN__PD_DATA_BURST__ENABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__PD_DATA_BURST(ip, \
+	value__AUD_SPDIFPC_IT_EN__PD_DATA_BURST__ENABLED(ip))
+
+/* SAMPLES_READ_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN(ip) 22
+#define mask__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) >> \
+	shift__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN__DISABLED(ip) \
+	0x0
+#define mask__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN__DISABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN__DISABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN__DISABLED(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN__ENABLED(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN__ENABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN__ENABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__SAMPLES_READ_INT_EN__ENABLED(ip))
+
+/* PD_PAUSE_BURST_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN(ip) 31
+#define mask__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) >> \
+	shift__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_EN(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_EN(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN__DISABLED(ip) \
+	0x0
+#define mask__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN__DISABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN__DISABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN__DISABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN__DISABLED(ip))
+
+#define value__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN__ENABLED(ip) \
+	0x1
+#define mask__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN__ENABLED(ip) \
+	(value__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN__ENABLED(ip) << \
+	shift__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN__ENABLED(ip) \
+	set__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_EN__PD_PAUSE_BURST_INT_EN__ENABLED(ip))
+
+
+
+/*
+ * AUD_SPDIFPC_ITS
+ */
+
+#define offset__AUD_SPDIFPC_ITS(ip) 0x00c
+#define get__AUD_SPDIFPC_ITS(ip) readl(ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip))
+#define set__AUD_SPDIFPC_ITS(ip, value) writel(value, ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip))
+
+/* INTERRUPT */
+
+#define shift__AUD_SPDIFPC_ITS__INTERRUPT(ip) 0
+#define mask__AUD_SPDIFPC_ITS__INTERRUPT(ip) 0x1
+#define get__AUD_SPDIFPC_ITS__INTERRUPT(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip)) >> shift__AUD_SPDIFPC_ITS__INTERRUPT(ip)) \
+	& mask__AUD_SPDIFPC_ITS__INTERRUPT(ip))
+#define set__AUD_SPDIFPC_ITS__INTERRUPT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) & \
+	~(mask__AUD_SPDIFPC_ITS__INTERRUPT(ip) << \
+	shift__AUD_SPDIFPC_ITS__INTERRUPT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_ITS__INTERRUPT(ip)) << \
+	shift__AUD_SPDIFPC_ITS__INTERRUPT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip))
+
+#define value__AUD_SPDIFPC_ITS__INTERRUPT__PENDING(ip) 0x1
+#define mask__AUD_SPDIFPC_ITS__INTERRUPT__PENDING(ip) \
+	(value__AUD_SPDIFPC_ITS__INTERRUPT__PENDING(ip) << \
+	shift__AUD_SPDIFPC_ITS__INTERRUPT(ip))
+#define set__AUD_SPDIFPC_ITS__INTERRUPT__PENDING(ip) \
+	set__AUD_SPDIFPC_ITS__INTERRUPT(ip, \
+	value__AUD_SPDIFPC_ITS__INTERRUPT__PENDING(ip))
+
+/* SOFT_RESET_INT */
+
+#define shift__AUD_SPDIFPC_ITS__SOFT_RESET_INT(ip) 1
+#define mask__AUD_SPDIFPC_ITS__SOFT_RESET_INT(ip) 0x1
+#define get__AUD_SPDIFPC_ITS__SOFT_RESET_INT(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip)) >> \
+	shift__AUD_SPDIFPC_ITS__SOFT_RESET_INT(ip)) & \
+	mask__AUD_SPDIFPC_ITS__SOFT_RESET_INT(ip))
+#define set__AUD_SPDIFPC_ITS__SOFT_RESET_INT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) & \
+	~(mask__AUD_SPDIFPC_ITS__SOFT_RESET_INT(ip) << \
+	shift__AUD_SPDIFPC_ITS__SOFT_RESET_INT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_ITS__SOFT_RESET_INT(ip)) << \
+	shift__AUD_SPDIFPC_ITS__SOFT_RESET_INT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip))
+
+#define value__AUD_SPDIFPC_ITS__SOFT_RESET_INT__PENDING(ip) 0x1
+#define mask__AUD_SPDIFPC_ITS__SOFT_RESET_INT__PENDING(ip) \
+	(value__AUD_SPDIFPC_ITS__SOFT_RESET_INT__PENDING(ip) << \
+	shift__AUD_SPDIFPC_ITS__SOFT_RESET_INT(ip))
+#define set__AUD_SPDIFPC_ITS__SOFT_RESET_INT__PENDING(ip) \
+	set__AUD_SPDIFPC_ITS__SOFT_RESET_INT(ip, \
+	value__AUD_SPDIFPC_ITS__SOFT_RESET_INT__PENDING(ip))
+
+/* VALIDITY_EMPTY_INT */
+
+#define shift__AUD_SPDIFPC_ITS__VALIDITY_EMPTY_INT(ip) 2
+#define mask__AUD_SPDIFPC_ITS__VALIDITY_EMPTY_INT(ip) 0x1
+#define get__AUD_SPDIFPC_ITS__VALIDITY_EMPTY_INT(ip) ((readl(ip->base \
+	+ offset__AUD_SPDIFPC_ITS(ip)) >> \
+	shift__AUD_SPDIFPC_ITS__VALIDITY_EMPTY_INT(ip)) & \
+	mask__AUD_SPDIFPC_ITS__VALIDITY_EMPTY_INT(ip))
+#define set__AUD_SPDIFPC_ITS__VALIDITY_EMPTY_INT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) & \
+	~(mask__AUD_SPDIFPC_ITS__VALIDITY_EMPTY_INT(ip) << \
+	shift__AUD_SPDIFPC_ITS__VALIDITY_EMPTY_INT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_ITS__VALIDITY_EMPTY_INT(ip)) << \
+	shift__AUD_SPDIFPC_ITS__VALIDITY_EMPTY_INT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip))
+
+#define value__AUD_SPDIFPC_ITS__VALIDITY_EMPTY_INT__PENDING(ip) 0x1
+#define mask__AUD_SPDIFPC_ITS__VALIDITY_EMPTY_INT__PENDING(ip) \
+	(value__AUD_SPDIFPC_ITS__VALIDITY_EMPTY_INT__PENDING(ip) << \
+	shift__AUD_SPDIFPC_ITS__VALIDITY_EMPTY_INT(ip))
+#define set__AUD_SPDIFPC_ITS__VALIDITY_EMPTY_INT__PENDING(ip) \
+	set__AUD_SPDIFPC_ITS__VALIDITY_EMPTY_INT(ip, \
+	value__AUD_SPDIFPC_ITS__VALIDITY_EMPTY_INT__PENDING(ip))
+
+/* VALIDITY_UNDERRUN_INT */
+
+#define shift__AUD_SPDIFPC_ITS__VALIDITY_UNDERRUN_INT(ip) 3
+#define mask__AUD_SPDIFPC_ITS__VALIDITY_UNDERRUN_INT(ip) 0x1
+#define get__AUD_SPDIFPC_ITS__VALIDITY_UNDERRUN_INT(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) >> \
+	shift__AUD_SPDIFPC_ITS__VALIDITY_UNDERRUN_INT(ip)) & \
+	mask__AUD_SPDIFPC_ITS__VALIDITY_UNDERRUN_INT(ip))
+#define set__AUD_SPDIFPC_ITS__VALIDITY_UNDERRUN_INT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) & \
+	~(mask__AUD_SPDIFPC_ITS__VALIDITY_UNDERRUN_INT(ip) << \
+	shift__AUD_SPDIFPC_ITS__VALIDITY_UNDERRUN_INT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_ITS__VALIDITY_UNDERRUN_INT(ip)) << \
+	shift__AUD_SPDIFPC_ITS__VALIDITY_UNDERRUN_INT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip))
+
+#define value__AUD_SPDIFPC_ITS__VALIDITY_UNDERRUN_INT__PENDING(ip) 0x1
+#define mask__AUD_SPDIFPC_ITS__VALIDITY_UNDERRUN_INT__PENDING(ip) \
+	(value__AUD_SPDIFPC_ITS__VALIDITY_UNDERRUN_INT__PENDING(ip) << \
+	shift__AUD_SPDIFPC_ITS__VALIDITY_UNDERRUN_INT(ip))
+#define set__AUD_SPDIFPC_ITS__VALIDITY_UNDERRUN_INT__PENDING(ip) \
+	set__AUD_SPDIFPC_ITS__VALIDITY_UNDERRUN_INT(ip, \
+	value__AUD_SPDIFPC_ITS__VALIDITY_UNDERRUN_INT__PENDING(ip))
+
+/* USER_DATA_EMPTY_INT */
+
+#define shift__AUD_SPDIFPC_ITS__USER_DATA_EMPTY_INT(ip) 4
+#define mask__AUD_SPDIFPC_ITS__USER_DATA_EMPTY_INT(ip) 0x1
+#define get__AUD_SPDIFPC_ITS__USER_DATA_EMPTY_INT(ip) ((readl(ip->base \
+	+ offset__AUD_SPDIFPC_ITS(ip)) >> \
+	shift__AUD_SPDIFPC_ITS__USER_DATA_EMPTY_INT(ip)) & \
+	mask__AUD_SPDIFPC_ITS__USER_DATA_EMPTY_INT(ip))
+#define set__AUD_SPDIFPC_ITS__USER_DATA_EMPTY_INT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) & \
+	~(mask__AUD_SPDIFPC_ITS__USER_DATA_EMPTY_INT(ip) << \
+	shift__AUD_SPDIFPC_ITS__USER_DATA_EMPTY_INT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_ITS__USER_DATA_EMPTY_INT(ip)) << \
+	shift__AUD_SPDIFPC_ITS__USER_DATA_EMPTY_INT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip))
+
+#define value__AUD_SPDIFPC_ITS__USER_DATA_EMPTY_INT__PENDING(ip) 0x1
+#define mask__AUD_SPDIFPC_ITS__USER_DATA_EMPTY_INT__PENDING(ip) \
+	(value__AUD_SPDIFPC_ITS__USER_DATA_EMPTY_INT__PENDING(ip) << \
+	shift__AUD_SPDIFPC_ITS__USER_DATA_EMPTY_INT(ip))
+#define set__AUD_SPDIFPC_ITS__USER_DATA_EMPTY_INT__PENDING(ip) \
+	set__AUD_SPDIFPC_ITS__USER_DATA_EMPTY_INT(ip, \
+	value__AUD_SPDIFPC_ITS__USER_DATA_EMPTY_INT__PENDING(ip))
+
+/* USER_DATA_UNDERRUN_INT */
+
+#define shift__AUD_SPDIFPC_ITS__USER_DATA_UNDERRUN_INT(ip) 5
+#define mask__AUD_SPDIFPC_ITS__USER_DATA_UNDERRUN_INT(ip) 0x1
+#define get__AUD_SPDIFPC_ITS__USER_DATA_UNDERRUN_INT(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) >> \
+	shift__AUD_SPDIFPC_ITS__USER_DATA_UNDERRUN_INT(ip)) & \
+	mask__AUD_SPDIFPC_ITS__USER_DATA_UNDERRUN_INT(ip))
+#define set__AUD_SPDIFPC_ITS__USER_DATA_UNDERRUN_INT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) & \
+	~(mask__AUD_SPDIFPC_ITS__USER_DATA_UNDERRUN_INT(ip) << \
+	shift__AUD_SPDIFPC_ITS__USER_DATA_UNDERRUN_INT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_ITS__USER_DATA_UNDERRUN_INT(ip)) << \
+	shift__AUD_SPDIFPC_ITS__USER_DATA_UNDERRUN_INT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip))
+
+#define value__AUD_SPDIFPC_ITS__USER_DATA_UNDERRUN_INT__PENDING(ip) \
+	0x1
+#define mask__AUD_SPDIFPC_ITS__USER_DATA_UNDERRUN_INT__PENDING(ip) \
+	(value__AUD_SPDIFPC_ITS__USER_DATA_UNDERRUN_INT__PENDING(ip) << \
+	shift__AUD_SPDIFPC_ITS__USER_DATA_UNDERRUN_INT(ip))
+#define set__AUD_SPDIFPC_ITS__USER_DATA_UNDERRUN_INT__PENDING(ip) \
+	set__AUD_SPDIFPC_ITS__USER_DATA_UNDERRUN_INT(ip, \
+	value__AUD_SPDIFPC_ITS__USER_DATA_UNDERRUN_INT__PENDING(ip))
+
+/* CHL_STS_EMPTY_INT */
+
+#define shift__AUD_SPDIFPC_ITS__CHL_STS_EMPTY_INT(ip) 6
+#define mask__AUD_SPDIFPC_ITS__CHL_STS_EMPTY_INT(ip) 0x1
+#define get__AUD_SPDIFPC_ITS__CHL_STS_EMPTY_INT(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip)) >> \
+	shift__AUD_SPDIFPC_ITS__CHL_STS_EMPTY_INT(ip)) & \
+	mask__AUD_SPDIFPC_ITS__CHL_STS_EMPTY_INT(ip))
+#define set__AUD_SPDIFPC_ITS__CHL_STS_EMPTY_INT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) & \
+	~(mask__AUD_SPDIFPC_ITS__CHL_STS_EMPTY_INT(ip) << \
+	shift__AUD_SPDIFPC_ITS__CHL_STS_EMPTY_INT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_ITS__CHL_STS_EMPTY_INT(ip)) << \
+	shift__AUD_SPDIFPC_ITS__CHL_STS_EMPTY_INT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip))
+
+#define value__AUD_SPDIFPC_ITS__CHL_STS_EMPTY_INT__PENDING(ip) 0x1
+#define mask__AUD_SPDIFPC_ITS__CHL_STS_EMPTY_INT__PENDING(ip) \
+	(value__AUD_SPDIFPC_ITS__CHL_STS_EMPTY_INT__PENDING(ip) << \
+	shift__AUD_SPDIFPC_ITS__CHL_STS_EMPTY_INT(ip))
+#define set__AUD_SPDIFPC_ITS__CHL_STS_EMPTY_INT__PENDING(ip) \
+	set__AUD_SPDIFPC_ITS__CHL_STS_EMPTY_INT(ip, \
+	value__AUD_SPDIFPC_ITS__CHL_STS_EMPTY_INT__PENDING(ip))
+
+/* CHL_STS_UNDERRUN_INT */
+
+#define shift__AUD_SPDIFPC_ITS__CHL_STS_UNDERRUN_INT(ip) 7
+#define mask__AUD_SPDIFPC_ITS__CHL_STS_UNDERRUN_INT(ip) 0x1
+#define get__AUD_SPDIFPC_ITS__CHL_STS_UNDERRUN_INT(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) >> \
+	shift__AUD_SPDIFPC_ITS__CHL_STS_UNDERRUN_INT(ip)) & \
+	mask__AUD_SPDIFPC_ITS__CHL_STS_UNDERRUN_INT(ip))
+#define set__AUD_SPDIFPC_ITS__CHL_STS_UNDERRUN_INT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) & \
+	~(mask__AUD_SPDIFPC_ITS__CHL_STS_UNDERRUN_INT(ip) << \
+	shift__AUD_SPDIFPC_ITS__CHL_STS_UNDERRUN_INT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_ITS__CHL_STS_UNDERRUN_INT(ip)) << \
+	shift__AUD_SPDIFPC_ITS__CHL_STS_UNDERRUN_INT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip))
+
+#define value__AUD_SPDIFPC_ITS__CHL_STS_UNDERRUN_INT__PENDING(ip) 0x1
+#define mask__AUD_SPDIFPC_ITS__CHL_STS_UNDERRUN_INT__PENDING(ip) \
+	(value__AUD_SPDIFPC_ITS__CHL_STS_UNDERRUN_INT__PENDING(ip) << \
+	shift__AUD_SPDIFPC_ITS__CHL_STS_UNDERRUN_INT(ip))
+#define set__AUD_SPDIFPC_ITS__CHL_STS_UNDERRUN_INT__PENDING(ip) \
+	set__AUD_SPDIFPC_ITS__CHL_STS_UNDERRUN_INT(ip, \
+	value__AUD_SPDIFPC_ITS__CHL_STS_UNDERRUN_INT__PENDING(ip))
+
+/* I2S_FIFO_OVERRUN_INT */
+
+#define shift__AUD_SPDIFPC_ITS__I2S_FIFO_OVERRUN_INT(ip) 8
+#define mask__AUD_SPDIFPC_ITS__I2S_FIFO_OVERRUN_INT(ip) 0x1
+#define get__AUD_SPDIFPC_ITS__I2S_FIFO_OVERRUN_INT(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) >> \
+	shift__AUD_SPDIFPC_ITS__I2S_FIFO_OVERRUN_INT(ip)) & \
+	mask__AUD_SPDIFPC_ITS__I2S_FIFO_OVERRUN_INT(ip))
+#define set__AUD_SPDIFPC_ITS__I2S_FIFO_OVERRUN_INT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) & \
+	~(mask__AUD_SPDIFPC_ITS__I2S_FIFO_OVERRUN_INT(ip) << \
+	shift__AUD_SPDIFPC_ITS__I2S_FIFO_OVERRUN_INT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_ITS__I2S_FIFO_OVERRUN_INT(ip)) << \
+	shift__AUD_SPDIFPC_ITS__I2S_FIFO_OVERRUN_INT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip))
+
+#define value__AUD_SPDIFPC_ITS__I2S_FIFO_OVERRUN_INT__PENDING(ip) 0x1
+#define mask__AUD_SPDIFPC_ITS__I2S_FIFO_OVERRUN_INT__PENDING(ip) \
+	(value__AUD_SPDIFPC_ITS__I2S_FIFO_OVERRUN_INT__PENDING(ip) << \
+	shift__AUD_SPDIFPC_ITS__I2S_FIFO_OVERRUN_INT(ip))
+#define set__AUD_SPDIFPC_ITS__I2S_FIFO_OVERRUN_INT__PENDING(ip) \
+	set__AUD_SPDIFPC_ITS__I2S_FIFO_OVERRUN_INT(ip, \
+	value__AUD_SPDIFPC_ITS__I2S_FIFO_OVERRUN_INT__PENDING(ip))
+
+/* RUN_STOP_INT */
+
+#define shift__AUD_SPDIFPC_ITS__RUN_STOP_INT(ip) 16
+#define mask__AUD_SPDIFPC_ITS__RUN_STOP_INT(ip) 0x1
+#define get__AUD_SPDIFPC_ITS__RUN_STOP_INT(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip)) >> \
+	shift__AUD_SPDIFPC_ITS__RUN_STOP_INT(ip)) & \
+	mask__AUD_SPDIFPC_ITS__RUN_STOP_INT(ip))
+#define set__AUD_SPDIFPC_ITS__RUN_STOP_INT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) & \
+	~(mask__AUD_SPDIFPC_ITS__RUN_STOP_INT(ip) << \
+	shift__AUD_SPDIFPC_ITS__RUN_STOP_INT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_ITS__RUN_STOP_INT(ip)) << \
+	shift__AUD_SPDIFPC_ITS__RUN_STOP_INT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip))
+
+#define value__AUD_SPDIFPC_ITS__RUN_STOP_INT__PENDING(ip) 0x1
+#define mask__AUD_SPDIFPC_ITS__RUN_STOP_INT__PENDING(ip) \
+	(value__AUD_SPDIFPC_ITS__RUN_STOP_INT__PENDING(ip) << \
+	shift__AUD_SPDIFPC_ITS__RUN_STOP_INT(ip))
+#define set__AUD_SPDIFPC_ITS__RUN_STOP_INT__PENDING(ip) \
+	set__AUD_SPDIFPC_ITS__RUN_STOP_INT(ip, \
+	value__AUD_SPDIFPC_ITS__RUN_STOP_INT__PENDING(ip))
+
+/* UNDERFLOW_INT */
+
+#define shift__AUD_SPDIFPC_ITS__UNDERFLOW_INT(ip) 17
+#define mask__AUD_SPDIFPC_ITS__UNDERFLOW_INT(ip) 0x1
+#define get__AUD_SPDIFPC_ITS__UNDERFLOW_INT(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip)) >> \
+	shift__AUD_SPDIFPC_ITS__UNDERFLOW_INT(ip)) & \
+	mask__AUD_SPDIFPC_ITS__UNDERFLOW_INT(ip))
+#define set__AUD_SPDIFPC_ITS__UNDERFLOW_INT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) & \
+	~(mask__AUD_SPDIFPC_ITS__UNDERFLOW_INT(ip) << \
+	shift__AUD_SPDIFPC_ITS__UNDERFLOW_INT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_ITS__UNDERFLOW_INT(ip)) << \
+	shift__AUD_SPDIFPC_ITS__UNDERFLOW_INT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip))
+
+#define value__AUD_SPDIFPC_ITS__UNDERFLOW_INT__PENDING(ip) 0x1
+#define mask__AUD_SPDIFPC_ITS__UNDERFLOW_INT__PENDING(ip) \
+	(value__AUD_SPDIFPC_ITS__UNDERFLOW_INT__PENDING(ip) << \
+	shift__AUD_SPDIFPC_ITS__UNDERFLOW_INT(ip))
+#define set__AUD_SPDIFPC_ITS__UNDERFLOW_INT__PENDING(ip) \
+	set__AUD_SPDIFPC_ITS__UNDERFLOW_INT(ip, \
+	value__AUD_SPDIFPC_ITS__UNDERFLOW_INT__PENDING(ip))
+
+/* EODATABURST_INT */
+
+#define shift__AUD_SPDIFPC_ITS__EODATABURST_INT(ip) 18
+#define mask__AUD_SPDIFPC_ITS__EODATABURST_INT(ip) 0x1
+#define get__AUD_SPDIFPC_ITS__EODATABURST_INT(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip)) >> \
+	shift__AUD_SPDIFPC_ITS__EODATABURST_INT(ip)) & \
+	mask__AUD_SPDIFPC_ITS__EODATABURST_INT(ip))
+#define set__AUD_SPDIFPC_ITS__EODATABURST_INT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) & \
+	~(mask__AUD_SPDIFPC_ITS__EODATABURST_INT(ip) << \
+	shift__AUD_SPDIFPC_ITS__EODATABURST_INT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_ITS__EODATABURST_INT(ip)) << \
+	shift__AUD_SPDIFPC_ITS__EODATABURST_INT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip))
+
+#define value__AUD_SPDIFPC_ITS__EODATABURST_INT__PENDING(ip) 0x1
+#define mask__AUD_SPDIFPC_ITS__EODATABURST_INT__PENDING(ip) \
+	(value__AUD_SPDIFPC_ITS__EODATABURST_INT__PENDING(ip) << \
+	shift__AUD_SPDIFPC_ITS__EODATABURST_INT(ip))
+#define set__AUD_SPDIFPC_ITS__EODATABURST_INT__PENDING(ip) \
+	set__AUD_SPDIFPC_ITS__EODATABURST_INT(ip, \
+	value__AUD_SPDIFPC_ITS__EODATABURST_INT__PENDING(ip))
+
+/* EOBLOCK_INT */
+
+#define shift__AUD_SPDIFPC_ITS__EOBLOCK_INT(ip) 19
+#define mask__AUD_SPDIFPC_ITS__EOBLOCK_INT(ip) 0x1
+#define get__AUD_SPDIFPC_ITS__EOBLOCK_INT(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip)) >> \
+	shift__AUD_SPDIFPC_ITS__EOBLOCK_INT(ip)) & \
+	mask__AUD_SPDIFPC_ITS__EOBLOCK_INT(ip))
+#define set__AUD_SPDIFPC_ITS__EOBLOCK_INT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) & \
+	~(mask__AUD_SPDIFPC_ITS__EOBLOCK_INT(ip) << \
+	shift__AUD_SPDIFPC_ITS__EOBLOCK_INT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_ITS__EOBLOCK_INT(ip)) << \
+	shift__AUD_SPDIFPC_ITS__EOBLOCK_INT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip))
+
+#define value__AUD_SPDIFPC_ITS__EOBLOCK_INT__PENDING(ip) 0x1
+#define mask__AUD_SPDIFPC_ITS__EOBLOCK_INT__PENDING(ip) \
+	(value__AUD_SPDIFPC_ITS__EOBLOCK_INT__PENDING(ip) << \
+	shift__AUD_SPDIFPC_ITS__EOBLOCK_INT(ip))
+#define set__AUD_SPDIFPC_ITS__EOBLOCK_INT__PENDING(ip) \
+	set__AUD_SPDIFPC_ITS__EOBLOCK_INT(ip, \
+	value__AUD_SPDIFPC_ITS__EOBLOCK_INT__PENDING(ip))
+
+/* LATENCY_INT */
+
+#define shift__AUD_SPDIFPC_ITS__LATENCY_INT(ip) 20
+#define mask__AUD_SPDIFPC_ITS__LATENCY_INT(ip) 0x1
+#define get__AUD_SPDIFPC_ITS__LATENCY_INT(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip)) >> \
+	shift__AUD_SPDIFPC_ITS__LATENCY_INT(ip)) & \
+	mask__AUD_SPDIFPC_ITS__LATENCY_INT(ip))
+#define set__AUD_SPDIFPC_ITS__LATENCY_INT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) & \
+	~(mask__AUD_SPDIFPC_ITS__LATENCY_INT(ip) << \
+	shift__AUD_SPDIFPC_ITS__LATENCY_INT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_ITS__LATENCY_INT(ip)) << \
+	shift__AUD_SPDIFPC_ITS__LATENCY_INT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip))
+
+#define value__AUD_SPDIFPC_ITS__LATENCY_INT__PENDING(ip) 0x1
+#define mask__AUD_SPDIFPC_ITS__LATENCY_INT__PENDING(ip) \
+	(value__AUD_SPDIFPC_ITS__LATENCY_INT__PENDING(ip) << \
+	shift__AUD_SPDIFPC_ITS__LATENCY_INT(ip))
+#define set__AUD_SPDIFPC_ITS__LATENCY_INT__PENDING(ip) \
+	set__AUD_SPDIFPC_ITS__LATENCY_INT(ip, \
+	value__AUD_SPDIFPC_ITS__LATENCY_INT__PENDING(ip))
+
+/* PD_DATA_BURST */
+
+#define shift__AUD_SPDIFPC_ITS__PD_DATA_BURST(ip) 21
+#define mask__AUD_SPDIFPC_ITS__PD_DATA_BURST(ip) 0x1
+#define get__AUD_SPDIFPC_ITS__PD_DATA_BURST(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip)) >> \
+	shift__AUD_SPDIFPC_ITS__PD_DATA_BURST(ip)) & \
+	mask__AUD_SPDIFPC_ITS__PD_DATA_BURST(ip))
+#define set__AUD_SPDIFPC_ITS__PD_DATA_BURST(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) & \
+	~(mask__AUD_SPDIFPC_ITS__PD_DATA_BURST(ip) << \
+	shift__AUD_SPDIFPC_ITS__PD_DATA_BURST(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_ITS__PD_DATA_BURST(ip)) << \
+	shift__AUD_SPDIFPC_ITS__PD_DATA_BURST(ip)), ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip))
+
+#define value__AUD_SPDIFPC_ITS__PD_DATA_BURST__PENDING(ip) 0x1
+#define mask__AUD_SPDIFPC_ITS__PD_DATA_BURST__PENDING(ip) \
+	(value__AUD_SPDIFPC_ITS__PD_DATA_BURST__PENDING(ip) << \
+	shift__AUD_SPDIFPC_ITS__PD_DATA_BURST(ip))
+#define set__AUD_SPDIFPC_ITS__PD_DATA_BURST__PENDING(ip) \
+	set__AUD_SPDIFPC_ITS__PD_DATA_BURST(ip, \
+	value__AUD_SPDIFPC_ITS__PD_DATA_BURST__PENDING(ip))
+
+/* SAMPLES_READ_INT */
+
+#define shift__AUD_SPDIFPC_ITS__SAMPLES_READ_INT(ip) 22
+#define mask__AUD_SPDIFPC_ITS__SAMPLES_READ_INT(ip) 0x1
+#define get__AUD_SPDIFPC_ITS__SAMPLES_READ_INT(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip)) >> \
+	shift__AUD_SPDIFPC_ITS__SAMPLES_READ_INT(ip)) & \
+	mask__AUD_SPDIFPC_ITS__SAMPLES_READ_INT(ip))
+#define set__AUD_SPDIFPC_ITS__SAMPLES_READ_INT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) & \
+	~(mask__AUD_SPDIFPC_ITS__SAMPLES_READ_INT(ip) << \
+	shift__AUD_SPDIFPC_ITS__SAMPLES_READ_INT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_ITS__SAMPLES_READ_INT(ip)) << \
+	shift__AUD_SPDIFPC_ITS__SAMPLES_READ_INT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip))
+
+#define value__AUD_SPDIFPC_ITS__SAMPLES_READ_INT__PENDING(ip) 0x1
+#define mask__AUD_SPDIFPC_ITS__SAMPLES_READ_INT__PENDING(ip) \
+	(value__AUD_SPDIFPC_ITS__SAMPLES_READ_INT__PENDING(ip) << \
+	shift__AUD_SPDIFPC_ITS__SAMPLES_READ_INT(ip))
+#define set__AUD_SPDIFPC_ITS__SAMPLES_READ_INT__PENDING(ip) \
+	set__AUD_SPDIFPC_ITS__SAMPLES_READ_INT(ip, \
+	value__AUD_SPDIFPC_ITS__SAMPLES_READ_INT__PENDING(ip))
+
+/* PD_PAUSE_BURST_INT */
+
+#define shift__AUD_SPDIFPC_ITS__PD_PAUSE_BURST_INT(ip) 31
+#define mask__AUD_SPDIFPC_ITS__PD_PAUSE_BURST_INT(ip) 0x1
+#define get__AUD_SPDIFPC_ITS__PD_PAUSE_BURST_INT(ip) ((readl(ip->base \
+	+ offset__AUD_SPDIFPC_ITS(ip)) >> \
+	shift__AUD_SPDIFPC_ITS__PD_PAUSE_BURST_INT(ip)) & \
+	mask__AUD_SPDIFPC_ITS__PD_PAUSE_BURST_INT(ip))
+#define set__AUD_SPDIFPC_ITS__PD_PAUSE_BURST_INT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_ITS(ip)) & \
+	~(mask__AUD_SPDIFPC_ITS__PD_PAUSE_BURST_INT(ip) << \
+	shift__AUD_SPDIFPC_ITS__PD_PAUSE_BURST_INT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_ITS__PD_PAUSE_BURST_INT(ip)) << \
+	shift__AUD_SPDIFPC_ITS__PD_PAUSE_BURST_INT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_ITS(ip))
+
+#define value__AUD_SPDIFPC_ITS__PD_PAUSE_BURST_INT__PENDING(ip) 0x1
+#define mask__AUD_SPDIFPC_ITS__PD_PAUSE_BURST_INT__PENDING(ip) \
+	(value__AUD_SPDIFPC_ITS__PD_PAUSE_BURST_INT__PENDING(ip) << \
+	shift__AUD_SPDIFPC_ITS__PD_PAUSE_BURST_INT(ip))
+#define set__AUD_SPDIFPC_ITS__PD_PAUSE_BURST_INT__PENDING(ip) \
+	set__AUD_SPDIFPC_ITS__PD_PAUSE_BURST_INT(ip, \
+	value__AUD_SPDIFPC_ITS__PD_PAUSE_BURST_INT__PENDING(ip))
+
+
+
+/*
+ * AUD_SPDIFPC_IT_CLR
+ */
+
+#define offset__AUD_SPDIFPC_IT_CLR(ip) 0x010
+#define get__AUD_SPDIFPC_IT_CLR(ip) readl(ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip))
+#define set__AUD_SPDIFPC_IT_CLR(ip, value) writel(value, ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip))
+
+/* INTERRUPT_EN */
+
+#define shift__AUD_SPDIFPC_IT_CLR__INTERRUPT_EN(ip) 0
+#define mask__AUD_SPDIFPC_IT_CLR__INTERRUPT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_CLR__INTERRUPT_EN(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip)) >> \
+	shift__AUD_SPDIFPC_IT_CLR__INTERRUPT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_CLR__INTERRUPT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__INTERRUPT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_CLR__INTERRUPT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__INTERRUPT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_CLR__INTERRUPT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_CLR__INTERRUPT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip))
+
+#define value__AUD_SPDIFPC_IT_CLR__INTERRUPT_EN__CLEAR(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_CLR__INTERRUPT_EN__CLEAR(ip) \
+	(value__AUD_SPDIFPC_IT_CLR__INTERRUPT_EN__CLEAR(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__INTERRUPT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__INTERRUPT_EN__CLEAR(ip) \
+	set__AUD_SPDIFPC_IT_CLR__INTERRUPT_EN(ip, \
+	value__AUD_SPDIFPC_IT_CLR__INTERRUPT_EN__CLEAR(ip))
+
+/* SOFT_RESET_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_CLR__SOFT_RESET_INT_EN(ip) 1
+#define mask__AUD_SPDIFPC_IT_CLR__SOFT_RESET_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_CLR__SOFT_RESET_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) >> \
+	shift__AUD_SPDIFPC_IT_CLR__SOFT_RESET_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_CLR__SOFT_RESET_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__SOFT_RESET_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_CLR__SOFT_RESET_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__SOFT_RESET_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_CLR__SOFT_RESET_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_CLR__SOFT_RESET_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip))
+
+#define value__AUD_SPDIFPC_IT_CLR__SOFT_RESET_INT_EN__CLEAR(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_CLR__SOFT_RESET_INT_EN__CLEAR(ip) \
+	(value__AUD_SPDIFPC_IT_CLR__SOFT_RESET_INT_EN__CLEAR(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__SOFT_RESET_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__SOFT_RESET_INT_EN__CLEAR(ip) \
+	set__AUD_SPDIFPC_IT_CLR__SOFT_RESET_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_CLR__SOFT_RESET_INT_EN__CLEAR(ip))
+
+/* VALIDITY_EMPTY_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_CLR__VALIDITY_EMPTY_INT_EN(ip) 2
+#define mask__AUD_SPDIFPC_IT_CLR__VALIDITY_EMPTY_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_CLR__VALIDITY_EMPTY_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) >> \
+	shift__AUD_SPDIFPC_IT_CLR__VALIDITY_EMPTY_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_CLR__VALIDITY_EMPTY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__VALIDITY_EMPTY_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_CLR__VALIDITY_EMPTY_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__VALIDITY_EMPTY_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_CLR__VALIDITY_EMPTY_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_CLR__VALIDITY_EMPTY_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip))
+
+#define value__AUD_SPDIFPC_IT_CLR__VALIDITY_EMPTY_INT_EN__CLEAR(ip) \
+	0x1
+#define mask__AUD_SPDIFPC_IT_CLR__VALIDITY_EMPTY_INT_EN__CLEAR(ip) \
+	(value__AUD_SPDIFPC_IT_CLR__VALIDITY_EMPTY_INT_EN__CLEAR(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__VALIDITY_EMPTY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__VALIDITY_EMPTY_INT_EN__CLEAR(ip) \
+	set__AUD_SPDIFPC_IT_CLR__VALIDITY_EMPTY_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_CLR__VALIDITY_EMPTY_INT_EN__CLEAR(ip))
+
+/* VALIDITY_UNDERRUN_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_CLR__VALIDITY_UNDERRUN_INT_EN(ip) 3
+#define mask__AUD_SPDIFPC_IT_CLR__VALIDITY_UNDERRUN_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_CLR__VALIDITY_UNDERRUN_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) >> \
+	shift__AUD_SPDIFPC_IT_CLR__VALIDITY_UNDERRUN_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_CLR__VALIDITY_UNDERRUN_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__VALIDITY_UNDERRUN_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_CLR__VALIDITY_UNDERRUN_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__VALIDITY_UNDERRUN_INT_EN(ip))) | (((value) \
+	& mask__AUD_SPDIFPC_IT_CLR__VALIDITY_UNDERRUN_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_CLR__VALIDITY_UNDERRUN_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip))
+
+#define value__AUD_SPDIFPC_IT_CLR__VALIDITY_UNDERRUN_INT_EN__CLEAR(ip) \
+	0x1
+#define mask__AUD_SPDIFPC_IT_CLR__VALIDITY_UNDERRUN_INT_EN__CLEAR(ip) \
+	(value__AUD_SPDIFPC_IT_CLR__VALIDITY_UNDERRUN_INT_EN__CLEAR(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__VALIDITY_UNDERRUN_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__VALIDITY_UNDERRUN_INT_EN__CLEAR(ip) \
+	set__AUD_SPDIFPC_IT_CLR__VALIDITY_UNDERRUN_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_CLR__VALIDITY_UNDERRUN_INT_EN__CLEAR(ip))
+
+/* USER_DATA_EMPTY_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_CLR__USER_DATA_EMPTY_INT_EN(ip) 4
+#define mask__AUD_SPDIFPC_IT_CLR__USER_DATA_EMPTY_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_CLR__USER_DATA_EMPTY_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) >> \
+	shift__AUD_SPDIFPC_IT_CLR__USER_DATA_EMPTY_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_CLR__USER_DATA_EMPTY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__USER_DATA_EMPTY_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_CLR__USER_DATA_EMPTY_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__USER_DATA_EMPTY_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_CLR__USER_DATA_EMPTY_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_CLR__USER_DATA_EMPTY_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip))
+
+#define value__AUD_SPDIFPC_IT_CLR__USER_DATA_EMPTY_INT_EN__CLEAR(ip) \
+	0x1
+#define mask__AUD_SPDIFPC_IT_CLR__USER_DATA_EMPTY_INT_EN__CLEAR(ip) \
+	(value__AUD_SPDIFPC_IT_CLR__USER_DATA_EMPTY_INT_EN__CLEAR(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__USER_DATA_EMPTY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__USER_DATA_EMPTY_INT_EN__CLEAR(ip) \
+	set__AUD_SPDIFPC_IT_CLR__USER_DATA_EMPTY_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_CLR__USER_DATA_EMPTY_INT_EN__CLEAR(ip))
+
+/* USER_DATA_UNDERRUN_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_CLR__USER_DATA_UNDERRUN_INT_EN(ip) 5
+#define mask__AUD_SPDIFPC_IT_CLR__USER_DATA_UNDERRUN_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_CLR__USER_DATA_UNDERRUN_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) >> \
+	shift__AUD_SPDIFPC_IT_CLR__USER_DATA_UNDERRUN_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_CLR__USER_DATA_UNDERRUN_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__USER_DATA_UNDERRUN_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_CLR__USER_DATA_UNDERRUN_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__USER_DATA_UNDERRUN_INT_EN(ip))) | (((value) \
+	& mask__AUD_SPDIFPC_IT_CLR__USER_DATA_UNDERRUN_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_CLR__USER_DATA_UNDERRUN_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip))
+
+#define \
+	value__AUD_SPDIFPC_IT_CLR__USER_DATA_UNDERRUN_INT_EN__CLEAR(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_CLR__USER_DATA_UNDERRUN_INT_EN__CLEAR(ip) \
+	(value__AUD_SPDIFPC_IT_CLR__USER_DATA_UNDERRUN_INT_EN__CLEAR(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__USER_DATA_UNDERRUN_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__USER_DATA_UNDERRUN_INT_EN__CLEAR(ip) \
+	set__AUD_SPDIFPC_IT_CLR__USER_DATA_UNDERRUN_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_CLR__USER_DATA_UNDERRUN_INT_EN__CLEAR(ip))
+
+/* CHL_STS_EMPTY_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_CLR__CHL_STS_EMPTY_INT_EN(ip) 6
+#define mask__AUD_SPDIFPC_IT_CLR__CHL_STS_EMPTY_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_CLR__CHL_STS_EMPTY_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) >> \
+	shift__AUD_SPDIFPC_IT_CLR__CHL_STS_EMPTY_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_CLR__CHL_STS_EMPTY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__CHL_STS_EMPTY_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_CLR__CHL_STS_EMPTY_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__CHL_STS_EMPTY_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_CLR__CHL_STS_EMPTY_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_CLR__CHL_STS_EMPTY_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip))
+
+#define value__AUD_SPDIFPC_IT_CLR__CHL_STS_EMPTY_INT_EN__CLEAR(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_CLR__CHL_STS_EMPTY_INT_EN__CLEAR(ip) \
+	(value__AUD_SPDIFPC_IT_CLR__CHL_STS_EMPTY_INT_EN__CLEAR(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__CHL_STS_EMPTY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__CHL_STS_EMPTY_INT_EN__CLEAR(ip) \
+	set__AUD_SPDIFPC_IT_CLR__CHL_STS_EMPTY_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_CLR__CHL_STS_EMPTY_INT_EN__CLEAR(ip))
+
+/* CHL_STS_UNDERRUN_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_CLR__CHL_STS_UNDERRUN_INT_EN(ip) 7
+#define mask__AUD_SPDIFPC_IT_CLR__CHL_STS_UNDERRUN_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_CLR__CHL_STS_UNDERRUN_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) >> \
+	shift__AUD_SPDIFPC_IT_CLR__CHL_STS_UNDERRUN_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_CLR__CHL_STS_UNDERRUN_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__CHL_STS_UNDERRUN_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_CLR__CHL_STS_UNDERRUN_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__CHL_STS_UNDERRUN_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_CLR__CHL_STS_UNDERRUN_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_CLR__CHL_STS_UNDERRUN_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip))
+
+#define value__AUD_SPDIFPC_IT_CLR__CHL_STS_UNDERRUN_INT_EN__CLEAR(ip) \
+	0x1
+#define mask__AUD_SPDIFPC_IT_CLR__CHL_STS_UNDERRUN_INT_EN__CLEAR(ip) \
+	(value__AUD_SPDIFPC_IT_CLR__CHL_STS_UNDERRUN_INT_EN__CLEAR(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__CHL_STS_UNDERRUN_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__CHL_STS_UNDERRUN_INT_EN__CLEAR(ip) \
+	set__AUD_SPDIFPC_IT_CLR__CHL_STS_UNDERRUN_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_CLR__CHL_STS_UNDERRUN_INT_EN__CLEAR(ip))
+
+/* I2S_FIFO_OVERRUN_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_CLR__I2S_FIFO_OVERRUN_INT_EN(ip) 8
+#define mask__AUD_SPDIFPC_IT_CLR__I2S_FIFO_OVERRUN_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_CLR__I2S_FIFO_OVERRUN_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) >> \
+	shift__AUD_SPDIFPC_IT_CLR__I2S_FIFO_OVERRUN_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_CLR__I2S_FIFO_OVERRUN_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__I2S_FIFO_OVERRUN_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_CLR__I2S_FIFO_OVERRUN_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__I2S_FIFO_OVERRUN_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_CLR__I2S_FIFO_OVERRUN_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_CLR__I2S_FIFO_OVERRUN_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip))
+
+#define value__AUD_SPDIFPC_IT_CLR__I2S_FIFO_OVERRUN_INT_EN__CLEAR(ip) \
+	0x1
+#define mask__AUD_SPDIFPC_IT_CLR__I2S_FIFO_OVERRUN_INT_EN__CLEAR(ip) \
+	(value__AUD_SPDIFPC_IT_CLR__I2S_FIFO_OVERRUN_INT_EN__CLEAR(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__I2S_FIFO_OVERRUN_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__I2S_FIFO_OVERRUN_INT_EN__CLEAR(ip) \
+	set__AUD_SPDIFPC_IT_CLR__I2S_FIFO_OVERRUN_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_CLR__I2S_FIFO_OVERRUN_INT_EN__CLEAR(ip))
+
+/* RUN_STOP_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_CLR__RUN_STOP_INT_EN(ip) 16
+#define mask__AUD_SPDIFPC_IT_CLR__RUN_STOP_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_CLR__RUN_STOP_INT_EN(ip) ((readl(ip->base \
+	+ offset__AUD_SPDIFPC_IT_CLR(ip)) >> \
+	shift__AUD_SPDIFPC_IT_CLR__RUN_STOP_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_CLR__RUN_STOP_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__RUN_STOP_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_CLR__RUN_STOP_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__RUN_STOP_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_CLR__RUN_STOP_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_CLR__RUN_STOP_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip))
+
+#define value__AUD_SPDIFPC_IT_CLR__RUN_STOP_INT_EN__CLEAR(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_CLR__RUN_STOP_INT_EN__CLEAR(ip) \
+	(value__AUD_SPDIFPC_IT_CLR__RUN_STOP_INT_EN__CLEAR(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__RUN_STOP_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__RUN_STOP_INT_EN__CLEAR(ip) \
+	set__AUD_SPDIFPC_IT_CLR__RUN_STOP_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_CLR__RUN_STOP_INT_EN__CLEAR(ip))
+
+/* UNDERFLOW_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_CLR__UNDERFLOW_INT_EN(ip) 17
+#define mask__AUD_SPDIFPC_IT_CLR__UNDERFLOW_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_CLR__UNDERFLOW_INT_EN(ip) ((readl(ip->base \
+	+ offset__AUD_SPDIFPC_IT_CLR(ip)) >> \
+	shift__AUD_SPDIFPC_IT_CLR__UNDERFLOW_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_CLR__UNDERFLOW_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__UNDERFLOW_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_CLR__UNDERFLOW_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__UNDERFLOW_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_CLR__UNDERFLOW_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_CLR__UNDERFLOW_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip))
+
+#define value__AUD_SPDIFPC_IT_CLR__UNDERFLOW_INT_EN__CLEAR(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_CLR__UNDERFLOW_INT_EN__CLEAR(ip) \
+	(value__AUD_SPDIFPC_IT_CLR__UNDERFLOW_INT_EN__CLEAR(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__UNDERFLOW_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__UNDERFLOW_INT_EN__CLEAR(ip) \
+	set__AUD_SPDIFPC_IT_CLR__UNDERFLOW_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_CLR__UNDERFLOW_INT_EN__CLEAR(ip))
+
+/* EODATABURST_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_CLR__EODATABURST_INT_EN(ip) 18
+#define mask__AUD_SPDIFPC_IT_CLR__EODATABURST_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_CLR__EODATABURST_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) >> \
+	shift__AUD_SPDIFPC_IT_CLR__EODATABURST_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_CLR__EODATABURST_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__EODATABURST_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_CLR__EODATABURST_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__EODATABURST_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_CLR__EODATABURST_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_CLR__EODATABURST_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip))
+
+#define value__AUD_SPDIFPC_IT_CLR__EODATABURST_INT_EN__CLEAR(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_CLR__EODATABURST_INT_EN__CLEAR(ip) \
+	(value__AUD_SPDIFPC_IT_CLR__EODATABURST_INT_EN__CLEAR(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__EODATABURST_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__EODATABURST_INT_EN__CLEAR(ip) \
+	set__AUD_SPDIFPC_IT_CLR__EODATABURST_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_CLR__EODATABURST_INT_EN__CLEAR(ip))
+
+/* EOBLOCK_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_CLR__EOBLOCK_INT_EN(ip) 19
+#define mask__AUD_SPDIFPC_IT_CLR__EOBLOCK_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_CLR__EOBLOCK_INT_EN(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip)) >> \
+	shift__AUD_SPDIFPC_IT_CLR__EOBLOCK_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_CLR__EOBLOCK_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__EOBLOCK_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_CLR__EOBLOCK_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__EOBLOCK_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_CLR__EOBLOCK_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_CLR__EOBLOCK_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip))
+
+#define value__AUD_SPDIFPC_IT_CLR__EOBLOCK_INT_EN__CLEAR(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_CLR__EOBLOCK_INT_EN__CLEAR(ip) \
+	(value__AUD_SPDIFPC_IT_CLR__EOBLOCK_INT_EN__CLEAR(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__EOBLOCK_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__EOBLOCK_INT_EN__CLEAR(ip) \
+	set__AUD_SPDIFPC_IT_CLR__EOBLOCK_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_CLR__EOBLOCK_INT_EN__CLEAR(ip))
+
+/* LATENCY_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_CLR__LATENCY_INT_EN(ip) 20
+#define mask__AUD_SPDIFPC_IT_CLR__LATENCY_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_CLR__LATENCY_INT_EN(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip)) >> \
+	shift__AUD_SPDIFPC_IT_CLR__LATENCY_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_CLR__LATENCY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__LATENCY_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_CLR__LATENCY_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__LATENCY_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_CLR__LATENCY_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_CLR__LATENCY_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip))
+
+#define value__AUD_SPDIFPC_IT_CLR__LATENCY_INT_EN__CLEAR(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_CLR__LATENCY_INT_EN__CLEAR(ip) \
+	(value__AUD_SPDIFPC_IT_CLR__LATENCY_INT_EN__CLEAR(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__LATENCY_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__LATENCY_INT_EN__CLEAR(ip) \
+	set__AUD_SPDIFPC_IT_CLR__LATENCY_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_CLR__LATENCY_INT_EN__CLEAR(ip))
+
+/* PD_DATA_BURST */
+
+#define shift__AUD_SPDIFPC_IT_CLR__PD_DATA_BURST(ip) 21
+#define mask__AUD_SPDIFPC_IT_CLR__PD_DATA_BURST(ip) 0x1
+#define get__AUD_SPDIFPC_IT_CLR__PD_DATA_BURST(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip)) >> \
+	shift__AUD_SPDIFPC_IT_CLR__PD_DATA_BURST(ip)) & \
+	mask__AUD_SPDIFPC_IT_CLR__PD_DATA_BURST(ip))
+#define set__AUD_SPDIFPC_IT_CLR__PD_DATA_BURST(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_CLR__PD_DATA_BURST(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__PD_DATA_BURST(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_CLR__PD_DATA_BURST(ip)) << \
+	shift__AUD_SPDIFPC_IT_CLR__PD_DATA_BURST(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip))
+
+#define value__AUD_SPDIFPC_IT_CLR__PD_DATA_BURST__CLEAR(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_CLR__PD_DATA_BURST__CLEAR(ip) \
+	(value__AUD_SPDIFPC_IT_CLR__PD_DATA_BURST__CLEAR(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__PD_DATA_BURST(ip))
+#define set__AUD_SPDIFPC_IT_CLR__PD_DATA_BURST__CLEAR(ip) \
+	set__AUD_SPDIFPC_IT_CLR__PD_DATA_BURST(ip, \
+	value__AUD_SPDIFPC_IT_CLR__PD_DATA_BURST__CLEAR(ip))
+
+/* SAMPLES_READ_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_CLR__SAMPLES_READ_INT_EN(ip) 22
+#define mask__AUD_SPDIFPC_IT_CLR__SAMPLES_READ_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_CLR__SAMPLES_READ_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) >> \
+	shift__AUD_SPDIFPC_IT_CLR__SAMPLES_READ_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_CLR__SAMPLES_READ_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__SAMPLES_READ_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_CLR__SAMPLES_READ_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__SAMPLES_READ_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_CLR__SAMPLES_READ_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_CLR__SAMPLES_READ_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip))
+
+#define value__AUD_SPDIFPC_IT_CLR__SAMPLES_READ_INT_EN__CLEAR(ip) 0x1
+#define mask__AUD_SPDIFPC_IT_CLR__SAMPLES_READ_INT_EN__CLEAR(ip) \
+	(value__AUD_SPDIFPC_IT_CLR__SAMPLES_READ_INT_EN__CLEAR(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__SAMPLES_READ_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__SAMPLES_READ_INT_EN__CLEAR(ip) \
+	set__AUD_SPDIFPC_IT_CLR__SAMPLES_READ_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_CLR__SAMPLES_READ_INT_EN__CLEAR(ip))
+
+/* PD_PAUSE_BURST_INT_EN */
+
+#define shift__AUD_SPDIFPC_IT_CLR__PD_PAUSE_BURST_INT_EN(ip) 31
+#define mask__AUD_SPDIFPC_IT_CLR__PD_PAUSE_BURST_INT_EN(ip) 0x1
+#define get__AUD_SPDIFPC_IT_CLR__PD_PAUSE_BURST_INT_EN(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) >> \
+	shift__AUD_SPDIFPC_IT_CLR__PD_PAUSE_BURST_INT_EN(ip)) & \
+	mask__AUD_SPDIFPC_IT_CLR__PD_PAUSE_BURST_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__PD_PAUSE_BURST_INT_EN(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_IT_CLR(ip)) & \
+	~(mask__AUD_SPDIFPC_IT_CLR__PD_PAUSE_BURST_INT_EN(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__PD_PAUSE_BURST_INT_EN(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_IT_CLR__PD_PAUSE_BURST_INT_EN(ip)) << \
+	shift__AUD_SPDIFPC_IT_CLR__PD_PAUSE_BURST_INT_EN(ip)), ip->base + \
+	offset__AUD_SPDIFPC_IT_CLR(ip))
+
+#define value__AUD_SPDIFPC_IT_CLR__PD_PAUSE_BURST_INT_EN__CLEAR(ip) \
+	0x1
+#define mask__AUD_SPDIFPC_IT_CLR__PD_PAUSE_BURST_INT_EN__CLEAR(ip) \
+	(value__AUD_SPDIFPC_IT_CLR__PD_PAUSE_BURST_INT_EN__CLEAR(ip) << \
+	shift__AUD_SPDIFPC_IT_CLR__PD_PAUSE_BURST_INT_EN(ip))
+#define set__AUD_SPDIFPC_IT_CLR__PD_PAUSE_BURST_INT_EN__CLEAR(ip) \
+	set__AUD_SPDIFPC_IT_CLR__PD_PAUSE_BURST_INT_EN(ip, \
+	value__AUD_SPDIFPC_IT_CLR__PD_PAUSE_BURST_INT_EN__CLEAR(ip))
+
+
+
+/*
+ * AUD_SPDIFPC_VAL
+ */
+
+#define offset__AUD_SPDIFPC_VAL(ip) 0x100
+#define get__AUD_SPDIFPC_VAL(ip) readl(ip->base + \
+	offset__AUD_SPDIFPC_VAL(ip))
+#define set__AUD_SPDIFPC_VAL(ip, value) writel(value, ip->base + \
+	offset__AUD_SPDIFPC_VAL(ip))
+
+/* VALIDITY_BITS */
+
+#define shift__AUD_SPDIFPC_VAL__VALIDITY_BITS(ip) 0
+#define mask__AUD_SPDIFPC_VAL__VALIDITY_BITS(ip) 0xffffffff
+#define get__AUD_SPDIFPC_VAL__VALIDITY_BITS(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_VAL(ip)) >> \
+	shift__AUD_SPDIFPC_VAL__VALIDITY_BITS(ip)) & \
+	mask__AUD_SPDIFPC_VAL__VALIDITY_BITS(ip))
+#define set__AUD_SPDIFPC_VAL__VALIDITY_BITS(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_VAL(ip)) & \
+	~(mask__AUD_SPDIFPC_VAL__VALIDITY_BITS(ip) << \
+	shift__AUD_SPDIFPC_VAL__VALIDITY_BITS(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_VAL__VALIDITY_BITS(ip)) << \
+	shift__AUD_SPDIFPC_VAL__VALIDITY_BITS(ip)), ip->base + \
+	offset__AUD_SPDIFPC_VAL(ip))
+
+
+
+/*
+ * AUD_SPDIFPC_DATA
+ */
+
+#define offset__AUD_SPDIFPC_DATA(ip) 0x104
+#define get__AUD_SPDIFPC_DATA(ip) readl(ip->base + \
+	offset__AUD_SPDIFPC_DATA(ip))
+#define set__AUD_SPDIFPC_DATA(ip, value) writel(value, ip->base + \
+	offset__AUD_SPDIFPC_DATA(ip))
+
+/* USER_DATA_BITS */
+
+#define shift__AUD_SPDIFPC_DATA__USER_DATA_BITS(ip) 0
+#define mask__AUD_SPDIFPC_DATA__USER_DATA_BITS(ip) 0xffffffff
+#define get__AUD_SPDIFPC_DATA__USER_DATA_BITS(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_DATA(ip)) >> \
+	shift__AUD_SPDIFPC_DATA__USER_DATA_BITS(ip)) & \
+	mask__AUD_SPDIFPC_DATA__USER_DATA_BITS(ip))
+#define set__AUD_SPDIFPC_DATA__USER_DATA_BITS(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_DATA(ip)) & \
+	~(mask__AUD_SPDIFPC_DATA__USER_DATA_BITS(ip) << \
+	shift__AUD_SPDIFPC_DATA__USER_DATA_BITS(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_DATA__USER_DATA_BITS(ip)) << \
+	shift__AUD_SPDIFPC_DATA__USER_DATA_BITS(ip)), ip->base + \
+	offset__AUD_SPDIFPC_DATA(ip))
+
+
+
+/*
+ * AUD_SPDIFPC_CHA_STA
+ */
+
+#define offset__AUD_SPDIFPC_CHA_STA(ip, n) (0x108 + (n) * 4)
+#define get__AUD_SPDIFPC_CHA_STA(ip, n) readl(ip->base + \
+	offset__AUD_SPDIFPC_CHA_STA(ip, n))
+#define set__AUD_SPDIFPC_CHA_STA(ip, n, value) writel(value, ip->base \
+	+ offset__AUD_SPDIFPC_CHA_STA(ip, n))
+
+/* CHA_STA */
+
+#define shift__AUD_SPDIFPC_CHA_STA__CHA_STA(ip) 0
+#define mask__AUD_SPDIFPC_CHA_STA__CHA_STA(ip) 0xffffffff
+#define get__AUD_SPDIFPC_CHA_STA__CHA_STA(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_CHA_STA(ip)) >> \
+	shift__AUD_SPDIFPC_CHA_STA__CHA_STA(ip)) & \
+	mask__AUD_SPDIFPC_CHA_STA__CHA_STA(ip))
+#define set__AUD_SPDIFPC_CHA_STA__CHA_STA(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_CHA_STA(ip)) & \
+	~(mask__AUD_SPDIFPC_CHA_STA__CHA_STA(ip) << \
+	shift__AUD_SPDIFPC_CHA_STA__CHA_STA(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_CHA_STA__CHA_STA(ip)) << \
+	shift__AUD_SPDIFPC_CHA_STA__CHA_STA(ip)), ip->base + \
+	offset__AUD_SPDIFPC_CHA_STA(ip))
+
+
+
+/*
+ * AUD_SPDIFPC_CTRL
+ */
+
+#define offset__AUD_SPDIFPC_CTRL(ip) 0x200
+#define get__AUD_SPDIFPC_CTRL(ip) readl(ip->base + \
+	offset__AUD_SPDIFPC_CTRL(ip))
+#define set__AUD_SPDIFPC_CTRL(ip, value) writel(value, ip->base + \
+	offset__AUD_SPDIFPC_CTRL(ip))
+
+/* OPERATION */
+
+#define shift__AUD_SPDIFPC_CTRL__OPERATION(ip) 0
+#define mask__AUD_SPDIFPC_CTRL__OPERATION(ip) 0x7
+#define get__AUD_SPDIFPC_CTRL__OPERATION(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_CTRL(ip)) >> \
+	shift__AUD_SPDIFPC_CTRL__OPERATION(ip)) & \
+	mask__AUD_SPDIFPC_CTRL__OPERATION(ip))
+#define set__AUD_SPDIFPC_CTRL__OPERATION(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_CTRL(ip)) & \
+	~(mask__AUD_SPDIFPC_CTRL__OPERATION(ip) << \
+	shift__AUD_SPDIFPC_CTRL__OPERATION(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_CTRL__OPERATION(ip)) << \
+	shift__AUD_SPDIFPC_CTRL__OPERATION(ip)), ip->base + \
+	offset__AUD_SPDIFPC_CTRL(ip))
+
+#define value__AUD_SPDIFPC_CTRL__OPERATION__OFF(ip) 0x0
+#define mask__AUD_SPDIFPC_CTRL__OPERATION__OFF(ip) \
+	(value__AUD_SPDIFPC_CTRL__OPERATION__OFF(ip) << \
+	shift__AUD_SPDIFPC_CTRL__OPERATION(ip))
+#define set__AUD_SPDIFPC_CTRL__OPERATION__OFF(ip) \
+	set__AUD_SPDIFPC_CTRL__OPERATION(ip, \
+	value__AUD_SPDIFPC_CTRL__OPERATION__OFF(ip))
+
+#define value__AUD_SPDIFPC_CTRL__OPERATION__MUTE_PCM_NULL(ip) 0x1
+#define mask__AUD_SPDIFPC_CTRL__OPERATION__MUTE_PCM_NULL(ip) \
+	(value__AUD_SPDIFPC_CTRL__OPERATION__MUTE_PCM_NULL(ip) << \
+	shift__AUD_SPDIFPC_CTRL__OPERATION(ip))
+#define set__AUD_SPDIFPC_CTRL__OPERATION__MUTE_PCM_NULL(ip) \
+	set__AUD_SPDIFPC_CTRL__OPERATION(ip, \
+	value__AUD_SPDIFPC_CTRL__OPERATION__MUTE_PCM_NULL(ip))
+
+#define value__AUD_SPDIFPC_CTRL__OPERATION__MUTE_PAUSE_BURSTS(ip) 0x2
+#define mask__AUD_SPDIFPC_CTRL__OPERATION__MUTE_PAUSE_BURSTS(ip) \
+	(value__AUD_SPDIFPC_CTRL__OPERATION__MUTE_PAUSE_BURSTS(ip) << \
+	shift__AUD_SPDIFPC_CTRL__OPERATION(ip))
+#define set__AUD_SPDIFPC_CTRL__OPERATION__MUTE_PAUSE_BURSTS(ip) \
+	set__AUD_SPDIFPC_CTRL__OPERATION(ip, \
+	value__AUD_SPDIFPC_CTRL__OPERATION__MUTE_PAUSE_BURSTS(ip))
+
+#define value__AUD_SPDIFPC_CTRL__OPERATION__PCM(ip) 0x3
+#define mask__AUD_SPDIFPC_CTRL__OPERATION__PCM(ip) \
+	(value__AUD_SPDIFPC_CTRL__OPERATION__PCM(ip) << \
+	shift__AUD_SPDIFPC_CTRL__OPERATION(ip))
+#define set__AUD_SPDIFPC_CTRL__OPERATION__PCM(ip) \
+	set__AUD_SPDIFPC_CTRL__OPERATION(ip, \
+	value__AUD_SPDIFPC_CTRL__OPERATION__PCM(ip))
+
+#define value__AUD_SPDIFPC_CTRL__OPERATION__ENCODED(ip) 0x4
+#define mask__AUD_SPDIFPC_CTRL__OPERATION__ENCODED(ip) \
+	(value__AUD_SPDIFPC_CTRL__OPERATION__ENCODED(ip) << \
+	shift__AUD_SPDIFPC_CTRL__OPERATION(ip))
+#define set__AUD_SPDIFPC_CTRL__OPERATION__ENCODED(ip) \
+	set__AUD_SPDIFPC_CTRL__OPERATION(ip, \
+	value__AUD_SPDIFPC_CTRL__OPERATION__ENCODED(ip))
+
+/* IDLE_STATE */
+
+#define shift__AUD_SPDIFPC_CTRL__IDLE_STATE(ip) 3
+#define mask__AUD_SPDIFPC_CTRL__IDLE_STATE(ip) 0x1
+#define get__AUD_SPDIFPC_CTRL__IDLE_STATE(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_CTRL(ip)) >> \
+	shift__AUD_SPDIFPC_CTRL__IDLE_STATE(ip)) & \
+	mask__AUD_SPDIFPC_CTRL__IDLE_STATE(ip))
+#define set__AUD_SPDIFPC_CTRL__IDLE_STATE(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_CTRL(ip)) & \
+	~(mask__AUD_SPDIFPC_CTRL__IDLE_STATE(ip) << \
+	shift__AUD_SPDIFPC_CTRL__IDLE_STATE(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_CTRL__IDLE_STATE(ip)) << \
+	shift__AUD_SPDIFPC_CTRL__IDLE_STATE(ip)), ip->base + \
+	offset__AUD_SPDIFPC_CTRL(ip))
+
+#define value__AUD_SPDIFPC_CTRL__IDLE_STATE__NORMAL(ip) 0x0
+#define mask__AUD_SPDIFPC_CTRL__IDLE_STATE__NORMAL(ip) \
+	(value__AUD_SPDIFPC_CTRL__IDLE_STATE__NORMAL(ip) << \
+	shift__AUD_SPDIFPC_CTRL__IDLE_STATE(ip))
+#define set__AUD_SPDIFPC_CTRL__IDLE_STATE__NORMAL(ip) \
+	set__AUD_SPDIFPC_CTRL__IDLE_STATE(ip, \
+	value__AUD_SPDIFPC_CTRL__IDLE_STATE__NORMAL(ip))
+
+#define value__AUD_SPDIFPC_CTRL__IDLE_STATE__IDLE(ip) 0x1
+#define mask__AUD_SPDIFPC_CTRL__IDLE_STATE__IDLE(ip) \
+	(value__AUD_SPDIFPC_CTRL__IDLE_STATE__IDLE(ip) << \
+	shift__AUD_SPDIFPC_CTRL__IDLE_STATE(ip))
+#define set__AUD_SPDIFPC_CTRL__IDLE_STATE__IDLE(ip) \
+	set__AUD_SPDIFPC_CTRL__IDLE_STATE(ip, \
+	value__AUD_SPDIFPC_CTRL__IDLE_STATE__IDLE(ip))
+
+/* ROUNDING */
+
+#define shift__AUD_SPDIFPC_CTRL__ROUNDING(ip) 4
+#define mask__AUD_SPDIFPC_CTRL__ROUNDING(ip) 0x1
+#define get__AUD_SPDIFPC_CTRL__ROUNDING(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_CTRL(ip)) >> \
+	shift__AUD_SPDIFPC_CTRL__ROUNDING(ip)) & \
+	mask__AUD_SPDIFPC_CTRL__ROUNDING(ip))
+#define set__AUD_SPDIFPC_CTRL__ROUNDING(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_CTRL(ip)) & \
+	~(mask__AUD_SPDIFPC_CTRL__ROUNDING(ip) << \
+	shift__AUD_SPDIFPC_CTRL__ROUNDING(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_CTRL__ROUNDING(ip)) << \
+	shift__AUD_SPDIFPC_CTRL__ROUNDING(ip)), ip->base + \
+	offset__AUD_SPDIFPC_CTRL(ip))
+
+#define value__AUD_SPDIFPC_CTRL__ROUNDING__NO_ROUNDING(ip) 0x0
+#define mask__AUD_SPDIFPC_CTRL__ROUNDING__NO_ROUNDING(ip) \
+	(value__AUD_SPDIFPC_CTRL__ROUNDING__NO_ROUNDING(ip) << \
+	shift__AUD_SPDIFPC_CTRL__ROUNDING(ip))
+#define set__AUD_SPDIFPC_CTRL__ROUNDING__NO_ROUNDING(ip) \
+	set__AUD_SPDIFPC_CTRL__ROUNDING(ip, \
+	value__AUD_SPDIFPC_CTRL__ROUNDING__NO_ROUNDING(ip))
+
+#define value__AUD_SPDIFPC_CTRL__ROUNDING__16_BITS_ROUNDING(ip) 0x1
+#define mask__AUD_SPDIFPC_CTRL__ROUNDING__16_BITS_ROUNDING(ip) \
+	(value__AUD_SPDIFPC_CTRL__ROUNDING__16_BITS_ROUNDING(ip) << \
+	shift__AUD_SPDIFPC_CTRL__ROUNDING(ip))
+#define set__AUD_SPDIFPC_CTRL__ROUNDING__16_BITS_ROUNDING(ip) \
+	set__AUD_SPDIFPC_CTRL__ROUNDING(ip, \
+	value__AUD_SPDIFPC_CTRL__ROUNDING__16_BITS_ROUNDING(ip))
+
+/* DIVIDER */
+
+#define shift__AUD_SPDIFPC_CTRL__DIVIDER(ip) 5
+#define mask__AUD_SPDIFPC_CTRL__DIVIDER(ip) 0xff
+#define get__AUD_SPDIFPC_CTRL__DIVIDER(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_CTRL(ip)) >> shift__AUD_SPDIFPC_CTRL__DIVIDER(ip)) \
+	& mask__AUD_SPDIFPC_CTRL__DIVIDER(ip))
+#define set__AUD_SPDIFPC_CTRL__DIVIDER(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_CTRL(ip)) & \
+	~(mask__AUD_SPDIFPC_CTRL__DIVIDER(ip) << \
+	shift__AUD_SPDIFPC_CTRL__DIVIDER(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_CTRL__DIVIDER(ip)) << \
+	shift__AUD_SPDIFPC_CTRL__DIVIDER(ip)), ip->base + \
+	offset__AUD_SPDIFPC_CTRL(ip))
+
+/* STUFFING */
+
+#define shift__AUD_SPDIFPC_CTRL__STUFFING(ip) 14
+#define mask__AUD_SPDIFPC_CTRL__STUFFING(ip) 0x1
+#define get__AUD_SPDIFPC_CTRL__STUFFING(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_CTRL(ip)) >> \
+	shift__AUD_SPDIFPC_CTRL__STUFFING(ip)) & \
+	mask__AUD_SPDIFPC_CTRL__STUFFING(ip))
+#define set__AUD_SPDIFPC_CTRL__STUFFING(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_CTRL(ip)) & \
+	~(mask__AUD_SPDIFPC_CTRL__STUFFING(ip) << \
+	shift__AUD_SPDIFPC_CTRL__STUFFING(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_CTRL__STUFFING(ip)) << \
+	shift__AUD_SPDIFPC_CTRL__STUFFING(ip)), ip->base + \
+	offset__AUD_SPDIFPC_CTRL(ip))
+
+#define value__AUD_SPDIFPC_CTRL__STUFFING__SOFTWARE(ip) 0x0
+#define mask__AUD_SPDIFPC_CTRL__STUFFING__SOFTWARE(ip) \
+	(value__AUD_SPDIFPC_CTRL__STUFFING__SOFTWARE(ip) << \
+	shift__AUD_SPDIFPC_CTRL__STUFFING(ip))
+#define set__AUD_SPDIFPC_CTRL__STUFFING__SOFTWARE(ip) \
+	set__AUD_SPDIFPC_CTRL__STUFFING(ip, \
+	value__AUD_SPDIFPC_CTRL__STUFFING__SOFTWARE(ip))
+
+#define value__AUD_SPDIFPC_CTRL__STUFFING__HARDWARE(ip) 0x1
+#define mask__AUD_SPDIFPC_CTRL__STUFFING__HARDWARE(ip) \
+	(value__AUD_SPDIFPC_CTRL__STUFFING__HARDWARE(ip) << \
+	shift__AUD_SPDIFPC_CTRL__STUFFING(ip))
+#define set__AUD_SPDIFPC_CTRL__STUFFING__HARDWARE(ip) \
+	set__AUD_SPDIFPC_CTRL__STUFFING(ip, \
+	value__AUD_SPDIFPC_CTRL__STUFFING__HARDWARE(ip))
+
+/* NO_SAMPLES */
+
+#define shift__AUD_SPDIFPC_CTRL__NO_SAMPLES(ip) 15
+#define mask__AUD_SPDIFPC_CTRL__NO_SAMPLES(ip) 0x1ffff
+#define get__AUD_SPDIFPC_CTRL__NO_SAMPLES(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_CTRL(ip)) >> \
+	shift__AUD_SPDIFPC_CTRL__NO_SAMPLES(ip)) & \
+	mask__AUD_SPDIFPC_CTRL__NO_SAMPLES(ip))
+#define set__AUD_SPDIFPC_CTRL__NO_SAMPLES(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_CTRL(ip)) & \
+	~(mask__AUD_SPDIFPC_CTRL__NO_SAMPLES(ip) << \
+	shift__AUD_SPDIFPC_CTRL__NO_SAMPLES(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_CTRL__NO_SAMPLES(ip)) << \
+	shift__AUD_SPDIFPC_CTRL__NO_SAMPLES(ip)), ip->base + \
+	offset__AUD_SPDIFPC_CTRL(ip))
+
+
+
+/*
+ * AUD_SPDIFPC_SPDIFSTA
+ */
+
+#define offset__AUD_SPDIFPC_SPDIFSTA(ip) 0x204
+#define get__AUD_SPDIFPC_SPDIFSTA(ip) readl(ip->base + \
+	offset__AUD_SPDIFPC_SPDIFSTA(ip))
+#define set__AUD_SPDIFPC_SPDIFSTA(ip, value) writel(value, ip->base + \
+	offset__AUD_SPDIFPC_SPDIFSTA(ip))
+
+/* RUN_STOP */
+
+#define shift__AUD_SPDIFPC_SPDIFSTA__RUN_STOP(ip) 0
+#define mask__AUD_SPDIFPC_SPDIFSTA__RUN_STOP(ip) 0x1
+#define get__AUD_SPDIFPC_SPDIFSTA__RUN_STOP(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_SPDIFSTA(ip)) >> \
+	shift__AUD_SPDIFPC_SPDIFSTA__RUN_STOP(ip)) & \
+	mask__AUD_SPDIFPC_SPDIFSTA__RUN_STOP(ip))
+#define set__AUD_SPDIFPC_SPDIFSTA__RUN_STOP(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_SPDIFSTA(ip)) & \
+	~(mask__AUD_SPDIFPC_SPDIFSTA__RUN_STOP(ip) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__RUN_STOP(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_SPDIFSTA__RUN_STOP(ip)) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__RUN_STOP(ip)), ip->base + \
+	offset__AUD_SPDIFPC_SPDIFSTA(ip))
+
+#define value__AUD_SPDIFPC_SPDIFSTA__RUN_STOP__STOPPED(ip) 0x0
+#define mask__AUD_SPDIFPC_SPDIFSTA__RUN_STOP__STOPPED(ip) \
+	(value__AUD_SPDIFPC_SPDIFSTA__RUN_STOP__STOPPED(ip) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__RUN_STOP(ip))
+#define set__AUD_SPDIFPC_SPDIFSTA__RUN_STOP__STOPPED(ip) \
+	set__AUD_SPDIFPC_SPDIFSTA__RUN_STOP(ip, \
+	value__AUD_SPDIFPC_SPDIFSTA__RUN_STOP__STOPPED(ip))
+
+#define value__AUD_SPDIFPC_SPDIFSTA__RUN_STOP__RUNNING(ip) 0x1
+#define mask__AUD_SPDIFPC_SPDIFSTA__RUN_STOP__RUNNING(ip) \
+	(value__AUD_SPDIFPC_SPDIFSTA__RUN_STOP__RUNNING(ip) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__RUN_STOP(ip))
+#define set__AUD_SPDIFPC_SPDIFSTA__RUN_STOP__RUNNING(ip) \
+	set__AUD_SPDIFPC_SPDIFSTA__RUN_STOP(ip, \
+	value__AUD_SPDIFPC_SPDIFSTA__RUN_STOP__RUNNING(ip))
+
+/* UNDERFLOW */
+
+#define shift__AUD_SPDIFPC_SPDIFSTA__UNDERFLOW(ip) 1
+#define mask__AUD_SPDIFPC_SPDIFSTA__UNDERFLOW(ip) 0x1
+#define get__AUD_SPDIFPC_SPDIFSTA__UNDERFLOW(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_SPDIFSTA(ip)) >> \
+	shift__AUD_SPDIFPC_SPDIFSTA__UNDERFLOW(ip)) & \
+	mask__AUD_SPDIFPC_SPDIFSTA__UNDERFLOW(ip))
+#define set__AUD_SPDIFPC_SPDIFSTA__UNDERFLOW(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_SPDIFSTA(ip)) & \
+	~(mask__AUD_SPDIFPC_SPDIFSTA__UNDERFLOW(ip) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__UNDERFLOW(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_SPDIFSTA__UNDERFLOW(ip)) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__UNDERFLOW(ip)), ip->base + \
+	offset__AUD_SPDIFPC_SPDIFSTA(ip))
+
+#define value__AUD_SPDIFPC_SPDIFSTA__UNDERFLOW__DETECTED(ip) 0x1
+#define mask__AUD_SPDIFPC_SPDIFSTA__UNDERFLOW__DETECTED(ip) \
+	(value__AUD_SPDIFPC_SPDIFSTA__UNDERFLOW__DETECTED(ip) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__UNDERFLOW(ip))
+#define set__AUD_SPDIFPC_SPDIFSTA__UNDERFLOW__DETECTED(ip) \
+	set__AUD_SPDIFPC_SPDIFSTA__UNDERFLOW(ip, \
+	value__AUD_SPDIFPC_SPDIFSTA__UNDERFLOW__DETECTED(ip))
+
+/* EODATABURST */
+
+#define shift__AUD_SPDIFPC_SPDIFSTA__EODATABURST(ip) 2
+#define mask__AUD_SPDIFPC_SPDIFSTA__EODATABURST(ip) 0x1
+#define get__AUD_SPDIFPC_SPDIFSTA__EODATABURST(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_SPDIFSTA(ip)) >> \
+	shift__AUD_SPDIFPC_SPDIFSTA__EODATABURST(ip)) & \
+	mask__AUD_SPDIFPC_SPDIFSTA__EODATABURST(ip))
+#define set__AUD_SPDIFPC_SPDIFSTA__EODATABURST(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_SPDIFSTA(ip)) & \
+	~(mask__AUD_SPDIFPC_SPDIFSTA__EODATABURST(ip) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__EODATABURST(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_SPDIFSTA__EODATABURST(ip)) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__EODATABURST(ip)), ip->base + \
+	offset__AUD_SPDIFPC_SPDIFSTA(ip))
+
+#define value__AUD_SPDIFPC_SPDIFSTA__EODATABURST__END(ip) 0x1
+#define mask__AUD_SPDIFPC_SPDIFSTA__EODATABURST__END(ip) \
+	(value__AUD_SPDIFPC_SPDIFSTA__EODATABURST__END(ip) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__EODATABURST(ip))
+#define set__AUD_SPDIFPC_SPDIFSTA__EODATABURST__END(ip) \
+	set__AUD_SPDIFPC_SPDIFSTA__EODATABURST(ip, \
+	value__AUD_SPDIFPC_SPDIFSTA__EODATABURST__END(ip))
+
+/* EOBLOCK */
+
+#define shift__AUD_SPDIFPC_SPDIFSTA__EOBLOCK(ip) 3
+#define mask__AUD_SPDIFPC_SPDIFSTA__EOBLOCK(ip) 0x1
+#define get__AUD_SPDIFPC_SPDIFSTA__EOBLOCK(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_SPDIFSTA(ip)) >> \
+	shift__AUD_SPDIFPC_SPDIFSTA__EOBLOCK(ip)) & \
+	mask__AUD_SPDIFPC_SPDIFSTA__EOBLOCK(ip))
+#define set__AUD_SPDIFPC_SPDIFSTA__EOBLOCK(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_SPDIFSTA(ip)) & \
+	~(mask__AUD_SPDIFPC_SPDIFSTA__EOBLOCK(ip) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__EOBLOCK(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_SPDIFSTA__EOBLOCK(ip)) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__EOBLOCK(ip)), ip->base + \
+	offset__AUD_SPDIFPC_SPDIFSTA(ip))
+
+#define value__AUD_SPDIFPC_SPDIFSTA__EOBLOCK__END(ip) 0x1
+#define mask__AUD_SPDIFPC_SPDIFSTA__EOBLOCK__END(ip) \
+	(value__AUD_SPDIFPC_SPDIFSTA__EOBLOCK__END(ip) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__EOBLOCK(ip))
+#define set__AUD_SPDIFPC_SPDIFSTA__EOBLOCK__END(ip) \
+	set__AUD_SPDIFPC_SPDIFSTA__EOBLOCK(ip, \
+	value__AUD_SPDIFPC_SPDIFSTA__EOBLOCK__END(ip))
+
+/* LATENCY */
+
+#define shift__AUD_SPDIFPC_SPDIFSTA__LATENCY(ip) 4
+#define mask__AUD_SPDIFPC_SPDIFSTA__LATENCY(ip) 0x1
+#define get__AUD_SPDIFPC_SPDIFSTA__LATENCY(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_SPDIFSTA(ip)) >> \
+	shift__AUD_SPDIFPC_SPDIFSTA__LATENCY(ip)) & \
+	mask__AUD_SPDIFPC_SPDIFSTA__LATENCY(ip))
+#define set__AUD_SPDIFPC_SPDIFSTA__LATENCY(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_SPDIFSTA(ip)) & \
+	~(mask__AUD_SPDIFPC_SPDIFSTA__LATENCY(ip) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__LATENCY(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_SPDIFSTA__LATENCY(ip)) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__LATENCY(ip)), ip->base + \
+	offset__AUD_SPDIFPC_SPDIFSTA(ip))
+
+#define \
+	value__AUD_SPDIFPC_SPDIFSTA__LATENCY__END_OF_LATENCY_COUNTER(ip) 0x1
+#define \
+	mask__AUD_SPDIFPC_SPDIFSTA__LATENCY__END_OF_LATENCY_COUNTER(ip) \
+	(value__AUD_SPDIFPC_SPDIFSTA__LATENCY__END_OF_LATENCY_COUNTER(ip) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__LATENCY(ip))
+#define set__AUD_SPDIFPC_SPDIFSTA__LATENCY__END_OF_LATENCY_COUNTER(ip) \
+	set__AUD_SPDIFPC_SPDIFSTA__LATENCY(ip, \
+	value__AUD_SPDIFPC_SPDIFSTA__LATENCY__END_OF_LATENCY_COUNTER(ip))
+
+/* PD_DATABURST */
+
+#define shift__AUD_SPDIFPC_SPDIFSTA__PD_DATABURST(ip) 5
+#define mask__AUD_SPDIFPC_SPDIFSTA__PD_DATABURST(ip) 0x1
+#define get__AUD_SPDIFPC_SPDIFSTA__PD_DATABURST(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_SPDIFSTA(ip)) >> \
+	shift__AUD_SPDIFPC_SPDIFSTA__PD_DATABURST(ip)) & \
+	mask__AUD_SPDIFPC_SPDIFSTA__PD_DATABURST(ip))
+#define set__AUD_SPDIFPC_SPDIFSTA__PD_DATABURST(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_SPDIFSTA(ip)) & \
+	~(mask__AUD_SPDIFPC_SPDIFSTA__PD_DATABURST(ip) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__PD_DATABURST(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_SPDIFSTA__PD_DATABURST(ip)) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__PD_DATABURST(ip)), ip->base + \
+	offset__AUD_SPDIFPC_SPDIFSTA(ip))
+
+#define value__AUD_SPDIFPC_SPDIFSTA__PD_DATABURST__SENT(ip) 0x1
+#define mask__AUD_SPDIFPC_SPDIFSTA__PD_DATABURST__SENT(ip) \
+	(value__AUD_SPDIFPC_SPDIFSTA__PD_DATABURST__SENT(ip) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__PD_DATABURST(ip))
+#define set__AUD_SPDIFPC_SPDIFSTA__PD_DATABURST__SENT(ip) \
+	set__AUD_SPDIFPC_SPDIFSTA__PD_DATABURST(ip, \
+	value__AUD_SPDIFPC_SPDIFSTA__PD_DATABURST__SENT(ip))
+
+/* AUDIO_READ */
+
+#define shift__AUD_SPDIFPC_SPDIFSTA__AUDIO_READ(ip) 6
+#define mask__AUD_SPDIFPC_SPDIFSTA__AUDIO_READ(ip) 0x1
+#define get__AUD_SPDIFPC_SPDIFSTA__AUDIO_READ(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_SPDIFSTA(ip)) >> \
+	shift__AUD_SPDIFPC_SPDIFSTA__AUDIO_READ(ip)) & \
+	mask__AUD_SPDIFPC_SPDIFSTA__AUDIO_READ(ip))
+#define set__AUD_SPDIFPC_SPDIFSTA__AUDIO_READ(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_SPDIFSTA(ip)) & \
+	~(mask__AUD_SPDIFPC_SPDIFSTA__AUDIO_READ(ip) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__AUDIO_READ(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_SPDIFSTA__AUDIO_READ(ip)) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__AUDIO_READ(ip)), ip->base + \
+	offset__AUD_SPDIFPC_SPDIFSTA(ip))
+
+#define value__AUD_SPDIFPC_SPDIFSTA__AUDIO_READ__DONE(ip) 0x1
+#define mask__AUD_SPDIFPC_SPDIFSTA__AUDIO_READ__DONE(ip) \
+	(value__AUD_SPDIFPC_SPDIFSTA__AUDIO_READ__DONE(ip) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__AUDIO_READ(ip))
+#define set__AUD_SPDIFPC_SPDIFSTA__AUDIO_READ__DONE(ip) \
+	set__AUD_SPDIFPC_SPDIFSTA__AUDIO_READ(ip, \
+	value__AUD_SPDIFPC_SPDIFSTA__AUDIO_READ__DONE(ip))
+
+/* PA_C_BIT_NUMBER */
+
+#define shift__AUD_SPDIFPC_SPDIFSTA__PA_C_BIT_NUMBER(ip) 7
+#define mask__AUD_SPDIFPC_SPDIFSTA__PA_C_BIT_NUMBER(ip) 0xff
+#define get__AUD_SPDIFPC_SPDIFSTA__PA_C_BIT_NUMBER(ip) \
+	((readl(ip->base + offset__AUD_SPDIFPC_SPDIFSTA(ip)) >> \
+	shift__AUD_SPDIFPC_SPDIFSTA__PA_C_BIT_NUMBER(ip)) & \
+	mask__AUD_SPDIFPC_SPDIFSTA__PA_C_BIT_NUMBER(ip))
+#define set__AUD_SPDIFPC_SPDIFSTA__PA_C_BIT_NUMBER(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_SPDIFSTA(ip)) & \
+	~(mask__AUD_SPDIFPC_SPDIFSTA__PA_C_BIT_NUMBER(ip) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__PA_C_BIT_NUMBER(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_SPDIFSTA__PA_C_BIT_NUMBER(ip)) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__PA_C_BIT_NUMBER(ip)), ip->base + \
+	offset__AUD_SPDIFPC_SPDIFSTA(ip))
+
+/* PD_PAUSEBURST */
+
+#define shift__AUD_SPDIFPC_SPDIFSTA__PD_PAUSEBURST(ip) 5
+#define mask__AUD_SPDIFPC_SPDIFSTA__PD_PAUSEBURST(ip) 0x1
+#define get__AUD_SPDIFPC_SPDIFSTA__PD_PAUSEBURST(ip) ((readl(ip->base \
+	+ offset__AUD_SPDIFPC_SPDIFSTA(ip)) >> \
+	shift__AUD_SPDIFPC_SPDIFSTA__PD_PAUSEBURST(ip)) & \
+	mask__AUD_SPDIFPC_SPDIFSTA__PD_PAUSEBURST(ip))
+#define set__AUD_SPDIFPC_SPDIFSTA__PD_PAUSEBURST(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_SPDIFSTA(ip)) & \
+	~(mask__AUD_SPDIFPC_SPDIFSTA__PD_PAUSEBURST(ip) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__PD_PAUSEBURST(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_SPDIFSTA__PD_PAUSEBURST(ip)) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__PD_PAUSEBURST(ip)), ip->base + \
+	offset__AUD_SPDIFPC_SPDIFSTA(ip))
+
+#define value__AUD_SPDIFPC_SPDIFSTA__PD_PAUSEBURST__SENT(ip) 0x1
+#define mask__AUD_SPDIFPC_SPDIFSTA__PD_PAUSEBURST__SENT(ip) \
+	(value__AUD_SPDIFPC_SPDIFSTA__PD_PAUSEBURST__SENT(ip) << \
+	shift__AUD_SPDIFPC_SPDIFSTA__PD_PAUSEBURST(ip))
+#define set__AUD_SPDIFPC_SPDIFSTA__PD_PAUSEBURST__SENT(ip) \
+	set__AUD_SPDIFPC_SPDIFSTA__PD_PAUSEBURST(ip, \
+	value__AUD_SPDIFPC_SPDIFSTA__PD_PAUSEBURST__SENT(ip))
+
+
+
+/*
+ * AUD_SPDIFPC_PAUSE
+ */
+
+#define offset__AUD_SPDIFPC_PAUSE(ip) 0x208
+#define get__AUD_SPDIFPC_PAUSE(ip) readl(ip->base + \
+	offset__AUD_SPDIFPC_PAUSE(ip))
+#define set__AUD_SPDIFPC_PAUSE(ip, value) writel(value, ip->base + \
+	offset__AUD_SPDIFPC_PAUSE(ip))
+
+/* PAUSE_LENGTH */
+
+#define shift__AUD_SPDIFPC_PAUSE__PAUSE_LENGTH(ip) 0
+#define mask__AUD_SPDIFPC_PAUSE__PAUSE_LENGTH(ip) 0xffff
+#define get__AUD_SPDIFPC_PAUSE__PAUSE_LENGTH(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_PAUSE(ip)) >> \
+	shift__AUD_SPDIFPC_PAUSE__PAUSE_LENGTH(ip)) & \
+	mask__AUD_SPDIFPC_PAUSE__PAUSE_LENGTH(ip))
+#define set__AUD_SPDIFPC_PAUSE__PAUSE_LENGTH(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_PAUSE(ip)) & \
+	~(mask__AUD_SPDIFPC_PAUSE__PAUSE_LENGTH(ip) << \
+	shift__AUD_SPDIFPC_PAUSE__PAUSE_LENGTH(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_PAUSE__PAUSE_LENGTH(ip)) << \
+	shift__AUD_SPDIFPC_PAUSE__PAUSE_LENGTH(ip)), ip->base + \
+	offset__AUD_SPDIFPC_PAUSE(ip))
+
+/* PAUSE_LAT */
+
+#define shift__AUD_SPDIFPC_PAUSE__PAUSE_LAT(ip) 16
+#define mask__AUD_SPDIFPC_PAUSE__PAUSE_LAT(ip) 0xffff
+#define get__AUD_SPDIFPC_PAUSE__PAUSE_LAT(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_PAUSE(ip)) >> \
+	shift__AUD_SPDIFPC_PAUSE__PAUSE_LAT(ip)) & \
+	mask__AUD_SPDIFPC_PAUSE__PAUSE_LAT(ip))
+#define set__AUD_SPDIFPC_PAUSE__PAUSE_LAT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_PAUSE(ip)) & \
+	~(mask__AUD_SPDIFPC_PAUSE__PAUSE_LAT(ip) << \
+	shift__AUD_SPDIFPC_PAUSE__PAUSE_LAT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_PAUSE__PAUSE_LAT(ip)) << \
+	shift__AUD_SPDIFPC_PAUSE__PAUSE_LAT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_PAUSE(ip))
+
+
+
+/*
+ * AUD_SPDIFPC_DATA_BURST
+ */
+
+#define offset__AUD_SPDIFPC_DATA_BURST(ip) 0x20c
+#define get__AUD_SPDIFPC_DATA_BURST(ip) readl(ip->base + \
+	offset__AUD_SPDIFPC_DATA_BURST(ip))
+#define set__AUD_SPDIFPC_DATA_BURST(ip, value) writel(value, ip->base \
+	+ offset__AUD_SPDIFPC_DATA_BURST(ip))
+
+/* DATA_BURST */
+
+#define shift__AUD_SPDIFPC_DATA_BURST__DATA_BURST(ip) 0
+#define mask__AUD_SPDIFPC_DATA_BURST__DATA_BURST(ip) 0xffff
+#define get__AUD_SPDIFPC_DATA_BURST__DATA_BURST(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_DATA_BURST(ip)) >> \
+	shift__AUD_SPDIFPC_DATA_BURST__DATA_BURST(ip)) & \
+	mask__AUD_SPDIFPC_DATA_BURST__DATA_BURST(ip))
+#define set__AUD_SPDIFPC_DATA_BURST__DATA_BURST(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_DATA_BURST(ip)) & \
+	~(mask__AUD_SPDIFPC_DATA_BURST__DATA_BURST(ip) << \
+	shift__AUD_SPDIFPC_DATA_BURST__DATA_BURST(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_DATA_BURST__DATA_BURST(ip)) << \
+	shift__AUD_SPDIFPC_DATA_BURST__DATA_BURST(ip)), ip->base + \
+	offset__AUD_SPDIFPC_DATA_BURST(ip))
+
+/* PAUSE_BURST */
+
+#define shift__AUD_SPDIFPC_DATA_BURST__PAUSE_BURST(ip) 16
+#define mask__AUD_SPDIFPC_DATA_BURST__PAUSE_BURST(ip) 0xffff
+#define get__AUD_SPDIFPC_DATA_BURST__PAUSE_BURST(ip) ((readl(ip->base \
+	+ offset__AUD_SPDIFPC_DATA_BURST(ip)) >> \
+	shift__AUD_SPDIFPC_DATA_BURST__PAUSE_BURST(ip)) & \
+	mask__AUD_SPDIFPC_DATA_BURST__PAUSE_BURST(ip))
+#define set__AUD_SPDIFPC_DATA_BURST__PAUSE_BURST(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_DATA_BURST(ip)) & \
+	~(mask__AUD_SPDIFPC_DATA_BURST__PAUSE_BURST(ip) << \
+	shift__AUD_SPDIFPC_DATA_BURST__PAUSE_BURST(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_DATA_BURST__PAUSE_BURST(ip)) << \
+	shift__AUD_SPDIFPC_DATA_BURST__PAUSE_BURST(ip)), ip->base + \
+	offset__AUD_SPDIFPC_DATA_BURST(ip))
+
+
+
+/*
+ * AUD_SPDIFPC_PA_PB
+ */
+
+#define offset__AUD_SPDIFPC_PA_PB(ip) 0x210
+#define get__AUD_SPDIFPC_PA_PB(ip) readl(ip->base + \
+	offset__AUD_SPDIFPC_PA_PB(ip))
+#define set__AUD_SPDIFPC_PA_PB(ip, value) writel(value, ip->base + \
+	offset__AUD_SPDIFPC_PA_PB(ip))
+
+/* PB */
+
+#define shift__AUD_SPDIFPC_PA_PB__PB(ip) 0
+#define mask__AUD_SPDIFPC_PA_PB__PB(ip) 0xffff
+#define get__AUD_SPDIFPC_PA_PB__PB(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_PA_PB(ip)) >> shift__AUD_SPDIFPC_PA_PB__PB(ip)) & \
+	mask__AUD_SPDIFPC_PA_PB__PB(ip))
+#define set__AUD_SPDIFPC_PA_PB__PB(ip, value) writel((readl(ip->base + \
+	offset__AUD_SPDIFPC_PA_PB(ip)) & ~(mask__AUD_SPDIFPC_PA_PB__PB(ip) << \
+	shift__AUD_SPDIFPC_PA_PB__PB(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_PA_PB__PB(ip)) << shift__AUD_SPDIFPC_PA_PB__PB(ip)), \
+	ip->base + offset__AUD_SPDIFPC_PA_PB(ip))
+
+/* PA */
+
+#define shift__AUD_SPDIFPC_PA_PB__PA(ip) 16
+#define mask__AUD_SPDIFPC_PA_PB__PA(ip) 0xffff
+#define get__AUD_SPDIFPC_PA_PB__PA(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_PA_PB(ip)) >> shift__AUD_SPDIFPC_PA_PB__PA(ip)) & \
+	mask__AUD_SPDIFPC_PA_PB__PA(ip))
+#define set__AUD_SPDIFPC_PA_PB__PA(ip, value) writel((readl(ip->base + \
+	offset__AUD_SPDIFPC_PA_PB(ip)) & ~(mask__AUD_SPDIFPC_PA_PB__PA(ip) << \
+	shift__AUD_SPDIFPC_PA_PB__PA(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_PA_PB__PA(ip)) << shift__AUD_SPDIFPC_PA_PB__PA(ip)), \
+	ip->base + offset__AUD_SPDIFPC_PA_PB(ip))
+
+
+
+/*
+ * AUD_SPDIFPC_PC_PD
+ */
+
+#define offset__AUD_SPDIFPC_PC_PD(ip) 0x214
+#define get__AUD_SPDIFPC_PC_PD(ip) readl(ip->base + \
+	offset__AUD_SPDIFPC_PC_PD(ip))
+#define set__AUD_SPDIFPC_PC_PD(ip, value) writel(value, ip->base + \
+	offset__AUD_SPDIFPC_PC_PD(ip))
+
+/* PD */
+
+#define shift__AUD_SPDIFPC_PC_PD__PD(ip) 0
+#define mask__AUD_SPDIFPC_PC_PD__PD(ip) 0xffff
+#define get__AUD_SPDIFPC_PC_PD__PD(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_PC_PD(ip)) >> shift__AUD_SPDIFPC_PC_PD__PD(ip)) & \
+	mask__AUD_SPDIFPC_PC_PD__PD(ip))
+#define set__AUD_SPDIFPC_PC_PD__PD(ip, value) writel((readl(ip->base + \
+	offset__AUD_SPDIFPC_PC_PD(ip)) & ~(mask__AUD_SPDIFPC_PC_PD__PD(ip) << \
+	shift__AUD_SPDIFPC_PC_PD__PD(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_PC_PD__PD(ip)) << shift__AUD_SPDIFPC_PC_PD__PD(ip)), \
+	ip->base + offset__AUD_SPDIFPC_PC_PD(ip))
+
+/* PC */
+
+#define shift__AUD_SPDIFPC_PC_PD__PC(ip) 16
+#define mask__AUD_SPDIFPC_PC_PD__PC(ip) 0xffff
+#define get__AUD_SPDIFPC_PC_PD__PC(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_PC_PD(ip)) >> shift__AUD_SPDIFPC_PC_PD__PC(ip)) & \
+	mask__AUD_SPDIFPC_PC_PD__PC(ip))
+#define set__AUD_SPDIFPC_PC_PD__PC(ip, value) writel((readl(ip->base + \
+	offset__AUD_SPDIFPC_PC_PD(ip)) & ~(mask__AUD_SPDIFPC_PC_PD__PC(ip) << \
+	shift__AUD_SPDIFPC_PC_PD__PC(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_PC_PD__PC(ip)) << shift__AUD_SPDIFPC_PC_PD__PC(ip)), \
+	ip->base + offset__AUD_SPDIFPC_PC_PD(ip))
+
+
+
+/*
+ * AUD_SPDIFPC_CL1
+ */
+
+#define offset__AUD_SPDIFPC_CL1(ip) 0x218
+#define get__AUD_SPDIFPC_CL1(ip) readl(ip->base + \
+	offset__AUD_SPDIFPC_CL1(ip))
+#define set__AUD_SPDIFPC_CL1(ip, value) writel(value, ip->base + \
+	offset__AUD_SPDIFPC_CL1(ip))
+
+/* CHANNEL_STATUS */
+
+#define shift__AUD_SPDIFPC_CL1__CHANNEL_STATUS(ip) 0
+#define mask__AUD_SPDIFPC_CL1__CHANNEL_STATUS(ip) 0xffffffff
+#define get__AUD_SPDIFPC_CL1__CHANNEL_STATUS(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_CL1(ip)) >> \
+	shift__AUD_SPDIFPC_CL1__CHANNEL_STATUS(ip)) & \
+	mask__AUD_SPDIFPC_CL1__CHANNEL_STATUS(ip))
+#define set__AUD_SPDIFPC_CL1__CHANNEL_STATUS(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_CL1(ip)) & \
+	~(mask__AUD_SPDIFPC_CL1__CHANNEL_STATUS(ip) << \
+	shift__AUD_SPDIFPC_CL1__CHANNEL_STATUS(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_CL1__CHANNEL_STATUS(ip)) << \
+	shift__AUD_SPDIFPC_CL1__CHANNEL_STATUS(ip)), ip->base + \
+	offset__AUD_SPDIFPC_CL1(ip))
+
+
+
+/*
+ * AUD_SPDIFPC_CR1
+ */
+
+#define offset__AUD_SPDIFPC_CR1(ip) 0x21c
+#define get__AUD_SPDIFPC_CR1(ip) readl(ip->base + \
+	offset__AUD_SPDIFPC_CR1(ip))
+#define set__AUD_SPDIFPC_CR1(ip, value) writel(value, ip->base + \
+	offset__AUD_SPDIFPC_CR1(ip))
+
+/* CH_STA */
+
+#define shift__AUD_SPDIFPC_CR1__CH_STA(ip) 0
+#define mask__AUD_SPDIFPC_CR1__CH_STA(ip) 0xffffffff
+#define get__AUD_SPDIFPC_CR1__CH_STA(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_CR1(ip)) >> shift__AUD_SPDIFPC_CR1__CH_STA(ip)) & \
+	mask__AUD_SPDIFPC_CR1__CH_STA(ip))
+#define set__AUD_SPDIFPC_CR1__CH_STA(ip, value) writel((readl(ip->base \
+	+ offset__AUD_SPDIFPC_CR1(ip)) & ~(mask__AUD_SPDIFPC_CR1__CH_STA(ip) \
+	<< shift__AUD_SPDIFPC_CR1__CH_STA(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_CR1__CH_STA(ip)) << \
+	shift__AUD_SPDIFPC_CR1__CH_STA(ip)), ip->base + \
+	offset__AUD_SPDIFPC_CR1(ip))
+
+
+
+/*
+ * AUD_SPDIFPC_SUV
+ */
+
+#define offset__AUD_SPDIFPC_SUV(ip) 0x220
+#define get__AUD_SPDIFPC_SUV(ip) readl(ip->base + \
+	offset__AUD_SPDIFPC_SUV(ip))
+#define set__AUD_SPDIFPC_SUV(ip, value) writel(value, ip->base + \
+	offset__AUD_SPDIFPC_SUV(ip))
+
+/* CH_STA_LEFT */
+
+#define shift__AUD_SPDIFPC_SUV__CH_STA_LEFT(ip) 0
+#define mask__AUD_SPDIFPC_SUV__CH_STA_LEFT(ip) 0xf
+#define get__AUD_SPDIFPC_SUV__CH_STA_LEFT(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_SUV(ip)) >> \
+	shift__AUD_SPDIFPC_SUV__CH_STA_LEFT(ip)) & \
+	mask__AUD_SPDIFPC_SUV__CH_STA_LEFT(ip))
+#define set__AUD_SPDIFPC_SUV__CH_STA_LEFT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_SUV(ip)) & \
+	~(mask__AUD_SPDIFPC_SUV__CH_STA_LEFT(ip) << \
+	shift__AUD_SPDIFPC_SUV__CH_STA_LEFT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_SUV__CH_STA_LEFT(ip)) << \
+	shift__AUD_SPDIFPC_SUV__CH_STA_LEFT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_SUV(ip))
+
+/* CH_STA_RIGHT */
+
+#define shift__AUD_SPDIFPC_SUV__CH_STA_RIGHT(ip) 8
+#define mask__AUD_SPDIFPC_SUV__CH_STA_RIGHT(ip) 0xf
+#define get__AUD_SPDIFPC_SUV__CH_STA_RIGHT(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_SUV(ip)) >> \
+	shift__AUD_SPDIFPC_SUV__CH_STA_RIGHT(ip)) & \
+	mask__AUD_SPDIFPC_SUV__CH_STA_RIGHT(ip))
+#define set__AUD_SPDIFPC_SUV__CH_STA_RIGHT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_SUV(ip)) & \
+	~(mask__AUD_SPDIFPC_SUV__CH_STA_RIGHT(ip) << \
+	shift__AUD_SPDIFPC_SUV__CH_STA_RIGHT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_SUV__CH_STA_RIGHT(ip)) << \
+	shift__AUD_SPDIFPC_SUV__CH_STA_RIGHT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_SUV(ip))
+
+/* DATA_LEFT */
+
+#define shift__AUD_SPDIFPC_SUV__DATA_LEFT(ip) 16
+#define mask__AUD_SPDIFPC_SUV__DATA_LEFT(ip) 0x1
+#define get__AUD_SPDIFPC_SUV__DATA_LEFT(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_SUV(ip)) >> shift__AUD_SPDIFPC_SUV__DATA_LEFT(ip)) \
+	& mask__AUD_SPDIFPC_SUV__DATA_LEFT(ip))
+#define set__AUD_SPDIFPC_SUV__DATA_LEFT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_SUV(ip)) & \
+	~(mask__AUD_SPDIFPC_SUV__DATA_LEFT(ip) << \
+	shift__AUD_SPDIFPC_SUV__DATA_LEFT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_SUV__DATA_LEFT(ip)) << \
+	shift__AUD_SPDIFPC_SUV__DATA_LEFT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_SUV(ip))
+
+/* DATA_RIGHT */
+
+#define shift__AUD_SPDIFPC_SUV__DATA_RIGHT(ip) 17
+#define mask__AUD_SPDIFPC_SUV__DATA_RIGHT(ip) 0x1
+#define get__AUD_SPDIFPC_SUV__DATA_RIGHT(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_SUV(ip)) >> \
+	shift__AUD_SPDIFPC_SUV__DATA_RIGHT(ip)) & \
+	mask__AUD_SPDIFPC_SUV__DATA_RIGHT(ip))
+#define set__AUD_SPDIFPC_SUV__DATA_RIGHT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_SUV(ip)) & \
+	~(mask__AUD_SPDIFPC_SUV__DATA_RIGHT(ip) << \
+	shift__AUD_SPDIFPC_SUV__DATA_RIGHT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_SUV__DATA_RIGHT(ip)) << \
+	shift__AUD_SPDIFPC_SUV__DATA_RIGHT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_SUV(ip))
+
+/* VAL_LEFT */
+
+#define shift__AUD_SPDIFPC_SUV__VAL_LEFT(ip) 18
+#define mask__AUD_SPDIFPC_SUV__VAL_LEFT(ip) 0x1
+#define get__AUD_SPDIFPC_SUV__VAL_LEFT(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_SUV(ip)) >> shift__AUD_SPDIFPC_SUV__VAL_LEFT(ip)) \
+	& mask__AUD_SPDIFPC_SUV__VAL_LEFT(ip))
+#define set__AUD_SPDIFPC_SUV__VAL_LEFT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_SUV(ip)) & \
+	~(mask__AUD_SPDIFPC_SUV__VAL_LEFT(ip) << \
+	shift__AUD_SPDIFPC_SUV__VAL_LEFT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_SUV__VAL_LEFT(ip)) << \
+	shift__AUD_SPDIFPC_SUV__VAL_LEFT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_SUV(ip))
+
+/* VAL_RIGHT */
+
+#define shift__AUD_SPDIFPC_SUV__VAL_RIGHT(ip) 19
+#define mask__AUD_SPDIFPC_SUV__VAL_RIGHT(ip) 0x1
+#define get__AUD_SPDIFPC_SUV__VAL_RIGHT(ip) ((readl(ip->base + \
+	offset__AUD_SPDIFPC_SUV(ip)) >> shift__AUD_SPDIFPC_SUV__VAL_RIGHT(ip)) \
+	& mask__AUD_SPDIFPC_SUV__VAL_RIGHT(ip))
+#define set__AUD_SPDIFPC_SUV__VAL_RIGHT(ip, value) \
+	writel((readl(ip->base + offset__AUD_SPDIFPC_SUV(ip)) & \
+	~(mask__AUD_SPDIFPC_SUV__VAL_RIGHT(ip) << \
+	shift__AUD_SPDIFPC_SUV__VAL_RIGHT(ip))) | (((value) & \
+	mask__AUD_SPDIFPC_SUV__VAL_RIGHT(ip)) << \
+	shift__AUD_SPDIFPC_SUV__VAL_RIGHT(ip)), ip->base + \
+	offset__AUD_SPDIFPC_SUV(ip))
+
+
+
+#endif

@@ -1,0 +1,13 @@
+if SH_ST_HDK7106
+
+menu "hdk7106: STx7106 Reference board options"
+
+config SH_ST_HDK7106_STMMAC1
+	bool "Enable STMMAC 1"
+	default n
+	help
+	  Enable STMMAC 1
+
+endmenu
+
+endif

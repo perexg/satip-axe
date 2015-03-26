@@ -1,0 +1,14 @@
+if SH_ST_MB628
+
+menu "mb628: STx7141 Validation board options"
+
+config SH_ST_MB628_STMMAC0
+	bool "Enable STMMAC 0"
+	default n
+	help
+	  Enable STMMAC 0
+
+endmenu
+
+endif
+

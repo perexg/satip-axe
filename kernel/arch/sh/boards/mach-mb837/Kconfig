@@ -1,0 +1,19 @@
+if SH_ST_MB837
+
+menu "mb837: STx7108 Validation board options"
+
+config SH_ST_MB837_STMMAC0
+	bool "Enable STMMAC 0"
+	default n
+	help
+	  Enable STMMAC 0
+
+config SH_ST_MB837_STMMAC1
+	bool "Enable STMMAC 1"
+	default n
+	help
+	  Enable STMMAC 1
+
+endmenu
+
+endif

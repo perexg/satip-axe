@@ -1,0 +1,708 @@
+STMicroelectronics platforms pad management
+===========================================
+
+This document tries to explain rationale behind and ways of using
+pad management API designed for STMicroelectronics platforms.
+
+All the related functions and macros are declared in
+"include/linux/stm/pad.h" and implemented in "drivers/stm/pad.c" file.
+
+Table of contents
+=================
+1. What is it for?
+2. Platform devices definition
+2.1. PIOs
+2.2. sysconfig bits
+2.3. Custom calls
+2.4. Modifying configurations in runtime
+2.5. Building configurations in runtime
+3. Driver API
+4. GPIO driver relationship
+
+
+
+1. What is it for?
+==================
+
+Most of the peripheral controller IPs, like UART (aka ASC), I2C cell (SSC),
+Ethernet MAC etc., are connected to the external components (connectors,
+other ICs...) via chip's pins (or rather "balls" in case of BGA packaging),
+known in the "hardware speech" as pads.
+
+Historically some of the pads were dedicated for the particular use
+(especially MII pads in older SOCs) but nowadays more and more of the
+functions are multiplexed with generic PIOs (and other functions).
+
+When a PIO pad is used in a non-PIO context (eg. TXD/RXD signals driven
+directly by the UART), it was traditionally described as an "alternative
+function" for the PIO and the driver was supposed to use PIO API to set
+this mode (basing on "port/pin" data provided via platform data).
+
+With a rising SOCs complexity came need of assigning more then one
+"alternative function" to each of the PIOs, so, for example, a given pad
+can now act as a generic PIO, UART's TXD line or I2C SDA signal, depending
+on the board design.
+
+As the PIO bank design didn't provide support for more then one option
+(and itself was considered as "immutable") additional multiplexers had
+to be introduced, controlled by a loosely defined collections of bits
+here and there, commonly known as "sysconfigs". Effectively every single
+chips family has its own pads configuration scheme, usually very different
+to any other.
+
+As the PIO API also wasn't prepared to take additional responsibilities
+the "solution" was to leave the PIO configuration in driver, while
+the "sysconfig" bits were configured in chip-specific configuration
+("BSP" as it is sometimes called). Obviously it was not a perfect solution
+(word "hack" seems to be more suitable) and led to a number of problems.
+
+Finally major changes in kernel allowed to rework all this model and
+introduced "pad management" API, which role is to separate all the
+PIO and other "magic bits" configuration from the IP (as in UART etc.)
+driver implementation and provide it a nicely abstracted function which
+can be described as:
+
+"Please, do everything what is required so I could talk to a I2C device
+potentially connected to SSC controller I am supposed to drive.
+I don't care what PIOs are used, I don't want to know what sysconfig
+bits should be set. I just want to put some data into SSC's FIFO and
+expect the SDA and SCL lines to be changing from low to high level
+and back when the SSC decides to do so."
+
+
+
+2. Platform devices definition
+==============================
+
+All the elements involved in configuring pads in some particular mode
+are encapsulated in "stm_pad_config" structure:
+
+--------8<--------8<--------8<--------
+struct stm_pad_config {
+	int gpios_num;
+	struct stm_pad_gpio *gpios;
+	int sysconfs_num;
+	struct stm_pad_sysconf *sysconfs;
+	int (*custom_claim)(struct stm_pad_state *state, void *priv);
+	void (*custom_release)(struct stm_pad_state *state, void *priv);
+	void *custom_priv;
+};
+--------8<--------8<--------8<--------
+
+An example configuration could look like this:
+
+--------8<--------8<--------8<--------
+static struct stm_pad_config fli7510_usb_pad_config = {
+	.gpios_num = 2,
+	.gpios = (struct stm_pad_gpio []) {
+		STM_PAD_PIO_IN(27, 1, -1),	/* USB_A_OVRCUR */
+		STM_PAD_PIO_OUT(27, 2, 1),	/* USB_A_PWREN */
+	},
+	.sysconfs_num = 2,
+	.sysconfs = (struct stm_pad_sysconf []) {
+		/* usba_enable_pad_override */
+		STM_PAD_SYSCONF(CFG_COMMS_CONFIG_1, 12, 12, 0),
+		/* usba_ovrcur_polarity */
+		STM_PAD_SYSCONF(CFG_COMMS_CONFIG_1, 11, 11, 0),
+	},
+	.custom_claim = fli7510_usb_xtal_claim,
+	.custom_release = fli7510_usb_xtal_release,
+}
+--------8<--------8<--------8<--------
+
+It says that in order to get USB host controller running correctly,
+PIO27.1 should be configured as input, PIO27.2 as an "alternative function 1"
+output, two sysconfig bits (CFG_COMMS_CONFIG_1.12 and .11) should be set
+to 0 and additionally a special function "fli7510_usb_xtal_claim" called.
+All used macros are described below.
+
+
+
+2.1. PIOs
+=========
+
+Traditionally PIO "pins" in ST chips are grouped in "ports", 8 pins each.
+Number of available ports, their alternative functions mapping and
+configuration scheme differ a lot between SOCs. Therefore the SOC
+initialization code is obliged to call pad manager's initialization
+function before performing any pad/PIO related operation:
+
+--------8<--------8<--------8<--------
+int stm_pad_init(int gpios_num, int gpio_function,
+			int (*gpio_config)(unsigned gpio,
+			enum stm_pad_gpio_direction direction,
+			int function, void *priv));
+--------8<--------8<--------8<--------
+
+"gpios_num" parameter simply defines number of available PIO pins.
+Effectively it is:
+
+ 	gpios_num = (max(PIO_ports) + 1) * 8
+
+where max(PIO_ports) is the highest number of available PIO ports. Note
+that it is _not_ just a number of available ports, as some SOCs (STx7141
+and FLi7540 at the time of writing) "lack" a few ports at the beginning.
+The first available port in STx7141 is 1 and in case FLi7540 - 5 (sic!).
+And in such cases the code requires an explicit "gap" at the beginning
+of all related structures.
+
+The "gpio_config" is a callback function pointer that will be called in
+order to configure any given PIO pin in one of three possible directions
+(input, output or bi-directional) or custom mode (SOC and implementation
+specific) and into a particular function.
+
+The "function" numbering is completely SOC-dependent, as is both defined
+(in the "stm_pad_config" structures) and used (in the "gpio_config"
+callback) by the SOC setup code. The value that should be used to
+configure a pin in generic PIO mode (so its value can be read using
+"gpio_get_value()" or set using "gpio_set_value()") should be passed
+to pad manager core as the "gpio_function" parameter of the above
+initialization function.
+
+The pad configuration as described in platform code and pass should
+describe every PIO used by a particular IP as an array of "struct
+stm_pad_gpio" pointed by field ".gpios" of "stm_pad_config" structure.
+For example, in case of UART these are usually RXD, TXD, CTS and RTS
+signals while for SSC in I2C mode these should be SCL and SDA lines.
+
+To make the configurations easier to write (and read), the "pad.h" header
+provides a family of helper macros. They all use PORT.PIN convention
+(internally converted to contiguous "gpio space") to be in line with
+SOC specs and board schematics. The function number, as mentioned above,
+is SOC-specific. A PIO my be given a name, if it is supposed to be used
+by a driver (see p. 3 below) or modified during initialization (see p. 2.4).
+
+--------8<--------8<--------8<--------
+#define STM_PAD_PIO_IN(_port, _pin, _function)
+#define STM_PAD_PIO_IN_NAMED(_port, _pin, _function, _name)
+#define STM_PAD_PIO_OUT(_port, _pin, _function)
+#define STM_PAD_PIO_OUT_NAMED(_port, _pin, _function, _name)
+#define STM_PAD_PIO_BIDIR(_port, _pin, _function)
+#define STM_PAD_PIO_BIDIR_NAMED(_port, _pin, _function, _name)
+--------8<--------8<--------8<--------
+
+There is also a special variant, which defines a PIO description
+without specified function nor direction - it is intended to create
+a named "stub",  configured later with methods described in p. 2.4:
+
+--------8<--------8<--------8<--------
+#define STM_PAD_PIO_STUB_NAMED(_port, _pin, _name)
+--------8<--------8<--------8<--------
+
+There is also a "priv" field in the "stm_pad_gpio" structure, which
+is not being set by any of the standard macros. It may be used to pass
+some custom information to the "gpio_config" function mentioned above.
+The suggested way to use it defining a SOC-specific macro, as in
+the example below:
+
+--------8<--------8<--------8<--------
+#define STX7108_PIO_ETH_DATA_IN(_gmac, _port, _pin) \
+	{ \
+		.gpio = stm_gpio(_port, _pin), \
+		.direction = stm_pad_gpio_direction_in, \
+		.function = _gmac + 1, \
+		.priv = &stx7108_ethernet_retime_data[_gmac], \
+	}
+--------8<--------8<--------8<--------
+
+and then used like this:
+
+--------8<--------8<--------8<--------
+static int stx7108_pio_config(unsigned gpio,
+		enum stm_pad_gpio_direction direction, int function,
+		void *priv)
+{
+<...>
+	struct stx7108_pio_retime_config *retime_config = priv;
+<...>
+	if (retime_config)
+		stx7108_pio_config_retime(port, pin, retime_config);
+
+	return 0;
+}
+--------8<--------8<--------8<--------
+
+
+
+2.2. sysconfig bits
+===================
+
+The term "sysconfigs" cover all generic-purpose registers used to set
+different IP configurations values. Their location, organization and use
+differ a lot between SOCs, but generally three main schemes exist and
+are defined in SOC headers (eg. "include/linux/stm/stx7100.h"):
+
+1. Single registers block with registered grouped in three categories:
+   SYS_DEV, SYS_STA and SYS_CFG (STx5206, STx7100/9, STx7105/6, STx7111,
+   STx7141, STx7200).
+
+2. Multiple register blocks ("banks") with registered grouped similarly to
+   above: SYS_CFG_BANKx, SYS_STA_BANKx and SYS_CFG_BANKx (STx7108)
+
+3. Multiple register blocks with registered semi-randomly located here
+   and there (STx5197, FLIx7510); in this case individual register names
+   are defined along the bank names, eg:
+
+--------8<--------8<--------8<--------
+#define HS_CFG                  0
+#define HD_CFG                  1
+
+#define CFG_CTRL_A              HS_CFG, (0x00 / 4)
+#define CFG_CTRL_B              HS_CFG, (0x04 / 4)
+--------8<--------8<--------8<--------
+
+or
+
+--------8<--------8<--------8<--------
+#define PRB_PU_CFG_1                    0
+#define TRS_SPARE_REGS_0                2
+
+#define CFG_RESET_CTL                   PRB_PU_CFG_1, (0x00 / 4)
+
+#define CFG_COMMS_CONFIG_1              TRS_SPARE_REGS_0, (0x00 / 4)
+--------8<--------8<--------8<--------
+
+Different bits of these registers are responsible for a wide selection
+of SOC internals, for example: setting bit 16 of SYS_CFG7 register to 1
+in STx7105 enables Ethernet controller. Usually there is a few of such
+things to be set per individual IP, sometimes in a different way
+depending on required configuration, eg. to configure mentioned
+Ethernet controller in MII or RMII.
+
+Our kernel provides an API to work with these registers, defined
+in "include/linux/stm/sysconf.h" header, however it should not be
+used in any of devices drivers to keep them SOC-agnostic. The only
+place that "sysconfigs" should be referenced to are SOC setup files,
+either directly in some cases, or as arrays of "struct stm_pad_sysconf"
+pointed by field ".sysconfs" in "stm_pad_config" structure, as shown
+in p. 2.
+
+Similarly to PIOs case, there are macros defined, helping to create an
+array of required "sysconfigs" in a reader-friendly way. As the SYS_CFG
+groups are most likely to be set (SYS_DEV & SYS_STA are usually read-only)
+there are two macros available, to be used in first two of schemes
+described above. Their definitions with examples:
+
+--------8<--------8<--------8<--------
+#define STM_PAD_SYS_CFG(_regnum, _lsb, _msb, _value)
+
+	/* ethernet_interface_on */
+	STM_PAD_SYS_CFG(7, 16, 16, 1),
+	/* enMII: 0 = reverse MII mode, 1 = MII mode */
+	STM_PAD_SYS_CFG(7, 27, 27, 1),
+
+
+#define STM_PAD_SYS_CFG_BANK(_bank, _regnum, _lsb, _msb, _value)
+
+	/* EN_GMAC0 */
+	STM_PAD_SYS_CFG_BANK(2, 53, 0, 0, 1),
+	/* MIIx_PHY_SEL */
+	STM_PAD_SYS_CFG_BANK(2, 27, 2, 4, 0),
+--------8<--------8<--------8<--------
+
+SOCs with defined "sysconfig" register names (third scheme) should use
+the following macro in similar way:
+
+--------8<--------8<--------8<--------
+#define STM_PAD_SYSCONF(_reg, _lsb, _msb, _value)
+
+	/* Ethernet interface on */
+	STM_PAD_SYSCONF(CFG_CTRL_E, 0, 0, 1),
+	/* RMII/MII pin mode */
+	STM_PAD_SYSCONF(CFG_CTRL_E, 7, 8, 3),
+
+	/* gmac_mii_enable */
+	STM_PAD_SYSCONF(CFG_COMMS_CONFIG_2, 8, 8, 1),
+	/* gmac_enable */
+	STM_PAD_SYSCONF(CFG_COMMS_CONFIG_2, 24, 24, 1),
+--------8<--------8<--------8<--------
+
+
+
+2.3. Custom calls
+=================
+
+In some cases operations required to set up some configuration are too
+complex to be described by the fields above. It may be a case of
+a configuration bit shared between a number of independent IPs, typical
+example is a bit enabling clock driving couple independent
+controller IPs.
+
+To handle such situations "custom_claim" and "custom_release" function
+pointers may be defined in "stm_pad_config" structure. They will be
+called - respectively - after and before PIOs and sysconfig bits
+(de)allocation and get pointer to private data, defined as "custom_priv"
+field as well as state ("struct stm_pad_state") pointer, which can be
+used to obtain "gpio" value (as described in p. 3), what may be necessary
+in the most extreme cases.
+
+
+
+2.4. Modifying configurations in runtime
+====================================================
+
+As mentioned above IPs may require different pad configuration, depending
+on use case as defined in board setup code. For example this may be a
+matter of configuring Ethernet in RMII or MII mode, or setting up SSC
+in I2C vs SPI mode.
+
+In most cases it is possible to prepare a set of different "stm_pad_config"
+structures and assign them to platform data depending on data received
+from boards setup. Sometimes however it would require a huge number
+of variants, which may not be feasible for a number of reasons.
+
+In such case one may go one of two ways: either create a "template"
+configuration and modify some of the fields, or build entire configuration
+"from scratch" in runtime.
+
+The first possibility is especially suitable for changing small subset
+of PIO information. The following helpers are defined:
+
+--------8<--------8<--------8<--------
+#define stm_pad_set_pio(config, name, port, pin)
+#define stm_pad_set_pio_in(config, name, function)
+#define stm_pad_set_pio_out(config, name, function)
+#define stm_pad_set_pio_bidir(config, name, function)
+#define stm_pad_set_pio_bidir(config, name, function)
+--------8<--------8<--------8<--------
+
+PIOs that are supposed to be modified must be defined with "_NAMED" macro.
+Typical example is Ethernet's "PHYCLK" PIO direction, which may be
+configured as input or output depending on board design. It is also
+possible to change alternative function value, if required:
+
+--------8<--------8<--------8<--------
+static struct stm_pad_config *stx7105_ethernet_pad_configs[] = {
+<...>
+			.gpios = (struct stm_pad_gpio []) {
+<...>
+				STM_PAD_PIO_OUT_NAMED(9, 5, 1, "PHYCLK"),
+			},
+<...>
+void __init stx7105_configure_ethernet(int port,
+		struct stx7105_ethernet_config *config)
+{
+<...>
+	struct stm_pad_config *pad_config
+<...>
+	pad_config = &stx7105_ethernet_pad_configs[port][config->mode];
+<...>
+	if (config->ext_clk)
+		stm_pad_set_pio_in(pad_config, "PHYCLK", 2 + port);
+	else
+		stm_pad_set_pio_out(pad_config, "PHYCLK", 1 + port);
+--------8<--------8<--------8<--------
+
+In some cases this PIO may be also set as "ignored", which means that
+it will now be claimed at all during "stm_pad_claim()":
+
+--------8<--------8<--------8<--------
+	if (config->ext_clk)
+		stm_pad_set_pio_ignored(pad_config, "PHYCLK");
+--------8<--------8<--------8<--------
+
+In case when required function may be present on more then one PIO,
+it is possible to define a PIO "STUB" and then set its information
+in runtime:
+
+--------8<--------8<--------8<--------
+static struct stm_pad_config *stx7105_ethernet_pad_configs[] = {
+<...>
+			.gpios = (struct stm_pad_gpio []) {
+<...>
+				STM_PAD_PIO_STUB_NAMED(-1, -1, "MDIO"),
+			},
+<...>
+void __init stx7105_configure_ethernet(int port,
+		struct stx7105_ethernet_config *config)
+{
+<...>
+	struct stm_pad_config *pad_config
+<...>
+	pad_config = &stx7105_ethernet_pad_configs[port][config->mode];
+<...>
+	switch (config->routing.mii1.mdio) {
+	case stx7105_ethernet_mii1_mdio_pio3_4:
+		stm_pad_set_pio(pad_config, "MDIO", 3, 4);
+		stm_pad_set_pio_out(pad_config, "MDIO", 4);
+		break;
+	case stx7105_ethernet_mii1_mdio_pio11_0:
+		stm_pad_set_pio(pad_config, "MDIO", 11, 0);
+		stm_pad_set_pio_out(pad_config, "MDIO", 3);
+		break;
+--------8<--------8<--------8<--------
+
+There is no explicit support for modifying "sysconfig" definitions
+in runtime, however it is possible as well:
+
+--------8<--------8<--------8<--------
+static struct stm_pad_config *stx7105_ethernet_pad_configs[] = {
+<...>
+			.sysconfs = (struct stm_pad_sysconf []) {
+				/* eth1_mdiin_src_sel:
+				 * 1 = mdi in is from PIO11(0)
+				 * 0 = mdc in is from PIO3(4) */
+				STM_PAD_SYS_CFG(16, 4, 4, -1), /* set below */
+<...>
+void __init stx7105_configure_ethernet(int port,
+		struct stx7105_ethernet_config *config)
+{
+<...>
+	struct stm_pad_config *pad_config
+<...>
+	pad_config = &stx7105_ethernet_pad_configs[port][config->mode];
+<...>
+	switch (config->routing.mii1.mdio) {
+	case stx7105_ethernet_mii1_mdio_pio3_4:
+		/* eth1_mdiin_src_sel = 0 */
+		pad_config->sysconfs[0].value = 0;
+		break;
+	case stx7105_ethernet_mii1_mdio_pio11_0:
+		/* eth1_mdiin_src_sel = 1 */
+		pad_config->sysconfs[0].value = 1;
+		break;
+--------8<--------8<--------8<--------
+
+
+
+2.5. Building configurations in runtime
+====================================================
+
+Some of SOCs are "ultimately flexible" regarding PIOs function allocation.
+For example, in case of STx7105, each of SSC2 (and SSC3) signals can be
+routed to one of four (sic!) different PIOs. This  means 4^2 different
+configurations for I2C and 4^3 for SPI, all together 80 (!) variants.
+
+Therefore it is more feasible to create required configuration in runtime.
+First, such a structure must be allocated using the following function:
+
+--------8<--------8<--------8<--------
+struct stm_pad_config *stm_pad_config_alloc(int gpio_values_num,
+		int sysconf_values_num);
+--------8<--------8<--------8<--------
+
+Parameters define _maximum_ number of PIO and sysconfig entries that
+may be added using any of the methods described below. Note that
+"stm_pad_config_add_sys_cfg()" is a shortcut for defining SYS_CFG-related
+bits with "stm_pad_config_add_sysconf()".
+
+--------8<--------8<--------8<--------
+int stm_pad_config_add_sysconf(struct stm_pad_config *config,
+		int regtype, int regnum, int lsb, int msb, int value);
+#define stm_pad_config_add_sys_cfg(config, regnum, lsb, msb, value)
+
+#define stm_pad_config_add_pio_in(config, port, pin, function)
+#define stm_pad_config_add_pio_in_named(config, port, pin, function, name)
+
+#define stm_pad_config_add_pio_out(config, port, pin, function)
+#define stm_pad_config_add_pio_out_named(config, port, pin,
+			function, name)
+
+#define stm_pad_config_add_pio_bidir(config, port, pin, function)
+#define stm_pad_config_add_pio_bidir_named(config, port, pin,
+			function, name)
+--------8<--------8<--------8<--------
+
+An example of use may look like this:
+
+--------8<--------8<--------8<--------
+	pad_config = stm_pad_config_alloc(2, 2);
+
+	/* SCL */
+	switch (config->routing.ssc2.sclk) {
+	case stx7105_ssc2_sclk_pio2_4: /* 7106 only! */
+		BUG_ON(cpu_data->type != CPU_STX7106);
+		stm_pad_config_add_pio_bidir_named(pad_config,
+				2, 4, 2, "SCL");
+		/* ssc2_sclk_in: 00 = PIO2.4 */
+		stm_pad_config_add_sys_cfg(pad_config, 16, 11, 12, 0);
+
+		break;
+	case stx7105_ssc2_sclk_pio3_4:
+		stm_pad_config_add_pio_bidir_named(pad_config,
+				3, 4, 2, "SCL");
+		/* ssc2_sclk_in: 01 = PIO3.4 */
+		stm_pad_config_add_sys_cfg(pad_config, 16, 11, 12, 1);
+		break;
+	}
+
+	/* SDA */
+	switch (config->routing.ssc2.mtsr) {
+	case stx7105_ssc2_mtsr_pio2_0:
+		stm_pad_config_add_pio_bidir_named(pad_config,
+				2, 0, 3, "SDA");
+		/* ssc2_mtsr_in: 00 = PIO2.0 */
+		stm_pad_config_add_sys_cfg(pad_config, 16, 9, 10, 0);
+		break;
+	case stx7105_ssc2_mtsr_pio3_5:
+		stm_pad_config_add_pio_bidir_named(pad_config,
+				3, 5, 2, "SDA");
+		/* ssc2_mtsr_in: 01 = PIO3.5 */
+		stm_pad_config_add_sys_cfg(pad_config, 16, 9, 10, 1);
+		break;
+	}
+--------8<--------8<--------8<--------
+
+
+
+3. Driver API
+=============
+
+From a driver developer's point of view the matter looks quite simple.
+He can expect a "struct stm_pad_config *" value in a device platform
+data, for example:
+
+--------8<--------8<--------8<--------
+struct mydevice_plat_data {
+	/* Some platform-dependent values */
+	struct stm_pad_config *pad_config;
+};
+
+static struct platform_device mydevice = {
+	.name = "mydevice",
+	.id = -1,
+	.dev.platform_data = &(struct mydevice_plat_data) {
+		.pad_config = &(struct pad_config) {
+			/* See p. 2 of this document */
+		}
+	}
+}
+--------8<--------8<--------8<--------
+
+And now, all the driver is supposed to do while being "probed" is to call
+the following function:
+
+--------8<--------8<--------8<--------
+struct stm_pad_state *stm_pad_claim(struct stm_pad_config *config,
+		const char *owner);
+--------8<--------8<--------8<--------
+
+The obtained "struct stm_pad_state *" is supposed to be released when the
+device is being removed:
+
+--------8<--------8<--------8<--------
+void stm_pad_release(struct stm_pad_state *state);
+--------8<--------8<--------8<--------
+
+All together, a "mydevice" driver implementation could look like this:
+(all error handling etc. skipped)
+
+--------8<--------8<--------8<--------
+struct mydevice {
+	struct stm_pad_state *pad_state;
+};
+
+static int __devinit mydevice_probe(struct platform_device *pdev)
+{
+	struct mydevice_plat_data *plat_data = dev->platform_data;
+	struct mydevice *mydevice = mydevice_alloc();
+
+	mydevice->pad_state = stm_pad_claim(plat_data->pad_config,
+			dev_name(&pdev->dev));
+
+	platform_set_drvdata(pdev, mydevice);
+
+	return 0;
+}
+
+static int mydevice_remove(struct platform_device *pdev)
+{
+	struct mydevice *mydevice = platform_get_drvdata(pdev);
+
+	stm_pad_release(mydevice->pad_state);
+
+	return 0;
+}
+
+static struct platform_driver mydevice_driver = {
+	.driver = {
+		.name = "mydevice",
+		.owner = THIS_MODULE,
+	},
+	.probe = mydevice_probe,
+	.remove = mydevice_remove,
+}
+--------8<--------8<--------8<--------
+
+Alternatively one can decide to use "devm" style API, which releases
+resources automatically on device removal:
+
+--------8<--------8<--------8<--------
+struct stm_pad_state *devm_stm_pad_claim(struct device *dev,
+		struct stm_pad_config *config, const char *owner);
+void devm_stm_pad_release(struct device *dev, struct stm_pad_state *state);
+--------8<--------8<--------8<--------
+
+So the "mydevice_probe" would be:
+
+--------8<--------8<--------8<--------
+static int __devinit mydevice_probe(struct platform_device *pdev)
+{
+	devm_stm_pad_claim(&pdev->dev, plat_data->pad_config,
+			dev_name(&pdev->dev));
+
+	return 0;
+}
+--------8<--------8<--------8<--------
+
+and that's it! Calling "devm_stm_pad_release" is not necessary at all
+(one may want to use in an error path in "probe").
+
+The "state pointer" is also useful when the drivers temporarily wants
+to switch some of the related pads to generic PIO mode.
+
+--------8<--------8<--------8<--------
+unsigned stm_pad_gpio_request_input(struct stm_pad_state *state,
+		const char *name);
+unsigned stm_pad_gpio_request_output(struct stm_pad_state *state,
+		const char *name, int value);
+void stm_pad_gpio_free(struct stm_pad_state *state, unsigned gpio);
+--------8<--------8<--------8<--------
+
+The "name" is defined by the platform configuration as described in p. 2.1
+above, and should shared between the driver and all the BSPs (the "well
+known" name, for the I2C signals should be _always_ described as "SCL"
+and "SDA"). Value returned by the "request" functions is just a
+"generic gpio" number, which can be used with standard "gpio_set_value()"
+and "gpio_get_value()" calls.
+
+This may be useful to perform some non-standard "bit-banging" operations,
+for example as a hardware issue workaround or to implement operations not
+supported by the hardware controller cell. For example, if "mydevice" driver
+was supposed to pull the line down for 100us in case of error, as the
+hardware wouldn't be doing this on its own:
+
+--------8<--------8<--------8<--------
+void mydevice_handle_error(struct mydevice *mydevice)
+{
+	unsigned signal_gpio;
+
+	signal_gpio = stm_pad_gpio_request_output(mydevice->pad_state,
+			"SIGNAL");
+
+	gpio_set_value(signal_gpio, 0);
+	usleep(100);
+	gpio_set_value(signal_gpio, 1);
+
+	stm_pad_gpio_free(mydevice->pad_state, signal_gpio);
+}
+--------8<--------8<--------8<--------
+
+
+
+4. GPIO driver relationship
+===========================
+
+As it is clear now, that pad management and PIO interface are closely
+related to each other. As the "generic PIO" mode is effectively just
+one of possible pad configuration, PIO driver is a pad manager client.
+For a number of reasons it is somehow privileged though, and there is
+a special, private API, for its sole use only:
+
+--------8<--------8<--------8<--------
+int stm_pad_claim_gpio(unsigned gpio);
+void stm_pad_release_gpio(unsigned gpio);
+const char *stm_pad_get_gpio_owner(unsigned gpio);
+--------8<--------8<--------8<--------
+
+*** Please, DO NOT USE THIS API in any other driver! ***

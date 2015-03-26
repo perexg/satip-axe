@@ -1,0 +1,85 @@
+if SH_ST_HDK7108
+
+menu "hdk7108: STx7108 Reference board options"
+
+config SH_ST_HDK7108_STMMAC0
+	bool "Enable STMMAC 0"
+	default n
+	help
+	  Enable STMMAC 0
+
+config SH_ST_HDK7108_GMAC_RGMII_MODE
+	bool "Use GMAC1 in RGMII mode"
+	help
+	  GMAC1 is the default device used on this board and it is
+	  configured in GMII GTX mode.
+	  This option is used to have it working in RGMII mode.
+	  To support RGMII remove R29 and place it at R37.
+
+choice
+	prompt  "hdk7108 Reference Board Version selection"
+	default SH_ST_HDK7108_VER2_BOARD
+	help
+	  Select the appropriate version of the board which you will be using.
+	  This controls which SATA and PCIe ports will be configured.
+
+config SH_ST_HDK7108_VER1_BOARD
+	bool "HDK7108 Ver 1.0 Board"
+	help
+	  HDK7108 Ver 1.0 Board with 2 SATA's designed for CUT1.0
+
+config SH_ST_HDK7108_VER1_1_BOARD
+	bool "HDK7108 Ver 1.1 Board"
+	help
+	  HDK7108 Ver 1.1 Board
+
+config SH_ST_HDK7108_VER2_BOARD
+	bool "HDK7108 Ver 2.0 Board"
+	help
+	  HDK7108 Ver 2.0 Board with PCIe and 1 SATA's designed for CUT2.0
+
+config SH_ST_HDK7108_VER2_1A_BOARD
+	bool "HDK7108 Ver 2.1A Board"
+	help
+	  HDK7108 Ver 2.0 Board with 2 SATA's designed for CUT2.0
+
+endchoice
+
+choice
+	prompt  "hdk7108 MMC slot/eMMC selection"
+	default SH_ST_HDK7108_MMC_NONE if SH_ST_HDK7108_VER2_1A_BOARD
+	default SH_ST_HDK7108_MMC_SLOT
+	help
+	  Most HDK7108 boards have a MMC card slot. However the 2.1A
+	  boards are designed to take either a card slot or a soldered down
+	  eMMC device depending on the population option chosen. In
+	  practice it appears that most have neither! 
+
+config	SH_ST_HDK7108_MMC_SLOT
+	bool "Multi Media Card slot on board"
+	help
+	  Select this option if the board has an MMC card slot.
+
+config	SH_ST_HDK7108_MMC_EMMC
+	bool "Embedded Multi Media Card (eMMC) on board"
+	depends on SH_ST_HDK7108_VER2_1A_BOARD
+	help
+	  Select this option if the board has an eMMC device.
+
+config	SH_ST_HDK7108_MMC_NONE
+	bool "No MMC card slot or eMMC device on board"
+	help
+	  Select this option if the board has no MMC capability.
+
+endchoice
+
+config STM_HDK7108_MALI_OS_MEMORY_SIZE
+	hex "Maximum Mali GPU OS memory size"
+	default "0x5000000"
+	help
+	  Specify the size of memory which the Mali driver is allowed to allocate
+	  from Linux kernel.
+
+endmenu
+
+endif

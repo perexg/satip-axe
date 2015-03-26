@@ -1,0 +1,18 @@
+# Post-process vmlinux and modules to support Fast LKM loader
+# a. vmlinux/modules: compute hash values of exported symbols and fill ksymtabs
+# b. modules: compute hash values of undefined symbols and fill .undef.hash
+
+quiet_cmd_ksymhash = SYMHASH
+      cmd_ksymhash = scripts/mod/ksymhash
+
+ifdef CONFIG_LKM_ELF_HASH
+define rule_ksymhash
+	$(Q)$(if $($(quiet)cmd_ksymhash),		\
+		echo '  $($(quiet)cmd_ksymhash) $@' &&)	\
+	$(cmd_ksymhash) $@
+endef
+else
+define rule_ksymhash
+endef
+endif
+

@@ -1,0 +1,819 @@
+menu "Board support"
+
+config SOLUTION_ENGINE
+	bool
+
+config SH_SOLUTION_ENGINE
+	bool "SolutionEngine"
+	select SOLUTION_ENGINE
+	select CPU_HAS_IPR_IRQ
+	depends on CPU_SUBTYPE_SH7705 || CPU_SUBTYPE_SH7709 || CPU_SUBTYPE_SH7710 || \
+	  CPU_SUBTYPE_SH7712 || CPU_SUBTYPE_SH7750 || CPU_SUBTYPE_SH7750S || \
+	  CPU_SUBTYPE_SH7750R 
+	help
+	  Select SolutionEngine if configuring for a Hitachi SH7705, SH7709,
+	  SH7710, SH7712, SH7750, SH7750S or SH7750R evaluation board.
+
+config SH_7206_SOLUTION_ENGINE
+	bool "SolutionEngine7206"
+	select SOLUTION_ENGINE
+	depends on CPU_SUBTYPE_SH7206
+	help
+	  Select 7206 SolutionEngine if configuring for a Hitachi SH7206
+	  evaluation board.
+
+config SH_7619_SOLUTION_ENGINE
+	bool "SolutionEngine7619"
+	select SOLUTION_ENGINE
+	depends on CPU_SUBTYPE_SH7619
+	help
+	  Select 7619 SolutionEngine if configuring for a Hitachi SH7619
+	  evaluation board.
+	
+config SH_7721_SOLUTION_ENGINE
+	bool "SolutionEngine7721"
+	select SOLUTION_ENGINE
+	depends on CPU_SUBTYPE_SH7721
+	help
+	  Select 7721 SolutionEngine if configuring for a Hitachi SH7721
+	  evaluation board.
+
+config SH_7722_SOLUTION_ENGINE
+	bool "SolutionEngine7722"
+	select SOLUTION_ENGINE
+	depends on CPU_SUBTYPE_SH7722
+	help
+	  Select 7722 SolutionEngine if configuring for a Hitachi SH772
+	  evaluation board.
+
+config SH_7724_SOLUTION_ENGINE
+	bool "SolutionEngine7724"
+	select SOLUTION_ENGINE
+	depends on CPU_SUBTYPE_SH7724
+	select ARCH_REQUIRE_GPIOLIB
+	help
+	  Select 7724 SolutionEngine if configuring for a Hitachi SH7724
+	  evaluation board.
+
+config SH_7751_SOLUTION_ENGINE
+	bool "SolutionEngine7751"
+	select SOLUTION_ENGINE
+	select CPU_HAS_IPR_IRQ
+	depends on CPU_SUBTYPE_SH7751
+	help
+	  Select 7751 SolutionEngine if configuring for a Hitachi SH7751
+	  evaluation board.
+	  
+config SH_7780_SOLUTION_ENGINE
+	bool "SolutionEngine7780"
+	select SOLUTION_ENGINE
+	select SYS_SUPPORTS_PCI
+	depends on CPU_SUBTYPE_SH7780
+	help
+	  Select 7780 SolutionEngine if configuring for a Renesas SH7780
+	  evaluation board.
+
+config SH_7343_SOLUTION_ENGINE
+	bool "SolutionEngine7343"
+	select SOLUTION_ENGINE
+	depends on CPU_SUBTYPE_SH7343
+	help
+	  Select 7343 SolutionEngine if configuring for a Hitachi
+	  SH7343 (SH-Mobile 3AS) evaluation board.
+
+config SH_7751_SYSTEMH
+	bool "SystemH7751R"
+	depends on CPU_SUBTYPE_SH7751R
+	help
+	  Select SystemH if you are configuring for a Renesas SystemH
+	  7751R evaluation board.
+
+config SH_HP6XX
+	bool "HP6XX"
+	select SYS_SUPPORTS_APM_EMULATION
+	select HD6446X_SERIES
+	depends on CPU_SUBTYPE_SH7709
+	help
+	  Select HP6XX if configuring for a HP jornada HP6xx.
+	  More information (hardware only) at
+	  <http://www.hp.com/jornada/>.
+
+config SH_DREAMCAST
+	bool "Dreamcast"
+	select SYS_SUPPORTS_PCI
+	depends on CPU_SUBTYPE_SH7091
+	help
+	  Select Dreamcast if configuring for a SEGA Dreamcast.
+	  More information at <http://www.linux-sh.org>
+
+config SH_SH03
+	bool "Interface CTP/PCI-SH03"
+	depends on CPU_SUBTYPE_SH7751
+	select CPU_HAS_IPR_IRQ
+	select SYS_SUPPORTS_PCI
+	help
+	  CTP/PCI-SH03 is a CPU module computer that is produced
+	  by Interface Corporation.
+	  More information at <http://www.interface.co.jp>
+
+config SH_SECUREEDGE5410
+	bool "SecureEdge5410"
+	depends on CPU_SUBTYPE_SH7751R
+	select CPU_HAS_IPR_IRQ
+	select SYS_SUPPORTS_PCI
+	help
+	  Select SecureEdge5410 if configuring for a SnapGear SH board.
+	  This includes both the OEM SecureEdge products as well as the
+	  SME product line.
+
+config SH_RTS7751R2D
+	bool "RTS7751R2D"
+	depends on CPU_SUBTYPE_SH7751R
+	select SYS_SUPPORTS_PCI
+	select IO_TRAPPED if MMU
+	help
+	  Select RTS7751R2D if configuring for a Renesas Technology
+	  Sales SH-Graphics board.
+
+config SH_RSK
+	bool "Renesas Starter Kit"
+	depends on CPU_SUBTYPE_SH7201 || CPU_SUBTYPE_SH7203
+	help
+	 Select this option if configuring for any of the RSK+ MCU
+	 evaluation platforms.
+
+config SH_SDK7780
+	bool "SDK7780R3"
+	depends on CPU_SUBTYPE_SH7780
+	select SYS_SUPPORTS_PCI
+	help
+	  Select SDK7780 if configuring for a Renesas SH7780 SDK7780R3
+	  evaluation board.
+
+config SH_HIGHLANDER
+	bool "Highlander"
+	depends on CPU_SUBTYPE_SH7780 || CPU_SUBTYPE_SH7785
+	select SYS_SUPPORTS_PCI
+	select IO_TRAPPED if MMU
+
+config SH_SH7785LCR
+	bool "SH7785LCR"
+	depends on CPU_SUBTYPE_SH7785
+	select SYS_SUPPORTS_PCI
+
+config SH_SH7785LCR_29BIT_PHYSMAPS
+	bool "SH7785LCR 29bit physmaps"
+	depends on SH_SH7785LCR && 29BIT
+	default y
+	help
+	  This board has 2 physical memory maps. It can be changed with
+	  DIP switch(S2-5). If you set the DIP switch for S2-5 = ON,
+	  you can access all on-board device in 29bit address mode.
+
+config SH_SH7785LCR_PT
+	bool "SH7785LCR prototype board on 32-bit MMU mode"
+	depends on SH_SH7785LCR && 32BIT
+	default n
+	help
+	  If you use prototype board, this option is enabled.
+
+config SH_URQUELL
+	bool "Urquell"
+	depends on CPU_SUBTYPE_SH7786
+	select ARCH_REQUIRE_GPIOLIB
+	select SYS_SUPPORTS_PCI
+
+config SH_MIGOR
+	bool "Migo-R"
+	depends on CPU_SUBTYPE_SH7722
+	select ARCH_REQUIRE_GPIOLIB
+	help
+	  Select Migo-R if configuring for the SH7722 Migo-R platform
+          by Renesas System Solutions Asia Pte. Ltd.
+
+config SH_AP325RXA
+	bool "AP-325RXA"
+	depends on CPU_SUBTYPE_SH7723
+	select ARCH_REQUIRE_GPIOLIB
+	help
+	  Renesas "AP-325RXA" support.
+	  Compatible with ALGO SYSTEM CO.,LTD. "AP-320A"
+
+config SH_KFR2R09
+	bool "KFR2R09"
+	depends on CPU_SUBTYPE_SH7724
+	select ARCH_REQUIRE_GPIOLIB
+	help
+	  "Kit For R2R for 2009" support.
+
+config SH_ECOVEC
+	bool "EcoVec"
+	depends on CPU_SUBTYPE_SH7724
+	select ARCH_REQUIRE_GPIOLIB
+	help
+	  Renesas "R0P7724LC0011/21RL (EcoVec)" support.
+
+config SH_SH7763RDP
+	bool "SH7763RDP"
+	depends on CPU_SUBTYPE_SH7763
+	help
+	  Select SH7763RDP if configuring for a Renesas SH7763
+	  evaluation board.
+
+config SH_ESPT
+	bool "ESPT"
+	depends on CPU_SUBTYPE_SH7763
+	help
+	  Select ESPT if configuring for a Renesas SH7763
+	  with gigabit ether evaluation board.
+
+config SH_EDOSK7705
+	bool "EDOSK7705"
+	depends on CPU_SUBTYPE_SH7705
+
+config SH_EDOSK7760
+	bool "EDOSK7760"
+	depends on CPU_SUBTYPE_SH7760
+	help
+	  Select if configuring for a Renesas EDOSK7760
+	  evaluation board.
+
+config SH_SH4202_MICRODEV
+	bool "SH4-202 MicroDev"
+	depends on CPU_SUBTYPE_SH4_202
+	help
+	  Select SH4-202 MicroDev if configuring for a SuperH MicroDev board
+	  with an SH4-202 CPU.
+
+config SH_LANDISK
+	bool "LANDISK"
+	depends on CPU_SUBTYPE_SH7751R
+	select SYS_SUPPORTS_PCI
+	help
+	  I-O DATA DEVICE, INC. "LANDISK Series" support.
+
+config SH_TITAN
+	bool "TITAN"
+	depends on CPU_SUBTYPE_SH7751R
+	select CPU_HAS_IPR_IRQ
+	select SYS_SUPPORTS_PCI
+	help
+	  Select Titan if you are configuring for a Nimble Microsystems
+	  NetEngine NP51R.
+
+config SH_SHMIN
+	bool "SHMIN"
+	depends on CPU_SUBTYPE_SH7706
+	select CPU_HAS_IPR_IRQ
+	help
+	  Select SHMIN if configuring for the SHMIN board.
+
+config SH_LBOX_RE2
+	bool "L-BOX RE2"
+	depends on CPU_SUBTYPE_SH7751R
+	select SYS_SUPPORTS_PCI
+	help
+	  Select L-BOX RE2 if configuring for the NTT COMWARE L-BOX RE2.
+
+config SH_X3PROTO
+	bool "SH-X3 Prototype board"
+	depends on CPU_SUBTYPE_SHX3
+
+config SH_MAGIC_PANEL_R2
+	bool "Magic Panel R2"
+	depends on CPU_SUBTYPE_SH7720
+	select ARCH_REQUIRE_GPIOLIB
+	help
+	  Select Magic Panel R2 if configuring for Magic Panel R2.
+
+config SH_CAYMAN
+	bool "Hitachi Cayman"
+	depends on CPU_SUBTYPE_SH5_101 || CPU_SUBTYPE_SH5_103
+	select SYS_SUPPORTS_PCI
+
+config SH_POLARIS
+	bool "SMSC Polaris"
+	select CPU_HAS_IPR_IRQ
+	depends on CPU_SUBTYPE_SH7709
+	help
+	  Select if configuring for an SMSC Polaris development board
+
+comment "ST Main Boards"
+
+config SH_ST_HARP_IRQ
+	bool
+	default n
+
+config SH_ST_EPLD
+	bool
+	default n
+
+config SH_ST_STEM
+	bool
+	default n
+
+config SH_ST_STPM_HD_V1
+	bool
+	default n
+
+config SH_ST_STPM_HD_V2
+	bool
+	default n
+
+config SH_ST_STPM_SD
+	bool
+	default n
+
+config SH_ST_ADI7108
+	bool "ADI7108: STx7108-ADI Reference board"
+	depends on CPU_SUBTYPE_STX7108
+	select SYS_SUPPORTS_PCI
+	default n
+	help
+	  Select SH_ST_ADI7108 if configuring for a
+	  STMicroelectronics STi7108-ADI Reference Board.
+
+config SH_ST_CAB5197
+	bool "CAB5197: STx5197 CAB reference board"
+	depends on CPU_SUBTYPE_STX5197
+	default n
+	help
+	  Select STx5197 CAB Reference if configuring for an
+	  STMicroelectronics STx5197 CAB reference Board.
+
+config SH_ST_EUD7141
+	bool "EUD7141 board"
+	depends on CPU_SUBTYPE_STX7141
+	default n
+	help
+	  Select this if configuring for an
+	  STMicroelectronics STx7141 EUD Reference Board.
+
+config SH_ST_FLDB
+	bool "fldb: Freeman Lite Development Board"
+	depends on CPU_SUBTYPE_FLI7510
+	select SYS_SUPPORTS_PCI
+	select SND_STM_CONV_GPIO if SND_STM
+	default n
+	help
+	  Select this if configuring for a
+	  Freeman Lite Development Board.
+
+config SH_ST_FUDB
+	bool "fudb: Freeman Ultra Development Board"
+	depends on CPU_SUBTYPE_FLI7510
+	select SYS_SUPPORTS_PCI
+	select SND_STM_CONV_GPIO if SND_STM
+	help
+	  Select this if configuring for a
+	  Freeman Ultra Development Board.
+
+config SH_ST_HDK5289
+	bool "HDK5289 : STx5289 HDK Reference board"
+	depends on CPU_SUBTYPE_STX5206
+	select SYS_SUPPORTS_PCI
+	default n
+	help
+	  Select this if configuring for an
+	  STMicroelectronics STi5289 HDK Reference Board.
+
+config SH_ST_DTT5250
+	bool "DTT5250 : STx5250 DTT Reference board"
+	depends on CPU_SUBTYPE_STX5206
+	default n
+	help
+	  Select this if configuring for an
+	  STMicroelectronics STi5250 DTT Reference Board.
+
+config SH_ST_HDK5250
+	bool "HDK5250 : STx5250 HDK Reference board"
+	depends on CPU_SUBTYPE_STX5206
+	select SYS_SUPPORTS_PCI
+	default n
+	help
+	  Select this if configuring for an
+	  STMicroelectronics STi5250 HDK Reference Board.
+
+config SH_ST_HDK7105
+	bool "HDK7105 : STx7105 HDK Reference board"
+	depends on CPU_SUBTYPE_STX7105
+	select SYS_SUPPORTS_PCI
+	default n
+	help
+	  Select HDK7105 if configuring for an
+	  STMicroelectronics STi7105 HDK Reference Board.
+
+config SH_ST_HDKH246
+	bool "HDKH246 : STi235/236/246 Reference boards"
+	depends on CPU_SUBTYPE_STX7105
+	default n
+	help
+	  Select HDKH246 if configuring for an
+	  STMicroelectronics STiH235/H236/H246 Reference Boards.
+
+config SH_ST_HDKH251
+	bool "HDKH251 : STiH251 HDK Reference board"
+	depends on CPU_SUBTYPE_STX7105
+	default n
+	help
+	  Select HDKH251 if configuring for an
+	  STMicroelectronics STiH251 HDK Reference Board.
+
+config SH_ST_HDK7197
+	bool "HDK7197 : STx7197 HDK Reference board"
+	depends on CPU_SUBTYPE_STX7105
+	default n
+	help
+	  Select HDK7197 if configuring for an
+	  STMicroelectronics STi7197 HDK Reference Board.
+
+config SH_ST_7102ISDB
+	bool "7102ISDB : STi7102 ISDB board"
+	depends on CPU_SUBTYPE_STX7105
+	default n
+	help
+	  Select 7102ISDB if configuring for an
+	  STMicroelectronics 7102ISDB Board.
+
+config SH_ST_HDK7106
+	bool "HDK7106 : STx7106 HDK Reference board"
+	depends on CPU_SUBTYPE_STX7105
+	select SYS_SUPPORTS_PCI
+	default n
+	help
+	  Select HDK7106 if configuring for an
+	  STMicroelectronics STi7106 HDK Reference Board.
+
+config SH_ST_HDK7108
+	bool "HDK7108: STx7108 Reference board"
+	depends on CPU_SUBTYPE_STX7108
+	select SYS_SUPPORTS_PCI
+	default n
+	help
+	  Select SH_ST_HDK7108 if configuring for a
+	  STMicroelectronics STi7108 Reference Board.
+
+config SH_ST_B2037
+	bool "B2037: STi7108 SOC with Lille Ballout on HDK board"
+	depends on CPU_SUBTYPE_STX7108
+	select SYS_SUPPORTS_PCI
+	default n
+	help
+	  Select SH_ST_B2037 if configuring for a
+	  STMicroelectronics STi7108asLille_HDK Reference Board.
+
+config SH_ST_HDK7111
+	bool "HDK7111 : STx7111 HDK board"
+	depends on CPU_SUBTYPE_STX7111
+	select SYS_SUPPORTS_PCI
+	select SH_ST_SYNOPSYS_PCI if PCI
+	help
+	  Select STx7111 HDK if configuring for an
+	  STMicroelectronics STx7111 HDK Reference Board
+
+config SH_ST_IDL4K
+	bool "IDL4K: Inverto-IP-Switch Platform"
+	depends on CPU_SUBTYPE_STX7108
+	select SYS_SUPPORTS_PCI
+	default n
+	help
+	  Select SH_ST_IDL4K if configuring for a
+	  Inverto IP-Switch Board.
+
+config SH_ST_HDREF
+	bool "ST HDref board"
+	depends on CPU_SUBTYPE_STX7100
+	default n
+	help
+	  Select ST HDref board if configuring for an
+	  STMicroelectronics ST HD Reference Board
+
+config SH_ST_HMP7100
+	bool "STx7100 HMP board"
+	depends on CPU_SUBTYPE_STX7100
+	default n
+	help
+	  Select STx7100 HMP board if configuring for an
+	  STMicroelectronics STB71xx HMP Reference Board
+
+config SH_ST_HMP7105
+	bool "HMP7105: STx7105 Reference board"
+	depends on CPU_SUBTYPE_STX7105
+	select SYS_SUPPORTS_PCI
+	default n
+	help
+	  Select HMP7105 if configuring for an STMicroelectronics
+	  HMP7105 reference board.
+
+config SH_ST_HMS1
+	bool "HMS1"
+	depends on CPU_SUBTYPE_STX7100
+	default n
+	help
+	  Select HMS1 if configuring for a HMS1 board.
+
+config SH_ST_IPTV7105
+	bool "iptv7105: STx7105 IPTV pluggin board"
+	depends on CPU_SUBTYPE_STX7105
+	select SYS_SUPPORTS_PCI
+	default n
+	help
+	  Select SH_ST_IPTV7105 if configuring for an STx7105 IPTV board
+
+config SH_ST_SAT7111
+	bool "sat7111: sat7111 board"
+	depends on CPU_SUBTYPE_STX7111
+	default n
+	help
+	  Select this if configuring for an
+	  STMicroelectronics sat7111 Reference Board.
+
+config SH_ST_MB360
+	bool "mb360: ST40RA Eval"
+	depends on CPU_SUBTYPE_ST40STB1
+	select SH_ST_HARP_IRQ
+	select SH_ST_STEM
+	default n
+	help
+	  Select ST40RA-Eval if configuring for an
+	  STMicroelectronics ST40RA Eval Board (product code: ST40RA-Eval,
+	  ST board ID: mb360).
+
+config SH_ST_MB374
+	bool "mb374: ST40RA Starter"
+	depends on CPU_SUBTYPE_ST40STB1
+	select SYS_SUPPORTS_PCI
+	select SH_ST_HARP_IRQ
+	select SH_ST_STEM
+	select SH_ST_ST40RA_PCI
+	default n
+	help
+	  Select ST40RA-Starter if configuring for an
+	  STMicroelectronics ST40RA Starter Board (also known as the
+	  ST40RA DDR Eval board) (product code: ST40RA-Starter,
+	  ST board ID: mb374).
+
+config SH_ST_MB411
+	bool "mb411: STx7100 Validation board"
+	depends on CPU_SUBTYPE_STX7100
+	select SH_ST_HARP_IRQ
+	select SH_ST_EPLD
+	select SH_ST_STEM
+	default n
+	help
+	  Select STb7100 Validation if configuring for an
+	  STMicroelectronics STb7100 Validation Board (product code:
+	  STi7100-MBOARD, ST board ID: mb411).
+
+config SH_ST_MB442
+	bool "mb442: STb7100 Reference board"
+	depends on CPU_SUBTYPE_STX7100
+	default n
+	help
+	  Select STb7100 Reference if configuring for an
+	  STMicroelectronics STb7100 Reference Board (product code:
+	  STb7100-REF). This is sometimes referred to as the CoCo board.
+
+config SH_ST_MB448
+	bool "mb448: STb7109E Reference board"
+	depends on CPU_SUBTYPE_STX7100
+	default n
+	help
+	  Select STb7109E Reference if configuring for an
+	  STMicroelectronics STB7109E Reference Board (product code:
+	  STB7109E-REF, ST board ID: mb448).
+
+config SH_ST_MB519
+	bool "mb519: STx7200 Mboard"
+	depends on CPU_SUBTYPE_STX7200
+	select SH_ST_EPLD
+	select SH_ST_STEM
+	select SH_ST_STPM_HD_V1
+	default n
+	help
+	  Select SH_ST_MB519 if configuring for an
+	  STMicroelectronics STx7200 Mboard (product code: STB7200-MBOARD,
+	  ST board ID: mb519).
+
+config SH_ST_MB602
+	bool "mb602: STx5202 Reference board"
+	depends on CPU_SUBTYPE_STX7100
+	default n
+	help
+	  Select SH_ST_MB602 if configuring for an
+	  STMicroelectronics STB5202 Reference Board
+	  (product code: STB5202-REF, ST board ID: mb602).
+
+config SH_ST_MB618
+	bool "mb618: STx7111 Validation board"
+	depends on CPU_SUBTYPE_STX7111
+	select SH_ST_EPLD
+	select SH_ST_STEM
+	select SYS_SUPPORTS_PCI
+	select I2C
+	default n
+	help
+	  Select STx7111 Validation if configuring for an
+	  STMicroelectronics STx7111 Validation Board (product code:
+	  STB7111-MBOARD, ST board ID: mb618).
+
+config SH_ST_MB628
+	bool "mb628: STx7141 Mboard"
+	depends on CPU_SUBTYPE_STX7141
+	select SH_ST_EPLD
+	select SH_ST_STEM
+	select SND_STM_CONV_DUMMY if SND_STM
+	select SND_STM_CONV_EPLD if SND_STM
+	default n
+	help
+	  Select STx7141 Mboard if configuring for an
+	  STMicroelectronics STx7141 MBoard (product code:
+	  STi7141-MBOARD, ST board ID: mb628).
+
+config SH_ST_MB671
+	bool "mb671: STx7200 cut 2.0 Mboard"
+	depends on CPU_SUBTYPE_STX7200
+	select CPU_ST40_300
+	select SH_ST_EPLD
+	select SH_ST_STEM
+	select SH_ST_STPM_HD_V1
+	default n
+	help
+	  Select SH_ST_MB671 if configuring for an STMicroelectronics
+	  STx7200 cut 2.0 Mboard (ST board ID: mb671).
+
+config SH_ST_MB680
+	bool "mb680: STx7105 Validation board"
+	depends on CPU_SUBTYPE_STX7105
+	select SH_ST_STEM
+	select SH_ST_STPM_HD_V2
+	select SYS_SUPPORTS_PCI
+	default n
+	help
+	  Select STx7105 Validation if configuring for an
+	  STMicroelectronics STx7105 Validation Board (product code:
+	  STi7105-MBOARD, ST board ID: mb680).
+
+config SH_ST_MB704
+	bool "mb704: STx5197 Validation board"
+	depends on CPU_SUBTYPE_STX5197
+	select SH_ST_STEM
+	select SH_ST_STPM_SD
+	default n
+	help
+	  Select STx5197 Validation if configuring for an
+	  STMicroelectronics STx5197 Validation Board (product code:
+	  STx5197-MBOARD, ST board ID: mb704).
+
+config SH_ST_MB796
+	bool "mb796: STx5206 Validation board"
+	depends on CPU_SUBTYPE_STX5206
+	select SH_ST_STEM
+	select SH_ST_STPM_HD_V2
+	select SYS_SUPPORTS_PCI
+	default n
+	help
+	  Select this if configuring for an STMicroelectronics STx5289
+	  Validation Board (product code: STi5289-MBOARD, ST board ID: mb796).
+
+config SH_ST_MB837
+	bool "mb837: STx7108 Validation board"
+	depends on CPU_SUBTYPE_STX7108
+	select SH_ST_STEM
+	select SH_ST_STPM_HD_V2
+	select SYS_SUPPORTS_PCI
+	default n
+	help
+	  Select STx7108 Validation if configuring for an
+	  STMicroelectronics STx7108 Validation Board (product code:
+	  STi7108-MBOARD, ST board ID: mb837).
+
+config SH_ST_MB839
+	bool "mb839: STi7105 Reference Board"
+	depends on CPU_SUBTYPE_STX7105
+	default n
+	help
+	  Select MB839 if configuring for an
+	  STMicroelectronics STi7105 MB839 Reference Board.
+
+config SH_ST_MB903
+	bool "mb903: STi7108M Reference board"
+	depends on CPU_SUBTYPE_STX7108
+	select FIXED_PHY
+	help
+	  Select SH_ST_MB903 if configuring for a
+	  STMicroelectronics STi7108M Reference Board.
+
+comment "ST Peripheral Boards"
+
+config SH_ST_DB641
+	bool "db641: STEM board with double SMSC LAN9117 Ethernet interface"
+	depends on SH_ST_STEM
+	default n
+	help
+	  Supports DB641 STEM board. Only first port (CN1) is supported.
+	  See "arch/sh/boards/st/common/db641.c" for configuration
+	  informations.
+
+config SH_ST_DB679
+	bool "db679: STEM based EMI to ATAPI drive interface"
+	depends on SH_ST_STEM
+	default n
+	help
+	  Supports DB679 STEM board. See "arch/sh/boards/st/common/db679.c"
+	  for configuration informations.
+
+config SH_ST_MB520
+	bool "mb520: STB peripherals board"
+	depends on SH_ST_STPM_HD_V1
+	select I2C
+	select I2C_BOARDINFO
+	select I2C_STM
+	select GPIO_PCF857X
+	select SND_STM_CONV_GPIO if SND_STM
+	default n
+	help
+	  Select SH_ST_MB520 if your processor board is connected
+	  to this STB-like peripherals board.
+
+config SH_ST_MB562
+	bool "mb562: BD-DVD peripherals board"
+	depends on SH_ST_STPM_HD_V1
+	default n
+	help
+	  Select SH_ST_MB562 if your processor board is connected
+	  to this multi-audio-outputs board.
+
+config SH_ST_MB588
+	bool "mb588: NAND Flash STEM board"
+	depends on SH_ST_STEM
+	default n
+	help
+	  Supports MB588 STEM board. See "arch/sh/boards/st/common/mb588.c"
+	  for configuration informations.
+
+config SH_ST_MB705
+	bool "mb705: Generic HD peripherals board"
+	depends on SH_ST_STPM_HD_V2
+	select SH_ST_EPLD
+	default n
+	help
+	  Select SH_ST_MB705 if your processor board is connected
+	  to this STB-like peripherals board.
+
+config SH_ST_MB705_AUDIO
+	tristate "Driver for audio peripherals on mb705"
+	depends on SH_ST_MB705
+	depends on SND_STM
+	default y
+	help
+	  Select this option to enable support for audio perypeharals
+	  on the mb705 (DACs and SPDIF-I2S converter).
+
+	  If you compile this driver as a module, it will be
+	  called mb705-audio.ko
+
+config SH_ST_MB705_DISPLAY
+	bool "Driver for LED display on mb705"
+	depends on SH_ST_MB705
+	default y
+	help
+	  Select this option to enable a simple driver for the alphanumeric
+	  LED display on the mb705.
+
+config SH_ST_MB705_FPBUTTON
+	bool "Driver for the front pannel button on mb705"
+	depends on SH_ST_MB705
+	default y
+	help
+	  Select this option to enable a simple driver for the front
+	  pannel button on the mb705.
+
+endmenu
+
+source "arch/sh/boards/mach-r2d/Kconfig"
+source "arch/sh/boards/mach-highlander/Kconfig"
+source "arch/sh/boards/mach-sdk7780/Kconfig"
+source "arch/sh/boards/mach-migor/Kconfig"
+source "arch/sh/boards/mach-rsk/Kconfig"
+source "arch/sh/boards/mach-eud7141/Kconfig"
+source "arch/sh/boards/mach-mb628/Kconfig"
+source "arch/sh/boards/mach-mb837/Kconfig"
+source "arch/sh/boards/mach-mb671/Kconfig"
+source "arch/sh/boards/mach-hdk7106/Kconfig"
+source "arch/sh/boards/mach-hdk7108/Kconfig"
+source "arch/sh/boards/mach-adi7108/Kconfig"
+
+if SH_MAGIC_PANEL_R2
+
+menu "Magic Panel R2 options"
+
+config SH_MAGIC_PANEL_R2_VERSION
+	int SH_MAGIC_PANEL_R2_VERSION
+	default "3"
+	help
+	  Set the version of the Magic Panel R2
+
+endmenu
+
+endif

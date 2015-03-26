@@ -1,0 +1,153 @@
+STLinux NAND AFM driver - Release Notes
+
+1. Overview
+
+The stm-nand-afm driver adds support for the ST Microelectronics NAND AFM
+Controller.  The AFM Controller offers H/W assisted ECC, automated command
+sequences, and a 128-byte data FIFO, all of which contribute to an improved
+performance over the existing stm-nand-emi and stm-nand-flex drivers.
+
+However, the AFM controller uses a different ECC layout to the default linux S/W
+ECC layout (as used by the stm-nand-emi and stm-nand-flex drivers). Furthermore,
+the AFM4 ECC layout may clash with the location of the factory-programmed
+bad-block markers.  As a result, a number of issues must be considered before
+enabling the stm-nand-afm driver, particularly when migrating from the
+stm-nand-flex or stm-nand-emi drivers.
+
+2. ECC Schemes
+
+The user needs to be aware of 3 ECC schemes:
+
+* 3/256 ECC: 3 bytes of ECC per 256 bytes of data.  This is the default linux
+  S/W ECC scheme and is used by the stm-nand-emi and stm-nand-flex drivers.
+
+* boot-mode ECC: 3 bytes of ECC per 128 bytes of data (with an additional 1-byte
+  ID marker).  This format is used by the NAND boot-controller.  The layout of
+  the ECC bytes in OOB is such that it may clash with the location of
+  factory-programmed bad-block markers.  Therefore, the use of FLASH-resident
+  bad block tables (BBTs) is advised to keep track of bad-blocks.  Ideally, the
+  BBTs should be written to the device prior to writing any boot-mode data.
+  However, STLinux does now recognise boot-mode ECC data when scanning for
+  bad-blocks, so the creation of the FLASH-resident BBTs can be deferred to the
+  first boot if preferred, or avoided all-together. (Previously, STLinux would
+  typically interpret boot-mode ECC data as bad-block markers, and therefore
+  writing BBTs to FLASH prior to writing boot-mode data was mandatory.)
+
+* AFM4 ECC: 4 bytes of ECC per 512 bytes of data (with an additional 3-byte ID
+  marker).  This format is used by the stm-nand-afm driver (and is the only
+  scheme recognised by the PBL (Primary Boot Loader)).  As with boot-mode ECC,
+  the layout in OOB is such that it may clash with the location of
+  factory-programmed bad-block markers.  The same advice as before applies: the
+  use of FLASH-resident BBTs is recommended, although STLinux will recognise
+  correctly AFM4 data if required to perform the bad-block scan itself.
+
+
+3. Migrating from stm-nand-flex or stm-nand-emi drivers
+
+If the NAND device has been used previously with the stm-nand-emi or
+stm-nand-flex driver, then it will need to be wiped before enabling the
+stm-nand-afm driver.  This includes erasing data blocks and any FLASH-resident
+BBTs that may be present.  However, care must be taken not to erase any
+factory-programed bad-block markers since it may not be possible to recover this
+information from the NAND device if the block is erased.
+
+3.1 Erasing data blocks
+
+This can be achieved using the flash_eraseall command on the NAND device's MTD
+partitions.  flash_eraseall is safe to use here since it will not attempt to
+erase any blocks that are marked bad (this is true even if the debugfs attribute
+"nanderasebb" has been set).
+
+For example:
+
+	root@jim:~# cat /proc/mtd
+	dev:    size   erasesize  name
+	mtd0: 00400000 00020000 "My NOR Root"
+	mtd1: 07c00000 00020000 "My NOR Home"
+	mtd2: 00800000 00020000 "NAND root"
+	mtd3: 3f800000 00020000 "NAND home"
+	root@jim:~# flash_eraseall /dev/mtd2
+
+	Skipping bad block at 0x00000000
+
+	Skipping bad block at 0x00020000
+	Erasing 128 Kibyte @ 40000 --  3 % complete.
+	Skipping bad block at 0x00060000
+	Erasing 128 Kibyte @ a0000 --  7 % complete.
+	Skipping bad block at 0x000c0000
+	Erasing 128 Kibyte @ 7e0000 -- 98 % complete.
+	root@jim:~# flash_eraseall /dev/mtd2
+
+	Skipping bad block at 0x00000000
+
+	Skipping bad block at 0x00020000
+	Erasing 128 Kibyte @ 40000 --  3 % complete.
+	Skipping bad block at 0x00060000
+	Erasing 128 Kibyte @ a0000 --  7 % complete.
+	Skipping bad block at 0x000c0000
+	Erasing 128 Kibyte @ 7e0000 -- 98 % complete.
+	root@jim:~# flash_eraseall /dev/mtd3
+	Erasing 128 Kibyte @ 115c0000 -- 27 % complete.
+	Skipping bad block at 0x115e0000
+	Erasing 128 Kibyte @ 2e140000 -- 72 % complete.
+	Skipping bad block at 0x2e160000
+	Erasing 128 Kibyte @ 36380000 -- 85 % complete.
+	Skipping bad block at 0x363a0000
+	Erasing 128 Kibyte @ 3f7e0000 -- 99 % complete.
+
+
+3.2 Erasing FLASH-resident BBTs
+
+If FLASH-resident BBTs have been used in the past, then these will need to be
+erased manually.  linux protects the area reserved for FLASH-resident BBTs
+(typically the last 4 blocks of the NAND device) by presenting them as
+bad-blocks to user applications.  In order to erase the BBTs:
+
+       1) Enable the erasing of blocks that are marked as bad, via the debugfs
+       attribute "nanderasebb" (requires CONFIG_DEBUG_FS):
+
+       root@jim:~# echo 1 > /debug/nanderasebb
+
+       2) Use flash_erase on the blocks reserved for BBTs.  For example:
+
+       root@jim:~# cat /proc/mtd
+       dev:    size   erasesize  name
+       mtd0: 00400000 00020000 "My NOR Root"
+       mtd1: 07c00000 00020000 "My NOR Home"
+       mtd2: 00800000 00020000 "NAND root"
+       mtd3: 3f800000 00020000 "NAND home"
+       root@jim:~# flash_erase /dev/mtd3 0x3f780000 4
+       Erase Total 4 Units
+       Performing Flash Erase of length 131072 at offset 0x3f7e0000 done
+
+
+4 Configuring the stm-nand-afm driver
+
+4.1 Board setup file
+
+The board setup file uses a marco, STM_NAND_DEVICE, to fill-in the NAND platform
+data.  The first argument is the driver binding which should be changed to
+"stm-nand-afm".  It is also recommended to add "NAND_USE_FLASH_BBT" to the chip
+options bit-field (the last argument), if not already present.
+
+4.2 Kconfig options
+
+* MTD_NAND_STM_AFM: Enable the stm-nand-afm driver.
+
+* STM_NAND_AFM_CACHED: Perform page reads via a cache-line.  This option reduces
+  the impact of STBus latencies at the expense of an increased IRQ latency.
+
+* STM_NAND_AFM_BOOTMODESUPPORT: Enable support for boot-mode ECC data (reading,
+  writing, and scanning bad-blocks).  Support for boot-mode ECC is tied to a
+  specified MTD partition name (see below).
+
+* STM_NAND_AFM_BOOTPARTITION: The name of the NAND boot partition.  This can be
+  overridden on the kernel command line, using "nbootpart=<mtd_name>".  By
+  default, boot-mode ECC is assumed to apply to the entire boot-partition.
+
+* STM_NAND_AFM_PBLBOOTBOUNDARY: Select this option if using the PBL as the
+  boot-loader.  The PBL boot-image contains both boot-mode ECC data and AFM4-ECC
+  data.  The boundary between ECC schemes is embedded in the PBL image itself.
+  This option attempts to extract the boot-boundary from the PBL image, and
+  updates the extent to which boot-mode ECC applies within the boot-partition.
+

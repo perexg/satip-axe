@@ -1,0 +1,224 @@
+menuconfig SND_STM
+	tristate "STMicroelectronics SoCs support"
+	depends on SND
+	depends on CPU_SUBTYPE_ST40
+	select STM_DMA
+	select SND_PCM
+	help
+		Say Y here for ALSA support on the STMicroelectronics SoCs.
+
+		This driver provides core functionality - you have to build
+		(at least one) SoC-specific driver as well. Additionally, it is
+		using dynamic device minor number allocation, so udev-like
+		utility is required.
+
+		It is recommended to have BPA2 enabled with dedicated
+		partition defined, however it is not absolutely necessary.
+
+		To compile this driver as a module, choose M here: the module
+	 	will be called snd-stm.ko
+
+config SND_STM_PCM_PLAYER
+	tristate
+	depends on SND_STM
+	default n
+
+config SND_STM_PCM_READER
+	tristate
+	depends on SND_STM
+	default n
+
+config SND_STM_SPDIF_PLAYER
+	tristate
+	depends on SND_STM
+	default n
+
+config SND_STM_CONV_DAC_MEMORY_MAPPED
+	tristate
+	depends on SND_STM
+	default n
+
+config SND_STM_CONV_DAC_SYSCONF
+	tristate
+	depends on SND_STM
+	default n
+
+config SND_STM_CONV_I2S_TO_SPDIF
+	tristate
+	depends on SND_STM
+	default n
+
+config SND_STM_BPA2_PARTITION_NAME
+	string "Name of BPA2 partition to allocate buffers from"
+	depends on SND_STM
+	depends on BPA2
+	default "audio"
+	help
+		Define a name of BPA2 partition the driver should try to
+		allocate from.
+
+		If name is not given or given partition does not exist, driver
+		will try to use "bigphysmem" partition or eventually
+		preallocate some system memory using
+		ALSA snd_pcm_lib_preallocate_pages_for_all() method.
+
+		This value can be overridden by module parameter
+		"bpa2_part=<name>" (or kernel command line parameter
+		"snd-stm.bpa2_part=<name>", if driver is compiled into
+		kernel).
+
+comment "SOC support"
+	depends on SND_STM
+
+config SND_STM_FLI7510
+	tristate "Freeman 510/520/530/540 support"
+	depends on SND_STM
+	default y if CPU_SUBTYPE_FLI7510
+	select SND_STM_PCM_PLAYER
+	select SND_STM_PCM_READER
+	select SND_STM_SPDIF_PLAYER
+	help
+		Select this to get ALSA driver for Freeman 510/520/530/540
+		(FLI7510/FLI7520/FLI7530/FLI7540) chips.
+
+		If you compile this driver as a module, it will be
+		called snd-stm-fli7510.ko
+
+config SND_STM_STX7100
+	tristate "STx7100 and STx7109 support"
+	depends on SND_STM
+	default y if CPU_SUBTYPE_STX7100
+	select SND_STM_PCM_PLAYER
+	select SND_STM_PCM_READER
+	select SND_STM_SPDIF_PLAYER
+	select SND_STM_CONV_DAC_MEMORY_MAPPED
+	select SND_STM_CONV_I2S_TO_SPDIF
+	help
+		Select this to get ALSA driver for STx7100 and STx7109 chips.
+
+		If you compile this driver as a module, it will be
+		called snd-stm-stx7100.ko
+
+config SND_STM_STX7105
+	tristate "STx7105 and STx7106 support"
+	depends on SND_STM
+	default y if CPU_SUBTYPE_STX7105
+	select SND_STM_PCM_PLAYER
+	select SND_STM_PCM_READER
+	select SND_STM_SPDIF_PLAYER
+	select SND_STM_CONV_DAC_MEMORY_MAPPED
+	select SND_STM_CONV_I2S_TO_SPDIF
+	help
+		Select this to get ALSA driver for STx7105 and STx7106 chips.
+
+		If you compile this driver as a module, it will be
+		called snd-stm-stx7105.ko
+
+config SND_STM_STX7108
+	tristate "STx7108 support"
+	depends on SND_STM
+	default y if CPU_SUBTYPE_STX7108
+	select SND_STM_PCM_PLAYER
+	select SND_STM_PCM_READER
+	select SND_STM_SPDIF_PLAYER
+	select SND_STM_CONV_DAC_SYSCONF
+	select SND_STM_CONV_I2S_TO_SPDIF
+	help
+		Select this to get ALSA driver for STx7108 chip.
+
+		If you compile this driver as a module, it will be
+		called snd-stm-stx7108.ko
+
+config SND_STM_STX7111
+	tristate "STx7111 support"
+	depends on SND_STM
+	default y if CPU_SUBTYPE_STX7111
+	select SND_STM_PCM_PLAYER
+	select SND_STM_PCM_READER
+	select SND_STM_SPDIF_PLAYER
+	select SND_STM_CONV_DAC_MEMORY_MAPPED
+	select SND_STM_CONV_I2S_TO_SPDIF
+	help
+		Select this to get ALSA driver for STx7111 chip.
+
+		If you compile this driver as a module, it will be
+		called snd-stm-stx7111.ko
+
+config SND_STM_STX7141
+	tristate "STx7141 support"
+	depends on SND_STM
+	default y if CPU_SUBTYPE_STX7141
+	select SND_STM_PCM_PLAYER
+	select SND_STM_PCM_READER
+	select SND_STM_SPDIF_PLAYER
+	select SND_STM_CONV_DAC_MEMORY_MAPPED
+	select SND_STM_CONV_I2S_TO_SPDIF
+	help
+		Select this to get ALSA driver for STx7141 chip.
+
+		If you compile this driver as a module, it will be
+		called snd-stm-stx7141.ko
+
+config SND_STM_STX7200
+	tristate "STx7200 support"
+	depends on SND_STM
+	default y if CPU_SUBTYPE_STX7200
+	select SND_STM_PCM_PLAYER
+	select SND_STM_PCM_READER
+	select SND_STM_SPDIF_PLAYER
+	select SND_STM_CONV_DAC_MEMORY_MAPPED
+	select SND_STM_CONV_I2S_TO_SPDIF
+	help
+		Select this to get ALSA driver for STx7200 chip.
+
+		If you compile this driver as a module, it will be
+		called snd-stm-stx7111.ko
+
+comment "External converters"
+	depends on SND_STM
+
+config SND_STM_CONV_DUMMY
+	tristate "Dummy converter driver"
+	depends on SND_STM
+	help
+		This provides dummy converter driver to configure
+		digital audio interface format (I2S, Left-Justified,
+		Right-Justified). See include/sound/stm.h for
+		more information.
+
+		If compiled as module, it will be called
+		snd-stm-conv-dummy.ko.
+
+config SND_STM_CONV_EPLD
+	tristate "Generic EPLD-controlled converter driver"
+	depends on SND_STM
+	depends on SH_ST_EPLD
+	help
+		This provides generic driver for EPLD-controlled
+		converters. See include/sound/stm.h for informations
+		how to define EPLD offsets & values.
+
+		If compiled as module, it will be called
+		snd-stm-conv-epld.ko.
+
+config SND_STM_CONV_GPIO
+	tristate "Generic GPIO-controlled converter driver"
+	depends on SND_STM
+	help
+		This provides generic driver for GPIO-controlled
+		converters. See include/sound/stm.h for informations
+		how to define GPIO line numbers.
+
+		If compiled as module, it will be called
+		snd-stm-conv-gpio.ko.
+
+config SND_STM_CONV_I2C
+	tristate "Generic I2C-controlled converter driver"
+	depends on SND_STM && I2C
+	help
+		This provides generic driver for I2C-controlled
+		converters. See include/sound/stm.h for informations
+		how to define required I2C addresses & commands.
+
+		If compiled as module, it will be called
+		snd-stm-conv-i2c.ko.

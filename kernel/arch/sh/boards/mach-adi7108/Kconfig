@@ -1,0 +1,45 @@
+if SH_ST_ADI7108
+
+menu "adi7108: STx7108 board options"
+
+choice
+	prompt  "adi7108 Board Version selection"
+	default SH_ST_ADI7108_VER_D_BOARD
+	help
+	  Select the appropriate version of the board which you will be using.
+	  This controls which SATA and PCIe ports will be configured.
+
+config SH_ST_ADI7108_VER_1_0_BOARD
+	bool "ADI7108 Ver 1.0 Board"
+	help
+	  ADI7108 Ver 1.0 Board with E-sata 0+1
+
+config SH_ST_ADI7108_VER_B_BOARD
+	bool "ADI7108 Ver B Board"
+	help
+	  ADI7108 Ver B Board with PCI-e Connector and E-sata 0
+
+config SH_ST_ADI7108_VER_C_BOARD
+	bool "ADI7108 Ver C Board"
+	help
+	  ADI7108 Ver C Board with PCI-e Connector and E-sata 0
+
+config SH_ST_ADI7108_VER_D_BOARD
+	bool "ADI7108 Ver D Board"
+	help
+	  ADI7108 Ver D Board without PCI-e and with sata on board
+
+endchoice
+
+config SH_ST_ADI7108_STMMAC0
+	bool "Enable STMMAC 0"
+	depends on (SH_ST_ADI7108_VER_C_BOARD || \
+		    SH_ST_ADI7108_VER_B_BOARD || \
+		    SH_ST_ADI7108_VER_D_BOARD)
+	default n
+	help
+	  Enable STMMAC 0.
+
+endmenu
+
+endif

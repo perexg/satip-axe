@@ -1,0 +1,150 @@
+What is mali?
+=============
+
+This is the kernel hardware driver for the ARM Mali400 GPU as integrated in
+certain STMicroelectronics SoCs.
+
+How to use it?
+==============
+
+The module registers a platform driver for the platform device named "mali". If
+a "mali" platform device has been registered as part of the kernel board setup,
+the module will be automatically loaded on boot. The module can also be loaded
+and unloaded manually if required.
+
+Once a device has been sucessfully probed the driver registers both a character
+device and a class device; on a udev system a device file /dev/mali will be
+automatically created with the correct major/minor device numbers. Note that
+this is different to the stock ARM driver, which does not register a class
+device and so does not work with udev.
+
+Module Parameters
+=================
+
+The module supports the following module parameters:
+
+mali_major := <major device number>
+
+mali_debug_level := number
+
+It is recommended that the major device number is left at the default value of
+zero, which allows the driver to auto allocate the major number; on a standard
+STLinux installation udev will create a device file for you using the auto
+allocated number. However if you need to determine the major/minor number
+pair for the device then this can be read from the sysfs attribute:
+
+/sys/class/mali/mali/dev
+
+The default debug level is "2", which if the driver is built with debug enabled
+outputs some basic details on driver load and as applications open and close the
+driver. Increasing the debug level will produce an increasing amount of trace in
+dmesg and syslog.
+
+Specifying Platform Device Resources
+====================================
+
+The module recognises the following named platform resources and resource types
+from which the driver is configured:
+
+MALI400GP:             IORESOURCE_MEM, IORESOURCE_IRQ
+MALI400PP-0:           IORESOURCE_MEM, IORESOURCE_IRQ
+MALI400PP-1:           IORESOURCE_MEM, IORESOURCE_IRQ
+MMU-1:                 IORESOURCE_MEM, IORESOURCE_IRQ
+MMU-2:                 IORESOURCE_MEM, IORESOURCE_IRQ
+MMU-3:                 IORESOURCE_MEM, IORESOURCE_IRQ
+MALI400L2:             IORESOURCE_MEM
+OS_MEMORY:             IORESOURCE_DMA
+MEMORY:                IORESOURCE_DMA
+EXTERNAL_MEMORY_RANGE: IORESOURCE_DMA
+
+The physical hardware register ranges and IRQs are fixed for a specific SoC and
+will be provided to you by ST. However the memory resources need to be
+configured for your board and system use case, potentially with the help of
+your FAE or STSDK support contact.
+
+Here is an example configuration for the HDK7108 (STx7108 based board) which is
+in this case using a single memory interface with 128MB available.
+
+static struct stm_mali_resource hdk7108_mali_mem[1] = {
+	{
+		.name 	= "OS_MEMORY",
+		.start 	=  0,
+		.end	=  CONFIG_STM_MALI_OS_MEMORY_SIZE - 1,
+	},
+};
+
+static struct stm_mali_resource hdk7108_mali_ext_mem[] = {
+	{
+		.name 	= "EXTERNAL_MEMORY_RANGE",
+		.start 	=  0x40000000,
+		.end	=  0x4FFFFFFF,
+	}
+};
+
+static struct stm_mali_config hdk7108_mali_config = {
+	.num_mem_resources = ARRAY_SIZE(hdk7108_mali_mem),
+	.mem = hdk7108_mali_mem,
+	.num_ext_resources = ARRAY_SIZE(hdk7108_mali_ext_mem),
+	.ext_mem = hdk7108_mali_ext_mem,
+};
+
+If this is placed in the kernel board setup ifile for the MB837 i.e. in:
+
+arch/sh/boards/st/mb837/setup.c
+
+then the mali device can be configured by simply calling
+
+	stx7108_configure_mali(&hdk7108_mali_config);
+
+in setup.c
+
+This will register a "mali" platform device with the kernel, and also add SOC
+specific resources to platform device.
+
+A useful feature of the platform device system is that it does not matter in
+which order the device and driver are registered with the kernel. So it is
+perfectly OK to load the mali module, then subsequently load your own module
+that contains the platform device registration.
+
+Configuring Memory Allocators
+=============================
+
+The GPU potentially requires large amounts of memory for both internal use as
+well as for textures, color buffers, depth buffers and anything else associated
+with an EGL rendering context. The driver provides two memory allocators
+which can be independently configured for this purpose.
+
+The simplest is the "OS_MEMORY" allocator, as shown in the example above, which
+allows the driver to allocate up to the specified size from the Linux kernel
+memory system. There are pros and cons in using this as you are sharing memory
+usage with the rest of Linux, including your applications, but it is a nice
+and easy way of getting started.
+
+The driver also has its own memory allocator, which can be registered to
+manage a block of physical memory that Linux is either unaware of or has been
+allocated from another large physically contiguous memory allocator such as
+BPA2 or STAVMEM. This allocator can be registered multiple times using different
+memory regions, allowing memory to be managed on different DDR interfaces for
+example. This allocator is registered using the "MEMORY" resource, where
+the "start" is the _physical_ address of the start of the memory region
+to be used. Specifying multiple "MEMORY" resources will create multiple
+allocators, clearly the memory regions used must not overlap with each other.
+
+Other Memory
+============
+
+As well as allocating its own memory, the Mali driver can be configured to
+allow it to access any other region of memory directly. This is used to
+directly render to framebuffers or to directly access native pixmaps, given
+suitable support in the EGL platform integration being used. This is done using
+the "EXTERNAL_MEMORY_RANGE" resource, in the above example a range is specified
+to cover the first 128MB of the first DDR interface. Note that there is
+currently a limitation in the driver that only allows a single
+EXTERNAL_MEMORY_RANGE resource to be specified.
+
+It is recommended, to avoid mistakes that may lead to hard to find performance
+issues, that all DDR is covered by this mechanism. Secure memory regions
+should be protected from the GPU by hardware access mechanisms, rather than
+excluding them from this mechanism. One reasonable exception to this could be
+the memory reserved for ST231 co-processor firmwares.
+

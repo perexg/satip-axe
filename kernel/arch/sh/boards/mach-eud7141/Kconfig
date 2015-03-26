@@ -1,0 +1,13 @@
+if SH_ST_EUD7141
+
+menu "eud7141: STx7141 EUD reference board options"
+
+config SH_ST_EUD7141_STMMAC0
+	bool "Enable STMMAC 0"
+	default n
+	help
+	  Enable STMMAC 0
+
+endmenu
+
+endif

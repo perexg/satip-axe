@@ -1,0 +1,14 @@
+if SH_ST_MB671
+
+menu "mb671: STx200 Validation board options"
+
+config SH_ST_MB671_STMMAC1
+	bool "Enable STMMAC 1"
+	default n
+	help
+	  Enable STMMAC 1
+
+endmenu
+
+endif
+
