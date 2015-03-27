@@ -14,7 +14,7 @@ all: kernel-axe-modules kernel
 #
 
 fs.cpio:
-	tools/do_min_fs.py
+	fakeroot tools/do_min_fs.py
 
 #
 # kernel

@@ -179,6 +179,9 @@ def setup_busybox():
     cmd = 'ln -s  /bin/busybox  fs/sbin/init'
     run_cmd(cmd)
     print cmd
+    cmd = 'ln -s  /sbin/init  fs/init'
+    run_cmd(cmd)
+    print cmd
 
     # init.d/rcS
     fd = open('fs/etc/init.d/rcS', 'wr')
@@ -291,7 +294,7 @@ def  make_dev():
          print cmd
          run_cmd(cmd)
 
-     run_cmd(' ln -s fs/dev/ram1 fs/dev/ram ')
+     run_cmd(' ln -s ram1 fs/dev/ram ')
 
 #------------------------------------------------
 
