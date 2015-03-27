@@ -291,6 +291,7 @@ def gen_fs(lib_list, init_type):
 
     print '\t====== coping additional libs ========'
     # libnss_* are required from login; but it's not possible get by ldd cmd
+    run_cmd('cp  -d ' + target_prefix + '/lib/libresolv*' + ' fs/lib/')
     run_cmd('cp  -d ' + target_prefix + '/lib/libnss*' + ' fs/lib/')
     run_cmd('cp  -d ' + target_prefix + '/lib/libnss_nis*' + ' fs/lib/')
     run_cmd('cp  -d ' + target_prefix + '/lib/libnss_nisplus*' + ' fs/lib/')
