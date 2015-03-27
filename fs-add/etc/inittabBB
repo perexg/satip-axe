@@ -1,0 +1,13 @@
+# Boot
+::sysinit:/etc/init.d/rcSBB
+# Console
+ttyAS0::askfirst:/bin/bash --init-file /etc/bashrc
+# DHCP Client
+::respawn:/sbin/udhcpc -f -S -p /tmp/udhcpc.pid -s /etc/init.d/dhcpc-event
+# telnetd
+::respawn:/usr/sbin/telnetd -F -l /bin/login
+# Others
+::ctrlaltdel:/sbin/reboot
+::shutdown:/sbin/swapoff -a
+::shutdown:/bin/umount -a -r
+::restart:/sbin/init

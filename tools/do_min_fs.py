@@ -11,6 +11,7 @@ def run_cmd(cmd):
         You can use the builtin 'command' module.
         Like: command.getoutput()
     """
+    print cmd
     try:
       cmd = str(cmd) + '  > output.txt'
       # print 'command: ' + cmd
@@ -167,42 +168,11 @@ def del_line_feed(my_list):
 #---------------------------------------
 
 def setup_busybox():
-    cmd = 'cp ' + target_prefix + '/bin/busybox fs/bin'
-    run_cmd(cmd)
-    busybox_cmds = ['sh', 'ls', 'echo', 'mount', 'umount', 'pwd', 'mv', 'cp', 'rm', 'ln', \
-    'mkdir', 'vi', 'cat', 'halt']
-    for a in busybox_cmds:
-      cmd = ' ln -s  /bin/busybox  fs/bin/' + str(a)
-      run_cmd(cmd)
-      print cmd
+    run_cmd('cp ' + target_prefix + '/bin/busybox fs/bin')
 
-    cmd = 'ln -s  /bin/busybox  fs/sbin/init'
-    run_cmd(cmd)
-    print cmd
-    cmd = 'ln -s  /sbin/init  fs/init'
-    run_cmd(cmd)
-    print cmd
-
-    # init.d/rcS
-    fd = open('fs/etc/init.d/rcS', 'wr')
-    fd.write('#!/bin/bash\n echo "Welcome to a custom minimal file system"\n mount -t proc proc /proc\n mount -o remount,noatime /dev/root /')
-    fd.close()
-    cmd = ' chmod a+x fs/etc/init.d/rcS '
-    run_cmd(cmd)
-    print cmd
-
-    # init.d/rcSBB
-    fd2 = open('fs/etc/init.d/rcSBB', 'wr')
-#    fd2.write('#!/bin/sh\n # example rcS script\n echo "Welcome to STLinux!"\n mount -t proc proc /proc\n mount -n -o remount,rw /\n mount -t devpts none /dev/pts -ogid=5,mode=620\n /usr/sbin/telnetd -l /bin/sh')
-    fd2.write('#!/bin/sh\n # example rcS script\n echo "Welcome to STLinux!"\n mount -t proc proc /proc\n mount -n -o remount,rw /\n mount -t devpts none /dev/pts -ogid=5,mode=620\n  /bin/sh')
-    fd2.close()
-    cmd = ' chmod a+x fs/etc/init.d/rcSBB '
-    run_cmd(cmd)
-    print cmd
-
-    cmd = ' chmod a+x fs/etc/init.d/rcSBB '
-    run_cmd(cmd)
-    print cmd
+    run_cmd(' ln -s  /bin/busybox  fs/sbin/init')
+    run_cmd(' ln -s  /bin/busybox  fs/init')
+    run_cmd(' ln -s  /bin/busybox  fs/bin/sh')
 
 #-----------------------------------------------
 
@@ -210,13 +180,10 @@ def setup_sysvinit():
     print 'setup_sysvinit target_prefix ' + str(target_prefix)
     bin = ['/usr/bin/passwd', '/bin/egrep']
     for j in bin:
-        cmd = 'cp  ' + target_prefix + j + ' fs' + j
-        run_cmd(cmd)
-        print cmd
+        run_cmd('cp  ' + target_prefix + j + ' fs' + j)
 
     # link sh --> bash
-    cmd = ' cd fs/bin; ln -s  bash  sh'
-    get_cmd_output(cmd)
+    run_cmd(' cd fs/bin; ln -s  bash  sh')
 
 #    run_cmd('cp -a ' + target_prefix + '/etc/inittab' + ' fs/etc/')
 #    run_cmd('cp -a ' + target_prefix + '/etc/inittabBB' + ' fs/etc/')
@@ -264,37 +231,10 @@ def setup_sysvinit():
     #cmd = ' cd fs/etc/rc.d/; ln -s  ../init.d  init.d'
     #get_cmd_output(cmd)
 
-    cmd = ' chmod a+x fs/lib/* '
-    run_cmd(cmd)
-    print cmd
-
-    cmd = ' chmod a+x fs/usr/lib/* '
-    run_cmd(cmd)
-    print cmd
-
-    cmd = 'cp  -d ' + target_prefix + '/usr/lib/libwrap*' + ' fs/usr/lib/'
-    run_cmd(cmd)
-    print cmd
-    cmd = 'cp  -d ' + target_prefix + 'lib/libnsl*' + ' fs/usr/lib/'
-    run_cmd(cmd)
-    print cmd
-
-#------------------------------------------------
-
-def  make_dev():
-     device_list = ['console c 5 1 ' , 'null c 1 3 ', 'fb0 c 29 0 ', 'fbcondecor c 10 63 ', \
-     'ram0 b 1 0 ', 'ram1 b 1 1 ', 'ram2 b 1 2 ', 'ram3 b 1 3 ', 'ram4 b 1 4 ', 'ram5 b 1 5 ', \
-     'ram6 b 1 6 ', 'ram7 b 1 7 ', 'ram8 b 1 8 ', 'ram9 b 1 9 ', 'ram10 b 1 10 ', 'ram11 b 1 11 ', \
-     'ram12 b 1 12 ', 'ram13 b 1 13 ', 'ram14 b 1 14 ', 'ram15 b 1 15 ', 'ram16 b 1 16 ', \
-     'rtc c 10 135 ', 'sda1 b 8 1 ', 'timer c 116 33 ', 'tty c 5 0 ', 'tty0 c 4 0 ', \
-     'tty1 c 4 1 ', 'tty2 c 4 2 ', 'tty10 c 4 10 ', 'tty16 c 4 16 ']
-
-     for i in device_list:
-         cmd = 'mknod fs/dev/' + i
-         print cmd
-         run_cmd(cmd)
-
-     run_cmd(' ln -s ram1 fs/dev/ram ')
+    run_cmd(' chmod a+x fs/lib/* ')
+    run_cmd(' chmod a+x fs/usr/lib/* ')
+    run_cmd('cp  -d ' + target_prefix + '/usr/lib/libwrap*' + ' fs/usr/lib/')
+    run_cmd('cp  -d ' + target_prefix + 'lib/libnsl*' + ' fs/usr/lib/')
 
 #------------------------------------------------
 
@@ -305,15 +245,10 @@ def gen_fs(lib_list, init_type):
     """
     print '\t coping libraries  and binary files \n'
     run_cmd('rm -rf fs fs.cpio')
-    run_cmd('mkdir -p fs/sbin')
-    run_cmd('mkdir -p fs/bin')
-    run_cmd('mkdir -p fs/dev')
-    run_cmd('mkdir -p fs/etc')
-    run_cmd('mkdir -p fs/lib')
-    run_cmd('mkdir -p fs/tmp')
-    run_cmd('mkdir -p fs/proc')
-    run_cmd('mkdir -p fs/usr')
-    run_cmd('mkdir -p fs/var')
+    for i in ['sbin', 'bin', 'dev', 'sys', 'etc', 'lib', 'tmp', 'proc', 'usr', 'var', 'root']:
+      run_cmd('mkdir -p fs/' + i)
+    for i in ['sbin', 'bin']:
+      run_cmd('mkdir -p fs/usr/' + i)
 
 
     for i in lib_list:
@@ -324,12 +259,10 @@ def gen_fs(lib_list, init_type):
            fs_dir = target_dir.replace(target_prefix, '')
            run_cmd('mkdir -p ' + 'fs/' + fs_dir)
            run_cmd('cp -a ' + i + ' fs/' + fs_dir)
-           print 'cp -a ' + i + ' fs/' + fs_dir
         if (target_dir.find('/bin') >=0):
            fs_dir = target_dir.replace(target_prefix, '')
            run_cmd('mkdir -p ' + 'fs/' + fs_dir)
            run_cmd('cp -a ' + i + ' fs/' + fs_dir)
-           #run_cmd('cp ' + i + ' fs/' + fs_dir)
         if (target_dir.find('/dev') >=0):
            fs_dir = target_dir.replace(target_prefix, '')
            run_cmd('mkdir -p ' + 'fs/' + fs_dir)
@@ -351,35 +284,21 @@ def gen_fs(lib_list, init_type):
     #print cmd
     #run_cmd(cmd)
 
-    cmd = ' cp ' + target_prefix  +  '/etc/{passwd,group,hosts} fs/etc '
-    run_cmd(cmd)
-    print cmd
+    run_cmd(' cp ' + target_prefix  +  '/etc/{passwd,group,hosts} fs/etc ')
 
-    make_dev()
-
-    cmd = ' chmod a+x fs/lib/lib* '
-    run_cmd(cmd)
-    cmd = ' chmod a+x fs/etc/* '
-    run_cmd(cmd)
+    run_cmd(' chmod a+x fs/lib/lib* ')
+    run_cmd(' chmod a+x fs/etc/* ')
 
     print '\t====== coping additional libs ========'
     # libnss_* are required from login; but it's not possible get by ldd cmd
-    cmd = 'cp  -d ' + target_prefix + '/lib/libnss*' + ' fs/lib/'
-    run_cmd(cmd)
-    print cmd
-    cmd = 'cp  -d ' + target_prefix + '/lib/libnss_nis*' + ' fs/lib/'
-    run_cmd(cmd)
-    print cmd
-    cmd = 'cp  -d ' + target_prefix + '/lib/libnss_nisplus*' + ' fs/lib/'
-    run_cmd(cmd)
-    print cmd
+    run_cmd('cp  -d ' + target_prefix + '/lib/libnss*' + ' fs/lib/')
+    run_cmd('cp  -d ' + target_prefix + '/lib/libnss_nis*' + ' fs/lib/')
+    run_cmd('cp  -d ' + target_prefix + '/lib/libnss_nisplus*' + ' fs/lib/')
 
     # libgcc_s.so.1 is reqired from libpthread but it's not possible get it by ldd cmd
     for i in lib_list:
         if i.find('libpthread') >= 0:
-           cmd = 'cp   -a ' + target_prefix + '/lib/libgcc_*' + ' fs/lib/'
-           run_cmd(cmd)
-           print cmd
+           run_cmd('cp   -a ' + target_prefix + '/lib/libgcc_*' + ' fs/lib/')
     print '\t======================================='
 
     if init_type == 'busybox':
@@ -550,7 +469,6 @@ def get_common_path(s1, s2):
     com = str(com) + '*'
     return com
 
-
 ## ================================================================
 ## 		       		Main
 ## =================================================================
@@ -626,4 +544,11 @@ for j in library_list:
 print '     ' + 30*'='  + '\n'
 
 gen_fs(library_list, boot_type)
+run_cmd('cp -av fs-add/* fs')
+files = run_cmd('find fs -name "*~"')
+for f in files:
+  run_cmd('rm ' + f.strip())
+for r in ['usr/bin/bashbug']:
+  if os.path.exists('fs/' + r):
+    run_cmd('rm fs/' + r)
 do_cpio('fs')

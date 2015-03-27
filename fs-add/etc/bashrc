@@ -1,0 +1,3 @@
+# /etc/bashrc
+
+test "$PS1" = "\\s-\\v\\\$ " && PS1="[\u@\h \W]\\$ "

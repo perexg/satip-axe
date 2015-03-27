@@ -14,7 +14,12 @@ all: kernel-axe-modules kernel
 #
 
 fs.cpio:
-	fakeroot tools/do_min_fs.py
+	fakeroot tools/do_min_fs.py \
+	  -b bash
+
+.PHONY: fs-list
+fs-list:
+	cpio -itv < kernel/rootfs-idl4k.cpio
 
 #
 # kernel
