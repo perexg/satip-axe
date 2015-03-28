@@ -328,6 +328,7 @@ def usage():
     print '         (example: -b "gzip ls pwd") '
     print '\n  -t,  --target_prefix <path> the target path location '
     print '         (default: /opt/STM/STLinux-2.4/devkit/sh4/target/)'
+    print '\n  -e,  --extra <file>:<dst> to be added to the filesystem'
     print '\n  -i   --init_type : '
     print '\t\t\t  busybox '
     print '\t\t\t  sysv '
@@ -344,18 +345,24 @@ def get_menu_opt(argv):
     try:
 #      opts = ''
 #      args = ''
-       opts , args = getopt.gnu_getopt(argv, 'hb:t:i:', ['--init_type', '--binary=', '--target_prefix=', '--help'])
+       opts , args = getopt.gnu_getopt(argv, 'hb:e:t:i:', ['--init_type', '--binary=', '--extra', '--target_prefix=', '--help'])
     except getopt.GetoptError:
            usage()
     target_prefix = ''
     console = ''
     binary_list=[]
+    extra_list=[]
     for o, v  in opts:
        if o == '-b' or o == '--binary':
           v = v.split(' ')  # take out all blank spaces and replace the v string with  binary_list
           for i in v:
             if i != '':
                binary_list.append(i)
+       elif o == '-e' or o == '--extra':
+          v = v.split(' ')  # take out all blank spaces and replace the v string with  binary_list
+          for i in v:
+            if i != '':
+               extra_list.append(i)
        elif o == '-t' or o == '--target_prefix':
             target_prefix = v
        elif o == '-i' or o == '--init_type':
@@ -366,6 +373,7 @@ def get_menu_opt(argv):
     params.append(binary_list)
     params.append(console)
     params.append(target_prefix)
+    params.append(extra_list)
     return params
 
 #-----------------------------------------
@@ -482,6 +490,7 @@ boot_type = 'busybox' # default
 user_param = ['', '', '']
 user_param = get_menu_opt(sys.argv[1:])
 bin_list = user_param[0]  # command list to find
+extra_list = user_param[3]
 
 if user_param[1] != '':
    boot_type = user_param[1] # default busybox
@@ -552,4 +561,7 @@ for f in files:
 for r in ['usr/bin/bashbug']:
   if os.path.exists('fs/' + r):
     run_cmd('rm fs/' + r)
+for e in extra_list:
+  src, dst = e.split(':')
+  run_cmd('cp ' + src + ' fs/' + dst)
 do_cpio('fs')

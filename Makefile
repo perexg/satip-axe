@@ -1,6 +1,14 @@
 CPUS=4
-TOOLPATH=/opt/STM/STLinux-2.4/host/bin
+STLINUX=/opt/STM/STLinux-2.4
+TOOLPATH=$(STLINUX)/host/bin
+TOOLCHAIN=$(STLINUX)/devkit/sh4
 TOOLCHAIN_KERNEL=$(shell pwd)/toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4
+
+define GIT_CLONE
+	@mkdir -p apps/
+	git clone $(1) apps/$(2)
+endef
+
 
 #
 # all
@@ -13,9 +21,10 @@ all: kernel-axe-modules kernel
 # create CPIO
 #
 
-fs.cpio:
+fs.cpio: minisatip
 	fakeroot tools/do_min_fs.py \
-	  -b bash
+	  -b "bash" \
+	  -e "apps/minisatip/minisatip:sbin/minisatip"
 
 .PHONY: fs-list
 fs-list:
@@ -59,6 +68,19 @@ kernel-axe-modules: firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32
 firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32BITS/axe_dmx.ko:
 	cd firmware ; ../tools/cpio-idl4k-bin.sh extract
 	chmod -R u+rw firmware/initramfs
+
+#
+# minisatip
+#
+
+apps/minisatip/minisatip.c:
+	$(call GIT_CLONE,https://github.com/catalinii/minisatip.git,minisatip)
+
+.PHONY: minisatip
+minisatip: apps/minisatip/minisatip.c
+	make -C apps/minisatip \
+	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+	  CFLAGS="-O2 -DSYS_DVBT2=16"
 
 #
 # clean all
