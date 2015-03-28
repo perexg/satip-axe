@@ -1,0 +1,19 @@
+#
+# IPV4 config
+#
+IPV4="dhcp"
+# or
+#IPV4="192.168.1.240"
+#IPV4_NETMASK="255.255.255.0"
+#IPV4_BROADCAST="192.168.1.255"
+#IPV4_GATEWAY="192.168.1.1"
+
+#
+# telnetd
+#
+TELNETD="yes"
+
+#
+# dropbear
+#
+DROPBEAR="yes"

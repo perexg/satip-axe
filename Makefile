@@ -4,11 +4,27 @@ TOOLPATH=$(STLINUX)/host/bin
 TOOLCHAIN=$(STLINUX)/devkit/sh4
 TOOLCHAIN_KERNEL=$(shell pwd)/toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4
 
+EXTRA_AXE_MODULES_DIR=firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32BITS
+EXTRA_AXE_MODULES=axe_dmx.ko axe_dmxts.ko axe_fe.ko axe_fp.ko axe_i2c.ko \
+                  stapi_core_stripped.ko stapi_ioctl_stripped.ko stsys_ioctl.ko \
+                  load_modules_list_32BITS.txt load_modules_list_axe_32BITS.txt \
+                  load_modules.sh load_env.sh
+
+ORIG_FILES=main_axe.out mknodes.out
+
+DROPBEAR=dropbear-2015.67
+DROPBEAR_SBIN_FILES=dropbear
+DROPBEAR_BIN_FILES=dbclient dropbearconvert dropbearkey scp
+
 define GIT_CLONE
 	@mkdir -p apps/
 	git clone $(1) apps/$(2)
 endef
 
+define WGET
+	@mkdir -p apps/
+	wget --no-verbose -O $(2) $(1)
+endef
 
 #
 # all
@@ -23,13 +39,16 @@ all: kernel-axe-modules kernel
 
 fs.cpio: minisatip
 	fakeroot tools/do_min_fs.py \
-	  -b "bash" \
+	  -b "bash strace ldd" \
+	  $(foreach m,$(EXTRA_AXE_MODULES), -e "$(EXTRA_AXE_MODULES_DIR)/$(m):lib/modules/$(m)") \
+	  $(foreach m,$(ORIG_FILES), -e "$(EXTRA_AXE_MODULES_DIR)/../$(m):root") \
+	  $(foreach f,$(DROPBEAR_SBIN_FILES), -e "apps/$(DROPBEAR)/$(f):sbin/$(f)") \
+	  $(foreach f,$(DROPBEAR_BIN_FILES), -e "apps/$(DROPBEAR)/$(f):usr/bin/$(f)") \
 	  -e "apps/minisatip/minisatip:sbin/minisatip"
 
 .PHONY: fs-list
 fs-list:
 	cpio -itv < kernel/rootfs-idl4k.cpio
-
 #
 # kernel
 #
@@ -76,11 +95,37 @@ firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32BITS/axe_dmx.ko:
 apps/minisatip/minisatip.c:
 	$(call GIT_CLONE,https://github.com/catalinii/minisatip.git,minisatip)
 
-.PHONY: minisatip
-minisatip: apps/minisatip/minisatip.c
+apps/minisatip/minisatip: apps/minisatip/minisatip.c
 	make -C apps/minisatip \
 	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
 	  CFLAGS="-O2 -DSYS_DVBT2=16"
+
+.PHONY: minisatip
+minisatip: apps/minisatip/minisatip
+
+#
+# dropbear
+#
+
+apps/$(DROPBEAR)/configure:
+	$(call WGET,https://matt.ucc.asn.au/dropbear/$(DROPBEAR).tar.bz2,apps/$(DROPBEAR).tar.bz2)
+	tar -C apps -xjf apps/$(DROPBEAR).tar.bz2
+
+apps/$(DROPBEAR)/dropbear: apps/$(DROPBEAR)/configure
+	cd apps/$(DROPBEAR) && \
+	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+	./configure \
+	  --host=sh4-linux \
+	  --prefix=/ \
+          --disable-lastlog \
+          --disable-utmp \
+          --disable-utmpx \
+          --disable-wtmp \
+          --disable-wtmpx
+	make -C apps/$(DROPBEAR) PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp"
+
+.PHONY: dropbear
+dropbear: apps/$(DROPBEAR)/dropbear
 
 #
 # clean all

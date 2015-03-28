@@ -2,10 +2,14 @@
 ::sysinit:/etc/init.d/rcSBB
 # Console
 ttyAS0::askfirst:/bin/bash --init-file /etc/bashrc
-# DHCP Client
-::respawn:/sbin/udhcpc -f -S -p /tmp/udhcpc.pid -s /etc/init.d/dhcpc-event
+# Network
+::once:/etc/init.d/network
 # telnetd
-::respawn:/usr/sbin/telnetd -F -l /bin/login
+::once:/etc/init.d/telnetd
+# dropbear
+::once:/etc/init.d/dropbear
+# AXE kernel modules and environment
+::once:/etc/init.d/axe
 # Others
 ::ctrlaltdel:/sbin/reboot
 ::shutdown:/sbin/swapoff -a

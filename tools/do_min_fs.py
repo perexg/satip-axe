@@ -245,7 +245,7 @@ def gen_fs(lib_list, init_type):
     """
     print '\t coping libraries  and binary files \n'
     run_cmd('rm -rf fs fs.cpio')
-    for i in ['sbin', 'bin', 'dev', 'sys', 'etc', 'lib', 'tmp', 'proc', 'usr', 'var', 'root']:
+    for i in ['sbin', 'bin', 'dev', 'sys', 'etc', 'lib/modules', 'tmp', 'proc', 'usr/lib', 'var', 'root']:
       run_cmd('mkdir -p fs/' + i)
     for i in ['sbin', 'bin']:
       run_cmd('mkdir -p fs/usr/' + i)
@@ -288,6 +288,7 @@ def gen_fs(lib_list, init_type):
 
     run_cmd(' chmod a+x fs/lib/lib* ')
     run_cmd(' chmod a+x fs/etc/* ')
+    run_cmd(' chmod 0600 fs/root ')
 
     print '\t====== coping additional libs ========'
     # libnss_* are required from login; but it's not possible get by ldd cmd
@@ -301,6 +302,11 @@ def gen_fs(lib_list, init_type):
         if i.find('libpthread') >= 0:
            run_cmd('cp   -a ' + target_prefix + '/lib/libgcc_*' + ' fs/lib/')
     print '\t======================================='
+
+    # other libs
+    run_cmd('cp  -d ' + target_prefix + '/usr/lib/libz.so*' + ' fs/usr/lib/')
+    run_cmd('cp  -d ' + target_prefix + '/usr/lib/libstdc++.so*' + ' fs/usr/lib/')
+    run_cmd('cp  -d ' + target_prefix + '/usr/lib/libglib-2.0.so*' + ' fs/usr/lib/')
 
     if init_type == 'busybox':
        setup_busybox()

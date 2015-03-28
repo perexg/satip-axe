@@ -25,6 +25,15 @@ mount -t tmpfs -o size=1M tmpfs /tmp
 # start syslogd
 syslogd -C256
 
+# config/data storage
+mkdir -p /mnt/data
+mount -t jffs2 /dev/mtdblock4 /mnt/data/
+mkdir -p /mnt/data/satip-axe/sysconfig
+ln -s /mnt/data/satip-axe/sysconfig /etc/sysconfig
+if ! test -r /etc/sysconfig/config ; then
+  cp /etc/config.default /etc/sysconfig/config
+fi
+
 # basic network
 hostname satip-axe
 ifconfig lo 127.0.0.1 netmask 255.255.255.0

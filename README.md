@@ -23,7 +23,7 @@ Booting uImage.gz on Inverto IDL-400s/Grundig GSS.BOX/Inverto IDL-400S from USB:
 
   - set debugfw environment variable
 
-  set debugfw "debugfw=usb start;usb start;fatload usb 0 0x84000000 uimage.gz;set bootargs console=ttyAS0,115200 bigphysarea=20000 initrd=/sbin/init;bootm 0x84000000"
+  set debugfw "debugfw=usb start;usb start;fatload usb 0 0x84000000 uimage.gz;set bootargs console=ttyAS0,115200 bigphysarea=20000;bootm 0x84000000"
 
   - you may type 'save' to store this settings permanently
   - to execute the debugfw type 'run debugfw'
