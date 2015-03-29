@@ -28,3 +28,8 @@ Booting uImage.gz on Inverto IDL-400s/Grundig GSS.BOX/Inverto IDL-400S from USB:
   - you may type 'save' to store this settings permanently
   - to execute the debugfw type 'run debugfw'
   - note that the USB stick should be in the first (upper) USB connector
+
+Configuration
+
+  - dhcp client, telnetd and dropbear (ssh daemon) are active by default
+  - configuration is stored in /etc/sysconfig/config

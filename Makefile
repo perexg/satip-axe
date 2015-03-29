@@ -98,7 +98,7 @@ apps/minisatip/minisatip.c:
 apps/minisatip/minisatip: apps/minisatip/minisatip.c
 	make -C apps/minisatip \
 	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
-	  CFLAGS="-O2 -DSYS_DVBT2=16"
+	  CFLAGS="-O2 -DAXE=1 -DSYS_DVBT2=16"
 
 .PHONY: minisatip
 minisatip: apps/minisatip/minisatip
