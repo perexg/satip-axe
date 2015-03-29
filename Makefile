@@ -92,16 +92,21 @@ firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32BITS/axe_dmx.ko:
 # minisatip
 #
 
-apps/minisatip/minisatip.c:
+apps/minisatip/axe.h:
 	$(call GIT_CLONE,https://github.com/catalinii/minisatip.git,minisatip)
+	cd apps/minisatip; patch -p1 < ../../patches/minisatip-axe.patch
 
-apps/minisatip/minisatip: apps/minisatip/minisatip.c
+apps/minisatip/minisatip: apps/minisatip/axe.h
 	make -C apps/minisatip \
 	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
 	  CFLAGS="-O2 -DAXE=1 -DSYS_DVBT2=16"
 
 .PHONY: minisatip
 minisatip: apps/minisatip/minisatip
+
+.PHONY: minisatip-clean
+minisatip-clean:
+	rm -rf apps/minisatip
 
 #
 # dropbear
