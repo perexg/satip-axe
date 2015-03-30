@@ -1,8 +1,18 @@
 diff --git a/adapter.c b/adapter.c
-index 285faea..d3294b6 100755
+index 285faea..6ca7dd5 100755
 --- a/adapter.c
 +++ b/adapter.c
-@@ -49,7 +49,12 @@ find_adapters ()
+@@ -33,6 +33,9 @@
+ #include "socketworks.h"
+ #include "dvb.h"
+ #include "adapter.h"
++#ifdef AXE
++#include "axe.h"
++#endif
+ 
+ adapter a[MAX_ADAPTERS];
+ extern struct struct_opts opts;
+@@ -49,7 +52,12 @@ find_adapters ()
  	for (i = 0; i < 8; i++)
  		for (j = 0; j < 8; j++)
  	{
@@ -15,7 +25,7 @@ index 285faea..d3294b6 100755
  		fd = open (buf, O_RDONLY | O_NONBLOCK);
  		//LOG("testing device %s -> fd: %d",buf,fd);
  		if (fd >= 0)
-@@ -122,9 +127,18 @@ init_hw ()
+@@ -122,9 +130,18 @@ init_hw ()
  			find_adapters ();
  		LOG ("trying to open [%d] adapter %d and frontend %d", i, a[i].pa,
  			a[i].fn);
@@ -34,7 +44,7 @@ index 285faea..d3294b6 100755
  		a[i].dvr = open (buf, O_RDONLY | O_NONBLOCK);
  		if (a[i].fe < 0 || a[i].dvr < 0)
  		{
-@@ -151,10 +165,12 @@ init_hw ()
+@@ -151,10 +168,12 @@ init_hw ()
  
  		num_adapters++;
  		LOG ("opened DVB adapter %d fe:%d dvr:%d", i, a[i].fe, a[i].dvr);
@@ -47,6 +57,112 @@ index 285faea..d3294b6 100755
  		init_dvb_parameters (&a[i].tp);
  		mark_pids_deleted (i, -1, NULL);
  		update_pids (i);
+@@ -194,6 +213,22 @@ close_adapter (int na)
+ 	mark_pids_deleted (na, -1, NULL);
+ 	update_pids (na);
+ 	//      if(a[na].dmx>0)close(a[na].dmx);
++#ifdef AXE
++	if (a[na].fe > 0) {
++		int i;
++		axe_fe_reset(a[na].fe);
++		for (i = 0; i < 4; i++)
++			if (i != na && a[i].fe > 0) break;
++		if (i >= 4) {
++			LOG("AXE standby");
++			axe_fe_standby(a[na].fe, -1);
++		} else {
++			LOG("AXE standby: adapter %d busy, keeping", i);
++		}
++		ioctl(a[na].fe, FE_SET_VOLTAGE, SEC_VOLTAGE_OFF);
++		a[na].tp.old_diseqc = a[na].tp.old_pol = a[na].tp.old_hiband = -1;
++	}
++#endif
+ 	if (a[na].fe > 0)
+ 		close (a[na].fe);
+ 	if (a[na].sock >= 0)
+@@ -366,7 +401,30 @@ close_adapter_for_stream (int sid, int aid)
+ 								 // delete the attached PIDs as well
+ 	mark_pids_deleted (aid, sid, NULL);
+ 	update_pids (aid);
+-//	if (a[aid].sid_cnt == 0) 
++#ifdef AXE
++	if (a[aid].sid_cnt == 0) {
++		int i;
++		char buf[50];
++		axe_fe_reset(a[aid].fe);
++		for (i = 0; i < 4; i++)
++			if (i != aid && a[i].sid_cnt > 0) break;
++		if (i >= 4) {
++			LOG("AXE standby");
++			axe_fe_standby(a[aid].fe, -1);
++		} else {
++			LOG("AXE standby: adapter %d busy, keeping", i);
++		}
++		ioctl(a[aid].fe, FE_SET_VOLTAGE, SEC_VOLTAGE_OFF);
++		a[aid].tp.old_diseqc = a[aid].tp.old_pol = a[aid].tp.old_hiband = -1;
++		sockets_del(a[aid].sock);
++		sprintf (buf, "/dev/axe/demuxts-%d", a[i].pa);
++		a[aid].dvr = open (buf, O_RDONLY | O_NONBLOCK);
++		a[i].sock =
++			sockets_add (a[i].dvr, NULL, i, TYPE_DVR, (socket_action) read_dmx,
++			(socket_action) close_adapter_for_socket, (socket_action ) adapter_timeout);
++	}
++#endif
++//	if (a[aid].sid_cnt == 0)
+ //		close_adapter (aid);
+ }
+ 
+@@ -684,7 +742,11 @@ describe_adapter (int sid, int aid)
+ 	memset (dad, 0, sizeof (dad));
+ 	x = 0;
+ 								 // do just max 3 signal check 1s after tune
++#ifndef AXE
+ 	if (use_ad && ((ad->status <= 0 && ad->status_cnt<8 && ad->status_cnt++>4) || opts.force_scan))
++#else
++	if (use_ad && (ad->status_cnt++ & 3) == 0)
++#endif
+ 	{
+ 		int new_gs = 1;
+ 		ts = getTick ();
+@@ -701,11 +763,20 @@ describe_adapter (int sid, int aid)
+ 		if (ad->max_snr <= ad->snr) ad->max_snr = (ad->snr>0)?ad->snr:1;
+ 		LOG ("get_signal%s took %d ms for adapter %d handle %d (status: %d, ber: %d, strength:%d, snr: %d, max_strength: %d, max_snr: %d %d)",
+ 			new_gs?"":"_new", getTick () - ts, aid, ad->fe, ad->status, ad->ber, ad->strength, ad->snr, ad->max_strength, ad->max_snr, opts.force_scan);
++#ifndef AXE
+ 		if(new_gs)
+ 		{
+ 			ad->strength = ad->strength * 255 / ad->max_strength;
+ 			ad->snr = ad->snr * 15 / ad->max_snr;
+ 		}
++#else
++		ad->strength = ad->strength * 240 / 9000;
++		if (ad->strength > 240)
++			ad->strength = 240;
++		ad->snr = ad->snr * 15 / 54000;
++		if (ad->snr > 15)
++			ad->snr = 15;
++#endif
+ 	}
+ 	if(use_ad)
+ 	{
+@@ -715,14 +786,14 @@ describe_adapter (int sid, int aid)
+ 	}
+ 	if (t->sys == SYS_DVBS || t->sys == SYS_DVBS2)
+ 		sprintf (dad, "ver=1.0;src=%d;tuner=%d,%d,%d,%d,%d,%s,%s,%s,%s,%s,%d,%s;pids=",
+-			t->diseqc, aid, strength, status, snr, t->freq / 1000, get_pol(t->pol), get_modulation(t->mtype), 
++			t->diseqc, aid+1, strength, status, snr, t->freq / 1000, get_pol(t->pol), get_modulation(t->mtype), 
+ 			get_pilot(t->plts), get_rolloff(t->ro), get_delsys(t->sys), t->sr / 1000, get_fec(t->fec));
+ 	else if (t->sys == SYS_DVBT || t->sys == SYS_DVBT2)
+ 		sprintf (dad, "ver=1.1;src=%d;tuner=%d,%d,%d,%d,%.2f,%d,%s,%s,%s,%s,%s,%d,%d,%d;pids=",
+-			t->diseqc, aid, strength, status, snr, (double) t->freq/1000, t->bw, get_delsys(t->sys), get_tmode(t->tmode), get_modulation(t->mtype), get_gi(t->gi),
++			t->diseqc, aid+1, strength, status, snr, (double) t->freq/1000, t->bw, get_delsys(t->sys), get_tmode(t->tmode), get_modulation(t->mtype), get_gi(t->gi),
+ 			get_fec(t->fec), t->plp, t->t2id, t->sm);
+ 	else  sprintf (dad, "ver=1.2;src=%d;tuner=%d,%d,%d,%d,%.2f,8,%s,%s,%d,%d,%d,%d,%d;pids=",
+-                        t->diseqc, aid, strength, status, snr, (double )t->freq/1000, get_delsys(t->sys), get_modulation(t->mtype), t->sr,
++                        t->diseqc, aid+1, strength, status, snr, (double )t->freq/1000, get_delsys(t->sys), get_modulation(t->mtype), t->sr,
+ 						t->c2tft, t->ds, t->plp, t->inversion);
+ 	for (i = 0; i < MAX_PIDS; i++)
+ 		if (use_ad && ad->pids[i].flags == 1)
 diff --git a/axe.h b/axe.h
 new file mode 100644
 index 0000000..5af4c73
@@ -113,7 +229,7 @@ index 0000000..5af4c73
 +
 +#endif
 diff --git a/dvb.c b/dvb.c
-index 5701bd2..a06978c 100755
+index 5701bd2..bfb1cdd 100755
 --- a/dvb.c
 +++ b/dvb.c
 @@ -41,6 +41,10 @@
@@ -232,18 +348,23 @@ index 5701bd2..a06978c 100755
  	return 0;
  }
  
-@@ -606,6 +653,10 @@ int del_filters (int fd, int pid)
+@@ -606,6 +653,15 @@ int del_filters (int fd, int pid)
  fe_delivery_system_t
  dvb_delsys (int aid, int fd, fe_delivery_system_t *sys)
  {
 +#ifdef AXE
-+	LOG ("Delivery System DVB-S2 (AXE)");
-+	return sys[0] = SYS_DVBS2;
++	int i;
++	LOG ("Delivery System DVB-S/DVB-S2 (AXE)");
++	for(i = 0 ; i < 10 ; i ++)
++		sys[i] = 0;
++	sys[0] = SYS_DVBS;
++	sys[1] = SYS_DVBS2;
++	return SYS_DVBS2;
 +#else
  	int i, res, rv = 0;
  	struct dvb_frontend_info fe_info;
  
-@@ -703,6 +754,7 @@ dvb_delsys (int aid, int fd, fe_delivery_system_t *sys)
+@@ -703,6 +759,7 @@ dvb_delsys (int aid, int fd, fe_delivery_system_t *sys)
  
  	LOG ("returning default from dvb_delsys => %s (count %d)", fe_delsys[rv] , nsys);
  	return (fe_delivery_system_t) rv;
@@ -300,7 +421,7 @@ index d4076ba..581d1bd 100755
  	if ((ssdp = udp_bind (NULL, 1900)) < 1)
  		FAIL ("SSDP: Could not bind on udp port 1900");
 diff --git a/socketworks.c b/socketworks.c
-index b4891f1..1d6f3e0 100755
+index b4891f1..1857089 100755
 --- a/socketworks.c
 +++ b/socketworks.c
 @@ -433,6 +433,17 @@ select_and_execute ()
@@ -314,7 +435,7 @@ index b4891f1..1d6f3e0 100755
 +							if (rlen > 0)
 +								ss->rlen += rlen;
 +						}
-+						if (rlen == 0)
++						if (rlen == 0 || (rlen < 0 || errno == -EAGAIN))
 +							rlen = 1;
 +					}
 +#endif
