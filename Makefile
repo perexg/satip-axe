@@ -36,8 +36,13 @@ endef
 all: kernel-axe-modules kernel
 
 .PHONY: release
-release: kernel-axe-modules out/idl4k.scr
+release: kernel-axe-modules out/idl4k.scr out/idl4k.recovery
 	-ls -la out
+
+.PHONY: dist
+dist:
+	-mkdir -p dist
+	cp out/*.fw out/*.usb out/*.flash dist
 
 #
 # create CPIO
@@ -65,14 +70,25 @@ fs-list:
 # uboot
 #
 
-out/idl4k.scr: patches/uboot.script out/satip-axe-$(VERSION).fw
-	rm -f out/*.scr
+out/idl4k.recovery: patches/uboot-recovery.script
+	$(TOOLPATH)/mkimage -T script -C none \
+	  -n 'Restore original idl4k fw' \
+	  -d patches/uboot-recovery.script out/idl4k.recovery
+
+out/idl4k.scr: patches/uboot.script patches/uboot-flash.script out/satip-axe-$(VERSION).fw
+	rm -f out/*.scr out/*.usb out/*.flash out/*.recovery
 	sed -e 's/@VERSION@/$(VERSION)/g' \
 	  < patches/uboot.script > out/uboot.script
+	sed -e 's/@VERSION@/$(VERSION)/g' \
+	  < patches/uboot-flash.script > out/uboot-flash.script
 	$(TOOLPATH)/mkimage -T script -C none \
 	  -n 'SAT>IP AXE fw v$(VERSION)' \
-	  -d out/uboot.script out/idl4k.scr
-	-rm out/uboot.script
+	  -d out/uboot.script out/satip-axe-$(VERSION).usb
+	$(TOOLPATH)/mkimage -T script -C none \
+	  -n 'SAT>IP AXE fw v$(VERSION)' \
+	  -d out/uboot-flash.script out/satip-axe-$(VERSION).flash
+	ln -sf satip-axe-$(VERSION).usb out/idl4k.scr
+	rm out/uboot.script out/uboot-flash.script
 
 out/satip-axe-$(VERSION).fw: kernel/arch/sh/boot/uImage.gz
 	mkdir -p out

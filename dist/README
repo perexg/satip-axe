@@ -1,0 +1,73 @@
+This directory contains USB firmware for
+  * Inverto IDL-400s
+  * Grundig GSS.BOX
+  * Inverto IDL-400S
+
+Installation:
+
+  - setup a DHCP server for the box ethernet MAC address
+  - copy satip-axe-$(VERSION).usb as idl4k.scr (rename the file) to the USB stick
+  - copy satip-axe-$(VERSION).fw (no rename) to the USB stick
+  - both files should be in the root directory on the USB stick
+  - plug the USB stick to the upper USB port in box
+  - turn on the box
+  - the tuner LEDs must blink (Knight Rider effect) for few seconds
+  - box is accessible through telnet or ssh, IP address is obtained using DHCP
+  - the default login/password is root/satip
+  - the firmware is not written to the internal flash - when the USB stick
+    is not in the box, the original firmware will be booted
+
+Installation to flash:
+
+  - WARNING! The original firmware will be overwritten!
+  - same steps, just replace satip-axe-$(VERSION).usb to satip-axe-$(VERSION).flash
+  - after boot of the new version, remove the USB stick to not write
+    the .fw file multiple times to flash (on each box start)
+
+Customization:
+
+  - configuration file is in /etc/sysconfig/config
+  - localboot script can be in /etc/sysconfig/localboot
+  - passwd file is copied from /etc/sysconfig/passwd
+  - ssh authorized_keys file is copied from /etc/sysconfig/authorized_keys
+
+Recovery of the original firmware:
+
+  - copy idl4k.recovery file as idl4k.scr file to the root directory on the USB stick
+  - plug the USB stick to the upper USB port in box
+  - turn on the box
+  - box is accessible through http (web browser) - original firmware
+
+Notes:
+
+  - there is 128M SPI flash memory in the device
+  - 128k for u-boot (probably)
+  - 4M marked as system-nand0 (probably unused)
+  - the original firmware uses fw1-nand0 flash region (32M)
+  - the satip-axe firmware uses fw2-nand0 flash region (32M)
+  - data block is named data-nand0 - uses rest of flash
+
+Bugs:
+
+  - the Inverto driver do not initialize properly sometimes
+    (minisatip is not started)
+
+        demod900] setup [num_demods 4]
+        [pll6120] setup [num_plls:4] [clk:30000000] [bbgain:16]
+        [fe] Checking lut 0xC1ABEAF0
+        [fe] Checking lut 0xC1ABEB26
+        [fe] Checking lut 0xC1ABEAF0
+        [fe] Checking lut 0xC1ABEB54
+        [dmx] ... init 0
+        [dmx-ts] ... init 0
+        [i2c] I2C bus error /errno -121/!!
+        [i2c] I2C bus error /errno -121/!!
+        [i2c] I2C bus error /errno -121/!!
+        [pll6120] init error!
+        [fta_fe] FE Initialization done, res -1
+
+  - reboot command cannot be used (uboot usb init fails, hw init fails)
+
+History:
+
+

@@ -5,7 +5,7 @@ A firmware with minisatip for Inverto IDL-400s/Grundig GSS.BOX/Telestar Digibit 
 
 Releases:
 
-  - see to dist directory
+  - see to dist directory - README file
 
 Requirements:
 

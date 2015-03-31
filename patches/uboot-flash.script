@@ -1,0 +1,4 @@
+set filesize
+fatload usb 0 $load_addr satip-axe-@VERSION@.fw
+if test \"${filesize}\" != \"\"; then nand erase fw2-nand0; nand write.jffs2 $load_addr fw2-nand0 $filesize; fi
+if test \"${satip-axe}\" = \"\"; then set bootcmd run\ updatefw\;set\ bootargs\ console\=ttyAS0\,115200\ bigphysarea\=20000\;nboot.jffs2\ \$load_addr fw2-nand0; set satip-axe 1; saveenv; fi
