@@ -1,5 +1,12 @@
 # satip-axe
 
+A firmware with minisatip for Inverto IDL-400s/Grundig GSS.BOX/Telestar Digibit R1
+**********************************************************************************
+
+Releases:
+
+  - see to dist directory
+
 Requirements:
 
   - git, python
@@ -11,12 +18,13 @@ Compilation:
   - just type 'make'
   - kernel with rootfs is in kernel/arch/sh/boot/uImage.gz
 
-Booting uImage.gz on Inverto IDL-400s/Grundig GSS.BOX/Inverto IDL-400S from USB:
+Booting uImage.gz on Inverto IDL-400S/Grundig GSS.BOX/Telestar Digibit R1 from USB:
 
   - connect TTL USB serial adapter to J3 connector (4 pins at the power supply)
     - pin 1 = 3.6V (do not use), pin 2 = GND, pin 3 = RXD (STM CPU), pin 4 = TXD (STM CPU)
     - parameters: 115200,8N1
   - press 'Enter' when you turn on the box (you have only one second) to get 'idl4k> ' prompt
+    (it seems that 'Enter' is required also to enable the serial console)
   - modify bootargs (optional - for original firmware)
 
   set bootargs=console=ttyAS0,115200
@@ -31,5 +39,5 @@ Booting uImage.gz on Inverto IDL-400s/Grundig GSS.BOX/Inverto IDL-400S from USB:
 
 Configuration
 
-  - dhcp client, telnetd and dropbear (ssh daemon) are active by default
+  - dhcp client, telnetd, dropbear (ssh daemon) and minisatip are active by default
   - configuration is stored in /etc/sysconfig/config

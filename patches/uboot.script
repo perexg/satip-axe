@@ -1,0 +1,3 @@
+fatload usb 0 0x84000000 satip-axe-@VERSION@.fw
+set bootargs console=ttyAS0,115200 bigphysarea=20000
+bootm 0x84000000

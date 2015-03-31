@@ -33,9 +33,17 @@ ln -s /mnt/data/satip-axe/sysconfig /etc/sysconfig
 if ! test -r /etc/sysconfig/config ; then
   cp /etc/config.default /etc/sysconfig/config
 fi
+if test -r /etc/sysconfig/passwd ; then
+  cp /etc/sysconfig/passwd /etc/passwd
+fi
 
 # basic network
 hostname satip-axe
 ifconfig lo 127.0.0.1 netmask 255.255.255.0
 ifconfig eth0 up
 route add -net 224.0.0.0 netmask 240.0.0.0 dev eth0
+
+# local boot
+if test -x /etc/sysconfig/localboot ; then
+  /etc/sysconfig/localboot
+fi

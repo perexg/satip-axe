@@ -17,3 +17,9 @@ TELNETD="yes"
 # dropbear
 #
 DROPBEAR="yes"
+
+#
+# minisatip
+#
+MINISATIP="yes"
+MINISATIP_OPTS=""

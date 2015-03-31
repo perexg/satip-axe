@@ -1,3 +1,5 @@
+BUILD=1
+VERSION=$(shell date +%Y%m%d%H%M)-$(BUILD)
 CPUS=4
 STLINUX=/opt/STM/STLinux-2.4
 TOOLPATH=$(STLINUX)/host/bin
@@ -33,22 +35,50 @@ endef
 .PHONY: all
 all: kernel-axe-modules kernel
 
+.PHONY: release
+release: kernel-axe-modules out/idl4k.scr
+	-ls -la out
+
 #
 # create CPIO
 #
 
 fs.cpio: minisatip
 	fakeroot tools/do_min_fs.py \
-	  -b "bash strace ldd" \
+	  -r "$(VERSION)" \
+	  -b "bash strace" \
 	  $(foreach m,$(EXTRA_AXE_MODULES), -e "$(EXTRA_AXE_MODULES_DIR)/$(m):lib/modules/$(m)") \
 	  $(foreach m,$(ORIG_FILES), -e "$(EXTRA_AXE_MODULES_DIR)/../$(m):root") \
 	  $(foreach f,$(DROPBEAR_SBIN_FILES), -e "apps/$(DROPBEAR)/$(f):sbin/$(f)") \
 	  $(foreach f,$(DROPBEAR_BIN_FILES), -e "apps/$(DROPBEAR)/$(f):usr/bin/$(f)") \
-	  -e "apps/minisatip/minisatip:sbin/minisatip"
+	  -e "apps/minisatip/minisatip:sbin/minisatip" \
+	  -e "apps/minisatip/icons/lr.jpg:usr/share/minisatip/icons/lr.jpg" \
+	  -e "apps/minisatip/icons/lr.png:usr/share/minisatip/icons/lr.png" \
+	  -e "apps/minisatip/icons/sm.jpg:usr/share/minisatip/icons/sm.jpg" \
+	  -e "apps/minisatip/icons/sm.png:usr/share/minisatip/icons/sm.png"
 
 .PHONY: fs-list
 fs-list:
 	cpio -itv < kernel/rootfs-idl4k.cpio
+
+#
+# uboot
+#
+
+out/idl4k.scr: patches/uboot.script out/satip-axe-$(VERSION).fw
+	rm -f out/*.scr
+	sed -e 's/@VERSION@/$(VERSION)/g' \
+	  < patches/uboot.script > out/uboot.script
+	$(TOOLPATH)/mkimage -T script -C none \
+	  -n 'SAT>IP AXE fw v$(VERSION)' \
+	  -d out/uboot.script out/idl4k.scr
+	-rm out/uboot.script
+
+out/satip-axe-$(VERSION).fw: kernel/arch/sh/boot/uImage.gz
+	mkdir -p out
+	rm -f out/*.fw
+	cp -av kernel/arch/sh/boot/uImage.gz out/satip-axe-$(VERSION).fw
+
 #
 # kernel
 #
@@ -56,12 +86,14 @@ fs-list:
 kernel/.config: toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4/bin/sh4-linux-gcc-4.5.3
 	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- idl4k_defconfig
 
-.PHONY: kernel
-kernel: toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4/bin/sh4-linux-gcc-4.5.3 kernel/.config fs.cpio
+kernel/arch/sh/boot/uImage.gz: toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4/bin/sh4-linux-gcc-4.5.3 kernel/.config fs.cpio
 	mv fs.cpio kernel/rootfs-idl4k.cpio
 	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- modules
 	make -C kernel -j ${CPUS} PATH="$(PATH):$(TOOLPATH)" \
 	                          ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- uImage.gz
+
+.PHONY: kernel
+kernel: kernel/arch/sh/boot/uImage.gz
 
 .PHONY: kernel-mrproper
 kernel-mrproper:

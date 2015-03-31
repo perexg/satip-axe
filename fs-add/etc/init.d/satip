@@ -1,0 +1,13 @@
+#!/bin/sh
+
+test -r /etc/sysconfig/config && . /etc/sysconfig/config
+
+if test "$MINISATIP" != "yes"; then
+  exit 0
+fi
+
+cd /tmp
+while test 1 -eq 1; do
+  minisatip -f -g $MINISATIP_OPTS
+  logger "minisatip exited $?, restarting"
+done

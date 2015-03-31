@@ -171,7 +171,6 @@ def setup_busybox():
     run_cmd('cp ' + target_prefix + '/bin/busybox fs/bin')
 
     run_cmd(' ln -s  /bin/busybox  fs/sbin/init')
-    run_cmd(' ln -s  /bin/busybox  fs/init')
     run_cmd(' ln -s  /bin/busybox  fs/bin/sh')
 
 #-----------------------------------------------
@@ -297,13 +296,11 @@ def gen_fs(lib_list, init_type):
     run_cmd('cp  -d ' + target_prefix + '/lib/libnss_nis*' + ' fs/lib/')
     run_cmd('cp  -d ' + target_prefix + '/lib/libnss_nisplus*' + ' fs/lib/')
 
-    # libgcc_s.so.1 is reqired from libpthread but it's not possible get it by ldd cmd
-    for i in lib_list:
-        if i.find('libpthread') >= 0:
-           run_cmd('cp   -a ' + target_prefix + '/lib/libgcc_*' + ' fs/lib/')
-    print '\t======================================='
-
     # other libs
+    run_cmd('cp  -d ' + target_prefix + '/lib/libutil*' + ' fs/lib/')
+    run_cmd('cp  -d ' + target_prefix + '/lib/librt*' + ' fs/lib/')
+    run_cmd('cp  -d ' + target_prefix + '/lib/libpthread*' + ' fs/lib/')
+    run_cmd('cp  -a ' + target_prefix + '/lib/libgcc_*' + ' fs/lib/')
     run_cmd('cp  -d ' + target_prefix + '/usr/lib/libz.so*' + ' fs/usr/lib/')
     run_cmd('cp  -d ' + target_prefix + '/usr/lib/libstdc++.so*' + ' fs/usr/lib/')
     run_cmd('cp  -d ' + target_prefix + '/usr/lib/libglib-2.0.so*' + ' fs/usr/lib/')
@@ -335,6 +332,7 @@ def usage():
     print '\n  -t,  --target_prefix <path> the target path location '
     print '         (default: /opt/STM/STLinux-2.4/devkit/sh4/target/)'
     print '\n  -e,  --extra <file>:<dst> to be added to the filesystem'
+    print '\n  -r,  --version <ver>'
     print '\n  -i   --init_type : '
     print '\t\t\t  busybox '
     print '\t\t\t  sysv '
@@ -351,13 +349,15 @@ def get_menu_opt(argv):
     try:
 #      opts = ''
 #      args = ''
-       opts , args = getopt.gnu_getopt(argv, 'hb:e:t:i:', ['--init_type', '--binary=', '--extra', '--target_prefix=', '--help'])
+       opts , args = getopt.gnu_getopt(argv, 'hb:e:t:i:r:',
+           ['--init_type', '--binary=', '--extra', '--target_prefix=', '--version', '--help'])
     except getopt.GetoptError:
            usage()
     target_prefix = ''
     console = ''
     binary_list=[]
     extra_list=[]
+    version = ''
     for o, v  in opts:
        if o == '-b' or o == '--binary':
           v = v.split(' ')  # take out all blank spaces and replace the v string with  binary_list
@@ -373,6 +373,8 @@ def get_menu_opt(argv):
             target_prefix = v
        elif o == '-i' or o == '--init_type':
             console = v
+       elif o == '-r' or o == '--version':
+            version = v
        elif o == '-h' or o == '--help':
           usage()
     params = []
@@ -380,6 +382,7 @@ def get_menu_opt(argv):
     params.append(console)
     params.append(target_prefix)
     params.append(extra_list)
+    params.append(version)
     return params
 
 #-----------------------------------------
@@ -497,6 +500,7 @@ user_param = ['', '', '']
 user_param = get_menu_opt(sys.argv[1:])
 bin_list = user_param[0]  # command list to find
 extra_list = user_param[3]
+version = user_param[4]
 
 if user_param[1] != '':
    boot_type = user_param[1] # default busybox
@@ -561,6 +565,12 @@ print '     ' + 30*'='  + '\n'
 
 gen_fs(library_list, boot_type)
 run_cmd('cp -av fs-add/* fs')
+f = open("fs/etc/motd")
+b = f.read(1024*1024)
+f.close()
+f = open("fs/etc/motd", "w+")
+f.write(b.replace('@VERSION@', version))
+f.close()
 files = run_cmd('find fs -name "*~"')
 for f in files:
   run_cmd('rm ' + f.strip())
@@ -569,5 +579,8 @@ for r in ['usr/bin/bashbug']:
     run_cmd('rm fs/' + r)
 for e in extra_list:
   src, dst = e.split(':')
+  dir = os.path.dirname(dst)
+  if not os.path.exists('fs/' + dir):
+    run_cmd('mkdir -p fs/' + dir)
   run_cmd('cp ' + src + ' fs/' + dst)
 do_cpio('fs')
