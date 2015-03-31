@@ -1,4 +1,4 @@
-This directory contains USB firmware for
+This directory contains USB and flash firmware for
   * Inverto IDL-400s
   * Grundig GSS.BOX
   * Inverto IDL-400S
@@ -84,4 +84,5 @@ Bugs:
 
 History:
 
-
+  satip-axe-201503311856-1 : Tue Mar 31 2015
+    - initial firmware release
