@@ -47,6 +47,20 @@ Notes:
   - the satip-axe firmware uses fw2-nand0 flash region (32M)
   - data block is named data-nand0 - uses rest of flash
 
+Disclaimer:
+
+The SATIP AXE firmware is supplied "AS IS" without any warranties and
+support.
+
+The authors assumes no responsibility or liability for the use of
+the software, conveys no license or title under any patent, copyright, or
+mask work right to the product.
+
+The authors reserve the right to make changes in the software
+without notification. Authors also make no representation or
+warranty that such software will be suitable for the specified use
+without further testing or modification.
+
 Bugs:
 
   - the Inverto driver do not initialize properly sometimes
