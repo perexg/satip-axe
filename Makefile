@@ -137,6 +137,14 @@ firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32BITS/axe_dmx.ko:
 	chmod -R u+rw firmware/initramfs
 
 #
+# syscall dump
+#
+
+tools/syscall-dump: tools/syscall-dump.c
+	gcc -o syscall-dump.o -c -fPIC -Wall tools/syscall-dump.c
+	gcc -o syscall-dump.so -shared -rdynamic syscall-dump.o -ldl
+
+#
 # minisatip
 #
 
