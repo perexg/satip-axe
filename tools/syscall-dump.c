@@ -11,6 +11,7 @@ Usage:
 
 */
 
+#define _LARGEFILE64_SOURCE
 #include <dlfcn.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
@@ -37,6 +38,8 @@ static int (*real_open64)(const char *pathname, int flags, ...);
 static int (*real_ioctl)(int fd, unsigned long request, ...);
 static ssize_t (*real_write)(int fd, const void *buf, size_t len);
 static ssize_t (*real_read)(int fd, void *buf, size_t len);
+static off_t (*real_lseek)(int fd, off_t offset, int whence);
+static off64_t (*real_lseek64)(int fd, off64_t offset, int whence);
 static int (*real_close)(int fd);
 
 #define REDIR(realptr, symname) do { \
@@ -51,8 +54,11 @@ static int (*real_close)(int fd);
 /* log function */
 static void dlog(const char *fmt, ...)
 {
-  char buf[2048];
+  char buf[2048], *b;
   va_list ap;
+  size_t len;
+  ssize_t r;
+  int keep_errno = errno;
 
   if (dlog_fd < 0) {
     const char *f = getenv("SYSCALL_DUMP_LOG");
@@ -64,13 +70,25 @@ static void dlog(const char *fmt, ...)
   vsnprintf(buf, sizeof(buf), fmt, ap);
   va_end(ap);
   REDIR(real_write, "write");
-  real_write(dlog_fd, buf, strlen(buf));
+  len = strlen(b = buf);
+  while (len > 0) {
+    r = real_write(dlog_fd, b, len);
+    if (r < 0) {
+      if (errno != EAGAIN && errno != EINTR && errno != EWOULDBLOCK)
+        break;
+    } else {
+      len -= r;
+      b += r;
+    }
+  }
+  errno = keep_errno;
 }
 
 static void dlog_hexa(const char *prefix, void *buf, size_t len)
 {
   char b[128];
   size_t i, l;
+  int keep_errno = errno;
   
   while (len > 0) {
     for (i = l = 0; i < 16 && len > 0; i++, len--, buf++)
@@ -79,6 +97,7 @@ static void dlog_hexa(const char *prefix, void *buf, size_t len)
     b[l+1] = '\0';
     dlog("%s %s", prefix, b);
   }
+  errno = keep_errno;
 }
 
 /* open() wrapper */
@@ -149,7 +168,12 @@ ssize_t write(int fd, const void *buf, size_t len)
   REDIR(real_write, "write");
   
   r = real_write(fd, buf, len);
-  dlog("write(%d, %p, %zd) = %d (%d)\n", fd, buf, len, r, E(r));
+  if (r > 0) {
+    dlog_hexa("write:", (void *)buf, r);
+    dlog("  write(%d, %p, %zd) = %d (%d)\n", fd, buf, len, r, E(r));
+  } else {
+    dlog("write(%d, %p, %zd) = %d (%d)\n", fd, buf, len, r, E(r));
+  }
   return r;
 }
 
@@ -166,6 +190,32 @@ ssize_t read(int fd, void *buf, size_t len)
     dlog_hexa("  read:", buf, r);
   return r;
 }
+
+/* lseek() wrapper */
+off_t lseek(int fd, off_t offset, int whence)
+{
+  int r;
+
+  REDIR(real_lseek, "lseek");
+
+  r = real_lseek(fd, offset, whence);
+  dlog("lseek(%d, %lx, %d) = %d (%d)\n", fd, (long)offset, whence, r, E(r));
+  return r;
+}
+
+
+/* lseek64() wrapper */
+off64_t lseek64(int fd, off64_t offset, int whence)
+{
+  int r;
+
+  REDIR(real_lseek64, "lseek64");
+
+  r = real_lseek64(fd, offset, whence);
+  dlog("lseek(%d, %llx, %d) = %d (%d)\n", fd, (long long)offset, whence, r, E(r));
+  return r;
+}
+
 
 /* ioctl() wrapper */
 int ioctl(int fd, unsigned long request, ...)
