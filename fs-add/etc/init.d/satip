@@ -7,7 +7,7 @@ if test "$MINISATIP" != "yes"; then
 fi
 
 cd /tmp
-while test 1 -eq 1; do
+while test ! -f /tmp/nosatip; do
   minisatip -f -g $MINISATIP_OPTS
   logger "minisatip exited $?, restarting"
 done
