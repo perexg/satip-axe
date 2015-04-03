@@ -35,12 +35,15 @@ Usage:
 static int dlog_fd = -1;
 static int (*real_open)(const char *pathname, int flags, ...);
 static int (*real_open64)(const char *pathname, int flags, ...);
+static int (*real_socket)(int domain, int type, int protocol);
 static int (*real_ioctl)(int fd, unsigned long request, ...);
 static ssize_t (*real_write)(int fd, const void *buf, size_t len);
 static ssize_t (*real_read)(int fd, void *buf, size_t len);
 static off_t (*real_lseek)(int fd, off_t offset, int whence);
 static off64_t (*real_lseek64)(int fd, off64_t offset, int whence);
 static int (*real_close)(int fd);
+static int (*real_dup)(int oldfd);
+static int (*real_dup2)(int oldfd, int newfd);
 
 #define REDIR(realptr, symname) do { \
   if ((realptr) == NULL) { \
@@ -148,6 +151,18 @@ int open64(const char *pathname, int flags, ...)
   return r;
 }
 
+/* socket() wrapper */
+int socket(int domain, int type, int protocol)
+{
+  int r;
+
+  REDIR(real_socket, "socket");
+
+  r = real_socket(domain, type, protocol);
+  dlog("socket(%d, %d, %d) = %d (%d)\n", domain, type, protocol, r, E(r));
+  return r;
+}
+
 /* close() wrapper */
 int close(int fd)
 {
@@ -203,7 +218,6 @@ off_t lseek(int fd, off_t offset, int whence)
   return r;
 }
 
-
 /* lseek64() wrapper */
 off64_t lseek64(int fd, off64_t offset, int whence)
 {
@@ -216,6 +230,29 @@ off64_t lseek64(int fd, off64_t offset, int whence)
   return r;
 }
 
+/* dup() wrapper */
+int dup(int oldfd)
+{
+  int r;
+
+  REDIR(real_dup, "dup");
+
+  r = real_dup(oldfd);
+  dlog("dup(%d) = %d (%d)\n", oldfd, r, E(r));
+  return r;
+}
+
+/* dup2() wrapper */
+int dup2(int oldfd, int newfd)
+{
+  int r;
+
+  REDIR(real_dup2, "dup2");
+
+  r = real_dup2(oldfd, newfd);
+  dlog("dup2(%d, %d) = %d (%d)\n", oldfd, newfd, r, E(r));
+  return r;
+}
 
 /* ioctl() wrapper */
 int ioctl(int fd, unsigned long request, ...)
