@@ -1,0 +1,4 @@
+syscall-dump.o
+syscall-dump.o.x86_64
+syscall-dump.so
+syscall-dump.so.x86_64
