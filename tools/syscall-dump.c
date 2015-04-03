@@ -16,6 +16,7 @@ Usage:
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
+#include <sys/syscall.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -29,6 +30,15 @@ Usage:
 #define REAL_LIBC RTLD_NEXT
 #else
 #define REAL_LIBC ((void *) -1L)
+#endif
+
+#ifdef SYS_gettid
+static inline int gettid(void)
+{
+  return syscall(SYS_gettid);
+}
+#else
+#error "SYS_gettid unavailable on this system"
 #endif
 
 /* Function pointers for real libc versions */
@@ -69,8 +79,9 @@ static void dlog(const char *fmt, ...)
     dlog_fd = f ? real_open(f, O_CREAT|O_APPEND|O_WRONLY, 0600) : 2 /* stderr */;
     if (dlog_fd < 0) exit(1002);
   }
+  sprintf(buf, "[%5d]", gettid());
   va_start(ap, fmt);
-  vsnprintf(buf, sizeof(buf), fmt, ap);
+  vsnprintf(buf + 7, sizeof(buf) - 7, fmt, ap);
   va_end(ap);
   REDIR(real_write, "write");
   len = strlen(b = buf);
