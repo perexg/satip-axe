@@ -167,7 +167,12 @@ s2i_dump: tools/syscall-dump.so
 	    firmware/initramfs/usr/lib/libcrypto.so.1.0.0 \
 	    firmware/initramfs/usr/lib/libxml2.so.2 \
 	    root@$(SATIP_HOST):/usr/lib
+	scp firmware/initramfs/root/default_sl.json \
+	    firmware/initramfs/root/*.txt \
+	    firmware/initramfs/root/*.m3u \
+	    root@$(SATIP_HOST):/root
 	scp firmware/initramfs/usr/local/bin/mdnsd root@$(SATIP_HOST):/usr/bin
+	scp $(TOOLCHAIN)/target/bin/netstat root@$(SATIP_HOST):/bin
 
 #
 # minisatip
