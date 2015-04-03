@@ -5,6 +5,7 @@ STLINUX=/opt/STM/STLinux-2.4
 TOOLPATH=$(STLINUX)/host/bin
 TOOLCHAIN=$(STLINUX)/devkit/sh4
 TOOLCHAIN_KERNEL=$(shell pwd)/toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4
+HOST_ARCH=$(shell uname -m)
 
 EXTRA_AXE_MODULES_DIR=firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32BITS
 EXTRA_AXE_MODULES=axe_dmx.ko axe_dmxts.ko axe_fe.ko axe_fp.ko axe_i2c.ko \
@@ -140,9 +141,33 @@ firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32BITS/axe_dmx.ko:
 # syscall dump
 #
 
-tools/syscall-dump: tools/syscall-dump.c
-	gcc -o syscall-dump.o -c -fPIC -Wall tools/syscall-dump.c
-	gcc -o syscall-dump.so -shared -rdynamic syscall-dump.o -ldl
+tools/syscall-dump.so: tools/syscall-dump.c
+	$(TOOLCHAIN)/bin/sh4-linux-gcc -o tools/syscall-dump.o -c -fPIC -Wall tools/syscall-dump.c
+	$(TOOLCHAIN)/bin/sh4-linux-gcc -o tools/syscall-dump.so -shared -rdynamic tools/syscall-dump.o -ldl
+
+tools/syscall-dump.so.$(HOST_ARCH): tools/syscall-dump.c
+	gcc -o tools/syscall-dump.o.$(HOST_ARCH) -c -fPIC -Wall tools/syscall-dump.c
+	gcc -o tools/syscall-dump.so.$(HOST_ARCH) -shared -rdynamic tools/syscall-dump.o.$(HOST_ARCH) -ldl
+
+.PHONY: s2i_dump
+s2i_dump: tools/syscall-dump.so
+	if test -z "$(SATIP_HOST)"; then echo "Define SATIP_HOST variable"; exit 1; fi
+	scp tools/syscall-dump.so \
+	    tools/s2i-dump.sh \
+	    firmware/initramfs/root/s2i.bin \
+	    firmware/initramfs/usr/lib/libuuid.so.1 \
+	    firmware/initramfs/usr/lib/libcurl.so.4 \
+	    firmware/initramfs/usr/lib/liboauth.so.0 \
+	    firmware/initramfs/usr/lib/libsoup-2.4.so.1 \
+	    firmware/initramfs/usr/lib/libgio-2.0.so.0 \
+	    firmware/initramfs/usr/lib/libgobject-2.0.so.0 \
+	    firmware/initramfs/usr/lib/libgmodule-2.0.so.0 \
+	    firmware/initramfs/usr/lib/libgthread-2.0.so.0 \
+	    firmware/initramfs/usr/lib/libssl.so.1.0.0 \
+	    firmware/initramfs/usr/lib/libcrypto.so.1.0.0 \
+	    firmware/initramfs/usr/lib/libxml2.so.2 \
+	    root@$(SATIP_HOST):/usr/lib
+	scp firmware/initramfs/usr/local/bin/mdnsd root@$(SATIP_HOST):/usr/bin
 
 #
 # minisatip
@@ -196,3 +221,4 @@ dropbear: apps/$(DROPBEAR)/dropbear
 clean: kernel-mrproper
 	rm -rf firmware/initramfs
 	rm -rf toolchain/4.5.3-99
+	rm -rf tools/syscall-dump.o* tools/syscall-dump.s*

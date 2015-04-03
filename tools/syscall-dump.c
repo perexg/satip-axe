@@ -199,7 +199,7 @@ off_t lseek(int fd, off_t offset, int whence)
   REDIR(real_lseek, "lseek");
 
   r = real_lseek(fd, offset, whence);
-  dlog("lseek(%d, %lx, %d) = %d (%d)\n", fd, (long)offset, whence, r, E(r));
+  dlog("lseek(%d, %ld, %d) = %d (%d)\n", fd, (long)offset, whence, r, E(r));
   return r;
 }
 
@@ -212,7 +212,7 @@ off64_t lseek64(int fd, off64_t offset, int whence)
   REDIR(real_lseek64, "lseek64");
 
   r = real_lseek64(fd, offset, whence);
-  dlog("lseek(%d, %llx, %d) = %d (%d)\n", fd, (long long)offset, whence, r, E(r));
+  dlog("lseek(%d, %lld, %d) = %d (%d)\n", fd, (long long)offset, whence, r, E(r));
   return r;
 }
 
