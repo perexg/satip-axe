@@ -1,4 +1,4 @@
-BUILD=2
+BUILD=3
 VERSION=$(shell date +%Y%m%d%H%M)-$(BUILD)
 CPUS=4
 STLINUX=/opt/STM/STLinux-2.4

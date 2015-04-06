@@ -93,6 +93,9 @@ Bugs:
 
 History:
 
+  satip-axe-201504061852-3 : Mon Apr  6 2015
+    - minisatip fixes (unicable-jess, corrected input selection - coax inputs)
+
   satip-axe-201504061852-2 : Mon Apr  6 2015
     - minisatip fixes (unicable, multiple tuners, h/v and lo/hi setup)
     - load axe modules in rcSBB
