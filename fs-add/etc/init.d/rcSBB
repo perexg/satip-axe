@@ -25,6 +25,10 @@ mount -t tmpfs -o size=1M tmpfs /tmp
 # start syslogd
 syslogd -C256
 
+# AXE modules
+ln -s /lib/modules /root/modules
+/lib/modules/load_modules.sh
+
 # config/data storage
 mkdir -p /mnt/data
 mount -t jffs2 /dev/mtdblock4 /mnt/data/
