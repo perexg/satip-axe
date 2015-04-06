@@ -64,7 +64,10 @@ without further testing or modification.
 Bugs:
 
   - the Inverto driver do not initialize properly sometimes
-    (minisatip is not started)
+    (minisatip is not started); if minisatip does not work,
+    you may check 'logread' for tuner initialization error (512)
+    or use 'dmesg' to check the lines bellow;
+    turn off the box for 5-30 minutes and try again...
 
         demod900] setup [num_demods 4]
         [pll6120] setup [num_plls:4] [clk:30000000] [bbgain:16]
@@ -83,6 +86,10 @@ Bugs:
   - reboot command cannot be used (uboot usb init fails, hw init fails)
 
 History:
+
+  satip-axe-201504061852-2 : Mon Apr  6 2015
+    - minisatip fixes (unicable, multiple tuners, h/v and lo/hi setup)
+    - load axe modules in rcSBB
 
   satip-axe-201503311856-1 : Tue Mar 31 2015
     - initial firmware release
