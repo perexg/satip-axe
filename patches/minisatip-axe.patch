@@ -339,7 +339,7 @@ index 0000000..c29131d
 +
 +#endif
 diff --git a/dvb.c b/dvb.c
-index 5701bd2..4590d43 100755
+index 5701bd2..3c146b7 100755
 --- a/dvb.c
 +++ b/dvb.c
 @@ -41,6 +41,10 @@
@@ -413,7 +413,7 @@ index 5701bd2..4590d43 100755
  	if (ioctl(fd, FE_SET_VOLTAGE, SEC_VOLTAGE_13) == -1)
  		LOG("send_jess: pre voltage  SEC_VOLTAGE_13 failed for fd %d: %s", fd, strerror(errno));
  	msleep(15);
-@@ -332,7 +368,15 @@ int setup_switch (int frontend_fd, transponder *tp)
+@@ -332,10 +368,26 @@ int setup_switch (int frontend_fd, transponder *tp)
  	
  	if(tp->switch_type == SWITCH_UNICABLE)
  	{
@@ -428,8 +428,19 @@ index 5701bd2..4590d43 100755
 +#endif
  	}else if(tp->switch_type == SWITCH_JESS)
  	{
++#ifdef AXE
++		adapter *a = get_adapter(0);
++		if (a)
++			freq = send_jess(a->fe, freq / 1000, diseqc, pol, hiband, tp->uslot, tp->ufreq);
++		else
++			LOGL(3, "axe jess setup: unable to find adapter 0");
++#else
  		freq = send_jess(frontend_fd, freq / 1000, diseqc, pol, hiband, tp->uslot, tp->ufreq);
-@@ -343,6 +387,13 @@ int setup_switch (int frontend_fd, transponder *tp)
++#endif
+ 	}else
+ 	{
+ 		if(tp->old_pol != pol || tp->old_hiband != hiband || tp->old_diseqc != diseqc)
+@@ -343,6 +395,13 @@ int setup_switch (int frontend_fd, transponder *tp)
  		else 
  			LOGL(3, "Skip sending diseqc commands since the switch position doesn't need to be changed: pol %d, hiband %d, switch position %d", pol, hiband, diseqc);
  	}
@@ -443,7 +454,7 @@ index 5701bd2..4590d43 100755
  	
  	tp->old_pol = pol;
  	tp->old_hiband = hiband;
-@@ -383,8 +434,10 @@ tune_it_s2 (int fd_frontend, transponder * tp)
+@@ -383,8 +442,10 @@ tune_it_s2 (int fd_frontend, transponder * tp)
  		{.cmd = DTV_INVERSION,.u.data = 0},
  		{.cmd = DTV_SYMBOL_RATE,.u.data = 0},
  		{.cmd = DTV_INNER_FEC,.u.data = 0},
@@ -454,7 +465,7 @@ index 5701bd2..4590d43 100755
  		{.cmd = DTV_TUNE},
  	};
  	static struct dtv_properties dvbs2_cmdseq =
-@@ -465,8 +518,10 @@ tune_it_s2 (int fd_frontend, transponder * tp)
+@@ -465,8 +526,10 @@ tune_it_s2 (int fd_frontend, transponder * tp)
  			p = &dvbs2_cmdseq;
  			p->props[DELSYS].u.data = tp->sys;
  			p->props[MODULATION].u.data = tp->mtype;
@@ -465,7 +476,7 @@ index 5701bd2..4590d43 100755
  			p->props[INVERSION].u.data = tp->inversion;
  			p->props[SYMBOL_RATE].u.data = tp->sr;
  			p->props[FEC_INNER].u.data = tp->fec;
-@@ -475,7 +530,12 @@ tune_it_s2 (int fd_frontend, transponder * tp)
+@@ -475,7 +538,12 @@ tune_it_s2 (int fd_frontend, transponder * tp)
  			LOG("tuning to %d(%d) pol: %s (%d) sr:%d fec:%s delsys:%s mod:%s rolloff:%s pilot:%s, ts clear=%d, ts pol=%d",
  				tp->freq, p->props[FREQUENCY].u.data, get_pol(tp->pol), tp->pol, p->props[SYMBOL_RATE].u.data, fe_fec[p->props[FEC_INNER].u.data],
  				fe_delsys[p->props[DELSYS].u.data], fe_modulation[p->props[MODULATION].u.data],
@@ -479,7 +490,7 @@ index 5701bd2..4590d43 100755
  				
  			break;
  
-@@ -560,6 +620,20 @@ set_pid (int hw, int ad, uint16_t i_pid)
+@@ -560,6 +628,20 @@ set_pid (int hw, int ad, uint16_t i_pid)
  	char buf[100];
  	int fd;
  
@@ -500,7 +511,7 @@ index 5701bd2..4590d43 100755
  	if ( i_pid > 8192 )
  		LOG_AND_RETURN(-1, "pid %d > 8192 for /dev/dvb/adapter%d/demux%d", i_pid, hw, ad);
  		
-@@ -585,6 +659,7 @@ set_pid (int hw, int ad, uint16_t i_pid)
+@@ -585,6 +667,7 @@ set_pid (int hw, int ad, uint16_t i_pid)
  	}
  
  	LOG ("setting filter on PID %d for fd %d", i_pid, fd);
@@ -508,7 +519,7 @@ index 5701bd2..4590d43 100755
  
  	return fd;
  }
-@@ -592,6 +667,17 @@ set_pid (int hw, int ad, uint16_t i_pid)
+@@ -592,6 +675,17 @@ set_pid (int hw, int ad, uint16_t i_pid)
  
  int del_filters (int fd, int pid)
  {
@@ -526,7 +537,7 @@ index 5701bd2..4590d43 100755
  	if (fd < 0)
  		LOG_AND_RETURN(0, "DMX_STOP on an invalid handle %d, pid %d", fd, pid);
  	if (ioctl (fd, DMX_STOP) < 0)
-@@ -599,6 +685,7 @@ int del_filters (int fd, int pid)
+@@ -599,6 +693,7 @@ int del_filters (int fd, int pid)
  			else
  			LOG ("clearing filters on PID %d FD %d", pid, fd);
  	close (fd);
@@ -534,7 +545,7 @@ index 5701bd2..4590d43 100755
  	return 0;
  }
  
-@@ -606,6 +693,15 @@ int del_filters (int fd, int pid)
+@@ -606,6 +701,15 @@ int del_filters (int fd, int pid)
  fe_delivery_system_t
  dvb_delsys (int aid, int fd, fe_delivery_system_t *sys)
  {
@@ -550,7 +561,7 @@ index 5701bd2..4590d43 100755
  	int i, res, rv = 0;
  	struct dvb_frontend_info fe_info;
  
-@@ -703,6 +799,7 @@ dvb_delsys (int aid, int fd, fe_delivery_system_t *sys)
+@@ -703,6 +807,7 @@ dvb_delsys (int aid, int fd, fe_delivery_system_t *sys)
  
  	LOG ("returning default from dvb_delsys => %s (count %d)", fe_delsys[rv] , nsys);
  	return (fe_delivery_system_t) rv;
