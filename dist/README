@@ -31,6 +31,12 @@ Customization:
   - passwd file is copied from /etc/sysconfig/passwd
   - ssh authorized_keys file is copied from /etc/sysconfig/authorized_keys
 
+Minisatip config:
+
+  - you may add extra parameters to MINISATIP_OPTS= in /etc/sysconfig/config
+  - example 1: only two tuners: MINISATIP_OPTS="-e 0-1"
+  - example 2: unicable: MINISATIP_OPTS="-u 0:1-1420,1:0-1210,2:2-1680,3:3-2040"
+
 Recovery of the original firmware:
 
   - copy idl4k.recovery file as idl4k.scr file to the root directory on the USB stick
