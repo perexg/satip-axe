@@ -11,3 +11,6 @@ while test ! -f /tmp/nosatip; do
   minisatip -f -g $MINISATIP_OPTS
   logger "minisatip exited $?, restarting"
 done
+if test -f /tmp/nosatip; then
+  sleep 87323123
+fi
