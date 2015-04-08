@@ -37,6 +37,12 @@ Minisatip config:
   - example 1: only two tuners: MINISATIP_OPTS="-e 0-1"
   - example 2: unicable: MINISATIP_OPTS="-u 0:1-1420,1:0-1210,2:2-1680,3:3-2040"
 
+OSCAM config:
+
+  - in /etc/sysconfig/oscam directory
+  - use persistent serial device names (like /dev/ttyUSB1-1.2:1.0)
+  - or use customized serial device names (see /etc/sysconfig/config)
+
 Recovery of the original firmware:
 
   - copy idl4k.recovery file as idl4k.scr file to the root directory on the USB stick
@@ -92,6 +98,17 @@ Bugs:
   - reboot command cannot be used (uboot usb init fails, hw init fails)
 
 History:
+
+  satip-axe-201504082030-4 : Wed Apr  8 2015
+    - upgraded busybox to v1.23.2
+    - added ntpd configuration (network time daemon)
+    - changed dropbear default PATH to "/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin"
+    - added /dev/sd* devices hotplug (mounted to /media tree using labels)
+    - added kernel modules for USB serial converters (most Phoenix readers)
+    - added /dev/ttyUSB* devices hotplug (persistent names like /dev/ttyUSB2-1:1.0)
+    - added oscam r10619
+    - allow customization of hostname (/etc/sysconfig/config)
+    - minisatip fixes (signal levels, cleanups)
 
   satip-axe-201504061852-3 : Mon Apr  6 2015
     - minisatip fixes (unicable-jess, corrected input selection - coax inputs)
