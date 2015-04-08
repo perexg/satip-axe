@@ -1,0 +1,33 @@
+#!/bin/sh
+
+test -r /etc/sysconfig/config && . /etc/sysconfig/config
+
+if test "$OSCAMD" != "yes"; then
+  exit 0
+fi
+
+mkdir -p /etc/sysconfig/oscam
+if ! test -r /etc/sysconfig/oscam/oscam.conf; then
+cat > /etc/sysconfig/oscam/oscam.conf <<EOF
+[global]
+logfile                       = /tmp/oscam.log
+maxlogsize                    = 2048
+
+[cache]
+
+[dvbapi]
+enabled                       = 1
+au                            = 1
+pmt_mode                      = 4
+listen_port                   = 9000
+user                          = dvbapi
+boxtype                       = pc-nodmx
+
+[webif]
+httpport                      = 8888
+httpuser                      = oscam
+httppwd                       = satip
+httpallowed                   = 127.0.0.1,0.0.0.0-255.255.255.255
+EOF
+fi
+exec oscamd -c /etc/sysconfig/oscam -u

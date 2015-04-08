@@ -15,11 +15,23 @@ EXTRA_AXE_MODULES=axe_dmx.ko axe_dmxts.ko axe_fe.ko axe_fp.ko axe_i2c.ko \
 
 ORIG_FILES=main_axe.out mknodes.out
 
+KMODULES = drivers/usb/serial/cp210x.ko \
+	   drivers/usb/serial/pl2303.ko \
+	   drivers/usb/serial/spcp8x5.ko \
+	   drivers/usb/serial/io_ti.ko \
+	   drivers/usb/serial/ti_usb_3410_5052.ko \
+	   drivers/usb/serial/io_edgeport.ko \
+           drivers/usb/serial/ftdi_sio.ko \
+	   drivers/usb/serial/oti6858.ko
+
 BUSYBOX=busybox-1.23.2
 
 DROPBEAR=dropbear-2015.67
 DROPBEAR_SBIN_FILES=dropbear
 DROPBEAR_BIN_FILES=dbclient dropbearconvert dropbearkey scp
+
+# 10087?
+OSCAM_REV=10619
 
 define GIT_CLONE
 	@mkdir -p apps/
@@ -51,12 +63,13 @@ dist:
 # create CPIO
 #
 
-fs.cpio: minisatip
+fs.cpio: kernel-modules busybox dropbear minisatip oscam
 	fakeroot tools/do_min_fs.py \
 	  -r "$(VERSION)" \
 	  -b "bash strace" \
 	  $(foreach m,$(EXTRA_AXE_MODULES), -e "$(EXTRA_AXE_MODULES_DIR)/$(m):lib/modules/$(m)") \
 	  $(foreach m,$(ORIG_FILES), -e "$(EXTRA_AXE_MODULES_DIR)/../$(m):root") \
+	  $(foreach m,$(KMODULES), -e "kernel/$(m):lib/modules/$(m)") \
 	  -e "apps/$(BUSYBOX)/busybox:bin/busybox" \
 	  $(foreach f,$(DROPBEAR_SBIN_FILES), -e "apps/$(DROPBEAR)/$(f):sbin/$(f)") \
 	  $(foreach f,$(DROPBEAR_BIN_FILES), -e "apps/$(DROPBEAR)/$(f):usr/bin/$(f)") \
@@ -64,7 +77,8 @@ fs.cpio: minisatip
 	  -e "apps/minisatip/icons/lr.jpg:usr/share/minisatip/icons/lr.jpg" \
 	  -e "apps/minisatip/icons/lr.png:usr/share/minisatip/icons/lr.png" \
 	  -e "apps/minisatip/icons/sm.jpg:usr/share/minisatip/icons/sm.jpg" \
-	  -e "apps/minisatip/icons/sm.png:usr/share/minisatip/icons/sm.png"
+	  -e "apps/minisatip/icons/sm.png:usr/share/minisatip/icons/sm.png" \
+	  -e "apps/oscam-svn/Distribution/oscam-1.20-unstable_svn$(OSCAM_REV)-sh4-linux:sbin/oscamd"
 
 .PHONY: fs-list
 fs-list:
@@ -104,13 +118,19 @@ out/satip-axe-$(VERSION).fw: kernel/arch/sh/boot/uImage.gz
 #
 
 kernel/.config: toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4/bin/sh4-linux-gcc-4.5.3
+	cp patches/kernel.config ./kernel/arch/sh/configs/idl4k_defconfig
 	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- idl4k_defconfig
 
-kernel/arch/sh/boot/uImage.gz: toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4/bin/sh4-linux-gcc-4.5.3 kernel/.config fs.cpio
-	mv fs.cpio kernel/rootfs-idl4k.cpio
+kernel/drivers/usb/serial/cp210x.ko: toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4/bin/sh4-linux-gcc-4.5.3 kernel/.config
 	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- modules
+
+kernel/arch/sh/boot/uImage.gz: kernel/drivers/usb/serial/cp210x.ko fs.cpio
+	mv fs.cpio kernel/rootfs-idl4k.cpio
 	make -C kernel -j ${CPUS} PATH="$(PATH):$(TOOLPATH)" \
 	                          ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- uImage.gz
+
+.PHONY: kernel-modules
+kernel-modules: kernel/drivers/usb/serial/cp210x.ko
 
 .PHONY: kernel
 kernel: kernel/arch/sh/boot/uImage.gz
@@ -239,6 +259,19 @@ apps/$(DROPBEAR)/dropbear: apps/$(DROPBEAR)/configure
 
 .PHONY: dropbear
 dropbear: apps/$(DROPBEAR)/dropbear
+
+#
+# oscam
+#
+
+apps/oscam-svn/config.sh:
+	cd apps && svn checkout http://www.streamboard.tv/svn/oscam/trunk oscam-svn -r $(OSCAM_REV)
+
+apps/oscam-svn/Distribution/oscam-1.20-unstable_svn$(OSCAM_REV)-sh4-linux: apps/oscam-svn/config.sh
+	make -C apps/oscam-svn CROSS_DIR=$(TOOLCHAIN)/bin/ CROSS=sh4-linux-
+
+.PHONY: oscam
+oscam: apps/oscam-svn/Distribution/oscam-1.20-unstable_svn$(OSCAM_REV)-sh4-linux
 
 #
 # clean all

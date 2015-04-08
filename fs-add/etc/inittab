@@ -10,6 +10,8 @@ ttyAS0::askfirst:/bin/sh
 ::once:/etc/init.d/telnetd
 # dropbear
 ::once:/etc/init.d/dropbear
+# oscamd
+::once:/etc/init.d/oscamd
 # AXE kernel modules and environment
 ::once:/etc/init.d/axe
 # Others

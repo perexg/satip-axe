@@ -24,7 +24,7 @@ echo /sbin/mdev > /proc/sys/kernel/hotplug
 mdev -s
 
 # make /tmp as tmpfs
-mount -t tmpfs -o size=1M tmpfs /tmp
+mount -t tmpfs -o size=4M tmpfs /tmp
 mv /var /var.2
 mkdir /tmp/var
 ln -s /tmp/var /var
@@ -54,6 +54,13 @@ fi
 test -r /etc/sysconfig/config && . /etc/sysconfig/config
 test -n "$HOSTNAME" && hostname "$HOSTNAME"
 test -z "$HOSTNAME" && hostname satip-axe
+
+# modules
+if test -n "$KMODULES"; then
+  for m in $KMODULES; do
+    insmod "/lib/modules/$m"
+  done
+fi
 
 # basic network
 ifconfig lo 127.0.0.1 netmask 255.255.255.0

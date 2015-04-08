@@ -3,6 +3,21 @@
 #
 
 HOSTNAME="satip-axe"
+KMODULES="drivers/usb/serial/cp210x.ko drivers/usb/serial/pl2303.ko drivers/usb/serial/ftdi_sio.ko"
+
+#
+# ttyUSB names
+#
+
+TTYUSB1_DEV="2-1:1.0"
+TTYUSB1_NAME="ttyUSBupper"
+TTYUSB2_DEV="4-1:1.0"
+TTYUSB2_NAME="ttyUSBlower"
+
+TTYUSB3_DEV="1-1.1:1.0"         # USB hub port#1 in upper port
+TTYUSB3_NAME="ttyUSBupper1"
+TTYUSB4_DEV="3-1.2:1.0"         # USB hub port#2 in lower port
+TTYUSB4_NAME="ttyUSBlower2"
 
 #
 # IPV4 config
@@ -34,3 +49,8 @@ DROPBEAR="yes"
 #
 MINISATIP="yes"
 MINISATIP_OPTS=""
+
+#
+# oscamd
+#
+OSCAMD="yes"
