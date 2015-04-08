@@ -1,0 +1,7 @@
+#!/bin/sh
+
+test -r /etc/sysconfig/config && . /etc/sysconfig/config
+
+test -z "$NTPD_OPTS" && NTPD_OPTS="-p 0.pool.ntp.org"
+
+exec /usr/sbin/ntpd -I eth0 $NTPD_OPTS

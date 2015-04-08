@@ -1,4 +1,4 @@
-BUILD=3
+BUILD=4
 VERSION=$(shell date +%Y%m%d%H%M)-$(BUILD)
 CPUS=4
 STLINUX=/opt/STM/STLinux-2.4
@@ -14,6 +14,8 @@ EXTRA_AXE_MODULES=axe_dmx.ko axe_dmxts.ko axe_fe.ko axe_fp.ko axe_i2c.ko \
                   load_modules.sh load_env.sh
 
 ORIG_FILES=main_axe.out mknodes.out
+
+BUSYBOX=busybox-1.23.2
 
 DROPBEAR=dropbear-2015.67
 DROPBEAR_SBIN_FILES=dropbear
@@ -55,6 +57,7 @@ fs.cpio: minisatip
 	  -b "bash strace" \
 	  $(foreach m,$(EXTRA_AXE_MODULES), -e "$(EXTRA_AXE_MODULES_DIR)/$(m):lib/modules/$(m)") \
 	  $(foreach m,$(ORIG_FILES), -e "$(EXTRA_AXE_MODULES_DIR)/../$(m):root") \
+	  -e "apps/$(BUSYBOX)/busybox:bin/busybox" \
 	  $(foreach f,$(DROPBEAR_SBIN_FILES), -e "apps/$(DROPBEAR)/$(f):sbin/$(f)") \
 	  $(foreach f,$(DROPBEAR_BIN_FILES), -e "apps/$(DROPBEAR)/$(f):usr/bin/$(f)") \
 	  -e "apps/minisatip/minisatip:sbin/minisatip" \
@@ -195,6 +198,22 @@ minisatip-clean:
 	rm -rf apps/minisatip
 
 #
+# busybox
+#
+
+apps/$(BUSYBOX)/Makefile:
+	$(call WGET,http://busybox.net/downloads/$(BUSYBOX).tar.bz2,apps/$(BUSYBOX).tar.bz2)
+	tar -C apps -xjf apps/$(BUSYBOX).tar.bz2
+
+apps/$(BUSYBOX)/busybox: apps/$(BUSYBOX)/Makefile
+	make -C apps/$(BUSYBOX) CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux- defconfig
+	make -C apps/$(BUSYBOX) CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux-
+	#make -C apps/$(DROPBEAR) PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp"
+
+.PHONY: busybox
+busybox: apps/$(BUSYBOX)/busybox
+
+#
 # dropbear
 #
 
@@ -213,6 +232,9 @@ apps/$(DROPBEAR)/dropbear: apps/$(DROPBEAR)/configure
           --disable-utmpx \
           --disable-wtmp \
           --disable-wtmpx
+	sed -e 's/DEFAULT_PATH \"\/usr\/bin:\/bin\"/DEFAULT_PATH \"\/sbin:\/usr\/sbin:\/bin:\/usr\/bin:\/usr\/local\/bin\"/g' \
+	  < apps/$(DROPBEAR)/options.h > apps/$(DROPBEAR)/options.h.2
+	mv apps/$(DROPBEAR)/options.h.2 apps/$(DROPBEAR)/options.h
 	make -C apps/$(DROPBEAR) PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp"
 
 .PHONY: dropbear

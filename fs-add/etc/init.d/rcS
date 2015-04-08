@@ -6,7 +6,10 @@ busybox mount -t proc proc /proc
 # remount root filesystem in rw mode
 busybox mount -o remount,rw /
 # Create all symbolic links. 
-/bin/busybox --install -s    
+/bin/busybox --install -s
+
+# Date
+date 010112002015 >/dev/null
 
 # mount /dev and devpts to allow logging in
 mount -t tmpfs -o size=64k,mode=0755 tmpfs /dev
@@ -15,12 +18,18 @@ mount -t devpts none /dev/pts -ogid=5,mode=620
 
 # use mdev/sysfs
 mount -t sysfs sysfs /sys
+touch /dev/mdev.seq
+mkdir -p /media
 echo /sbin/mdev > /proc/sys/kernel/hotplug
-echo /sbin/hotplug > /proc/sys/kernel/hotplug
 mdev -s
 
 # make /tmp as tmpfs
 mount -t tmpfs -o size=1M tmpfs /tmp
+mv /var /var.2
+mkdir /tmp/var
+ln -s /tmp/var /var
+rm -rf /var.2
+mkdir -p /tmp/var/run /tmp/var/log /tmp/var/spool
 
 # start syslogd
 syslogd -C256
@@ -41,8 +50,12 @@ if test -r /etc/sysconfig/passwd ; then
   cp /etc/sysconfig/passwd /etc/passwd
 fi
 
+# hostname
+test -r /etc/sysconfig/config && . /etc/sysconfig/config
+test -n "$HOSTNAME" && hostname "$HOSTNAME"
+test -z "$HOSTNAME" && hostname satip-axe
+
 # basic network
-hostname satip-axe
 ifconfig lo 127.0.0.1 netmask 255.255.255.0
 ifconfig eth0 up
 route add -net 224.0.0.0 netmask 240.0.0.0 dev eth0

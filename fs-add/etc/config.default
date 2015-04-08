@@ -1,4 +1,10 @@
 #
+# SATIP AXE firmware configuration
+#
+
+HOSTNAME="satip-axe"
+
+#
 # IPV4 config
 #
 IPV4="dhcp"
@@ -7,6 +13,11 @@ IPV4="dhcp"
 #IPV4_NETMASK="255.255.255.0"
 #IPV4_BROADCAST="192.168.1.255"
 #IPV4_GATEWAY="192.168.1.1"
+
+#
+# ntpd
+#
+NTPD_OPTS="-p 0.pool.ntp.org"
 
 #
 # telnetd

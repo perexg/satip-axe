@@ -173,6 +173,10 @@ def setup_busybox():
     run_cmd(' ln -s  /bin/busybox  fs/sbin/init')
     run_cmd(' ln -s  /bin/busybox  fs/bin/sh')
 
+    run_cmd('mknod fs/dev/console c 5 1')
+    run_cmd('mknod fs/dev/null c 1 3')
+    run_cmd('mknod fs/dev/zero c 1 5')
+
 #-----------------------------------------------
 
 def setup_sysvinit():
@@ -564,6 +568,7 @@ for j in library_list:
 print '     ' + 30*'='  + '\n'
 
 gen_fs(library_list, boot_type)
+run_cmd('rm -v fs/etc/inittabBB fs/etc/init.d/rcSBB')
 run_cmd('cp -av fs-add/* fs')
 f = open("fs/etc/motd")
 b = f.read(1024*1024)

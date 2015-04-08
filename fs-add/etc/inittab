@@ -1,9 +1,11 @@
 # Boot
-::sysinit:/etc/init.d/rcSBB
+::sysinit:/etc/init.d/rcS
 # Console
-ttyAS0::askfirst:/bin/bash --init-file /etc/bashrc
+ttyAS0::askfirst:/bin/sh
 # Network
 ::once:/etc/init.d/network
+# Time Network Protocol
+::once:/etc/init.d/ntpd
 # telnetd
 ::once:/etc/init.d/telnetd
 # dropbear
