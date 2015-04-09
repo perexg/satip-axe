@@ -31,6 +31,9 @@ ln -s /tmp/var /var
 rm -rf /var.2
 mkdir -p /tmp/var/run /tmp/var/log /tmp/var/spool
 
+# sysctl.conf
+sysctl -q -p
+
 # start syslogd
 syslogd -C256
 
