@@ -200,9 +200,22 @@ index 285faea..fe3ce54 100755
  						t->c2tft, t->ds, t->plp, t->inversion);
  	for (i = 0; i < MAX_PIDS; i++)
  		if (use_ad && ad->pids[i].flags == 1)
+diff --git a/adapter.h b/adapter.h
+index 629bd9c..caa1019 100755
+--- a/adapter.h
++++ b/adapter.h
+@@ -7,7 +7,7 @@
+ #define MAX_ADAPTERS 8
+ #define DVR_BUFFER 30*1024*188
+ #define MAX_STREAMS_PER_PID 8
+-#define ADAPTER_BUFFER 7*7*DVB_FRAME
++#define ADAPTER_BUFFER 70*7*DVB_FRAME
+ typedef struct struct_pid
+ {
+ 	int pid;					 // pid for this demux - not used
 diff --git a/axe.h b/axe.h
 new file mode 100644
-index 0000000..c29131d
+index 0000000..4c62d86
 --- /dev/null
 +++ b/axe.h
 @@ -0,0 +1,113 @@
@@ -234,7 +247,7 @@ index 0000000..c29131d
 +#define FE_FRONTEND_STANDBY     _IOW('o', 91, __u32)
 +#define FE_FRONTEND_RESET	_IO('o', 93)
 +#define FE_FRONTEND_STATUS      _IOR('o', 96, fe_frontend_status_t)
-+#define FE_FRONTEND_THREAD_UP	_IOW('o', 97, __u8)
++#define FE_FRONTEND_INPUT	_IOW('o', 97, __u8)
 +
 +static inline int axe_fe_standby(int fd, __u32 stdby)
 +{
@@ -246,9 +259,9 @@ index 0000000..c29131d
 +  return ioctl(fd, FE_FRONTEND_RESET, 0x54);
 +}
 +
-+static inline int axe_fe_thread_up(int fd, __u8 up)
++static inline int axe_fe_input(int fd, __u8 in)
 +{
-+  return ioctl(fd, FE_FRONTEND_THREAD_UP, &up);
++  return ioctl(fd, FE_FRONTEND_INPUT, &in);
 +}
 +
 +#define DMXTS_ADD_PID     _IOW('o', 1, __u16)
@@ -320,7 +333,7 @@ index 0000000..c29131d
 +
 +#endif
 diff --git a/dvb.c b/dvb.c
-index 5701bd2..f55d26e 100755
+index 5701bd2..7e1686d 100755
 --- a/dvb.c
 +++ b/dvb.c
 @@ -41,6 +41,10 @@
@@ -441,8 +454,8 @@ index 5701bd2..f55d26e 100755
 +	LOGL(3, "axe_fe: reset for fd %d adapter %d", frontend_fd, aid);
 +	if (axe_fe_reset(frontend_fd) < 0)
 +		LOG("axe_fe: RESET failed for fd %d: %s", frontend_fd, strerror(errno));
-+	if (aid < 4 && axe_fe_thread_up(frontend_fd, aid))
-+		LOG("axe_fe: THREAD UP failed for fd %d: %s", frontend_fd, strerror(errno));
++	if (aid < 4 && axe_fe_input(frontend_fd, aid))
++		LOG("axe_fe: INPUT failed for fd %d: %s", frontend_fd, strerror(errno));
 +	}
 +#endif
  	
