@@ -6,8 +6,6 @@ if test "$DROPBEAR" != "yes"; then
   exit 0
 fi
 
-sleep 5
-
 if ! test -r /etc/dropbear/dropbear_dss_host_key; then
   mkdir -p /etc/dropbear
   if test -r /etc/sysconfig/dropbear_dss_host_key; then

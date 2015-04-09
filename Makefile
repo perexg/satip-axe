@@ -10,8 +10,7 @@ HOST_ARCH=$(shell uname -m)
 EXTRA_AXE_MODULES_DIR=firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32BITS
 EXTRA_AXE_MODULES=axe_dmx.ko axe_dmxts.ko axe_fe.ko axe_fp.ko axe_i2c.ko \
                   stapi_core_stripped.ko stapi_ioctl_stripped.ko stsys_ioctl.ko \
-                  load_modules_list_32BITS.txt load_modules_list_axe_32BITS.txt \
-                  load_modules.sh load_env.sh
+                  load_modules_list_32BITS.txt load_modules_list_axe_32BITS.txt
 
 ORIG_FILES=main_axe.out mknodes.out
 
@@ -67,8 +66,8 @@ fs.cpio: kernel-modules busybox dropbear minisatip oscam
 	fakeroot tools/do_min_fs.py \
 	  -r "$(VERSION)" \
 	  -b "bash strace" \
-	  $(foreach m,$(EXTRA_AXE_MODULES), -e "$(EXTRA_AXE_MODULES_DIR)/$(m):lib/modules/$(m)") \
-	  $(foreach m,$(ORIG_FILES), -e "$(EXTRA_AXE_MODULES_DIR)/../$(m):root") \
+	  $(foreach m,$(EXTRA_AXE_MODULES), -e "$(EXTRA_AXE_MODULES_DIR)/$(m):lib/modules/axe/$(m)") \
+	  $(foreach m,$(ORIG_FILES), -e "$(EXTRA_AXE_MODULES_DIR)/../$(m):lib/modules/axe/$(m)") \
 	  $(foreach m,$(KMODULES), -e "kernel/$(m):lib/modules/$(m)") \
 	  -e "apps/$(BUSYBOX)/busybox:bin/busybox" \
 	  $(foreach f,$(DROPBEAR_SBIN_FILES), -e "apps/$(DROPBEAR)/$(f):sbin/$(f)") \

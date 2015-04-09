@@ -1,8 +1,8 @@
 #!/bin/sh
 
-echo "Starting axe services:"
-mknod -m 0777 /tmp/usbdevmon125788 p
-source /lib/modules/load_env.sh
+#echo "Starting axe services:"
+#mknod -m 0777 /tmp/usbdevmon125788 p
+source /lib/modules/axe/load_env.sh
 cd /root
 export AXE_API_TYPE=linuxdvb
-exec ./main_axe.out
+exec /lib/modules/axe/main_axe.out

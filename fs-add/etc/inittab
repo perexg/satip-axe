@@ -6,14 +6,14 @@ ttyAS0::askfirst:/bin/sh
 ::once:/etc/init.d/network
 # Time Network Protocol
 ::once:/etc/init.d/ntpd
+# minisatip
+::once:/etc/init.d/satip
 # telnetd
 ::once:/etc/init.d/telnetd
 # dropbear
 ::once:/etc/init.d/dropbear
 # oscamd
 ::once:/etc/init.d/oscamd
-# AXE kernel modules and environment
-::once:/etc/init.d/axe
 # Others
 ::ctrlaltdel:/sbin/reboot
 ::shutdown:/sbin/swapoff -a

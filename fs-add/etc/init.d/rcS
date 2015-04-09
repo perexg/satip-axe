@@ -37,9 +37,14 @@ sysctl -q -p
 # start syslogd
 syslogd -C256
 
-# AXE modules
-ln -s /lib/modules /root/modules
-/lib/modules/load_modules.sh
+# loopback
+ifconfig lo 127.0.0.1 netmask 255.255.255.0
+
+# AXE modules and AXE hw initialization
+/lib/modules/axe/load_modules.sh
+/etc/init.d/axe &
+nc -l 127.0.0.1:1001 -e /bin/true
+rm -f /root/main_init.sh
 
 # config/data storage
 mkdir -p /mnt/data
@@ -66,7 +71,6 @@ if test -n "$KMODULES"; then
 fi
 
 # basic network
-ifconfig lo 127.0.0.1 netmask 255.255.255.0
 ifconfig eth0 up
 route add -net 224.0.0.0 netmask 240.0.0.0 dev eth0
 

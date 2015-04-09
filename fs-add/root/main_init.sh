@@ -4,10 +4,5 @@
 # it is respawned immediately on exit
 #
 
-while [ 1 ]; do
-  if [ -x /etc/init.d/satip ]; then
-    . /etc/init.d/satip
-  else
-    sleep 33554432
-  fi
-done
+echo | nc 127.0.0.1 1001
+while test 1; do sleep 999999999; done

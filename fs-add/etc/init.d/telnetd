@@ -6,6 +6,4 @@ if test "$TELNETD" != "yes"; then
   exit 0
 fi
 
-sleep 5
-
 exec /usr/sbin/telnetd -F -l /bin/login
