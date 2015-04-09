@@ -8,22 +8,32 @@ test -n "$subnet" && NETMASK="netmask $subnet"
 
 case "$1" in
 deconfig)
+  logger -p local0.notice "DHCP deconfig"
   grep -q -v ip= /proc/cmdline
   if test $? -eq 0; then
-    /sbin/ifconfig $interface up
+    ifconfig $interface up
   fi
   grep -q -v nfsroot= /proc/cmdline
   if test $? -eq 0; then
-    /sbin/ifconfig $interface 0.0.0.0
+    ifconfig $interface 0.0.0.0
   fi
+  rm -f /tmp/satip-network
+  killall -9 minisatip 2> /dev/null
   ;;
 leasefail|nak)
+  logger -p local0.notice "DHCP $1"
   ;;
 renew|bound)
-  /sbin/ifconfig $interface $ip $BROADCAST $NETMASK
+  old=$(ifconfig $interface | head -2 | tail -1 | cut -d ':' -f 2 | cut -d ' ' -f 1)
+  logger -p local0.notice "DHCP $1 ('$ip' '$BROADCAST' '$NETMASK' | '$router' '$dns') replacing '$old'"
+  if test "$old" != "$ip" -a -r /tmp/satip-network; then
+    logger -p local0.notice "DHCP IPv4 changed, killing minisatip"
+    rm -f /tmp/satip-network
+    killall -9 minisatip 2> /dev/null
+  fi
+  ifconfig $interface $ip $BROADCAST $NETMASK
   if test -n "$router" ; then
-    echo "deleting routers"
-    while route del default gw 0.0.0.0 dev $interface ; do
+    while route del default gw 0.0.0.0 dev $interface 2> /dev/null; do
       :
     done
     for i in $router ; do
@@ -33,9 +43,12 @@ renew|bound)
   echo -n > $RESOLV_CONF
   test -n "$domain" && echo "search $domain" >> $RESOLV_CONF
   for i in $dns ; do
-    echo "adding dns $i"
     echo "nameserver $i" >> $RESOLV_CONF
   done
+  # notify satip init script
+  echo "ok" | nc 127.0.0.1 999 2> /dev/null
+  sleep 0.5
+  echo "ok" | nc 127.0.0.1 999 2> /dev/null
 ;;
 esac
 exit 0

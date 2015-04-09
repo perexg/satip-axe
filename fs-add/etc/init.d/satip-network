@@ -1,0 +1,6 @@
+#!/bin/sh
+
+read i
+if test "$i" = "ok"; then
+  touch /tmp/satip-network
+fi

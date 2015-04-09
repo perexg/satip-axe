@@ -3,7 +3,7 @@
 test -r /etc/sysconfig/config && . /etc/sysconfig/config
 
 if test "$IPV4" = "dhcp"; then
-  exec /sbin/udhcpc -f -S -p /tmp/udhcpc.pid -s /etc/init.d/dhcpc-event
+  exec /sbin/udhcpc -f -S -p /var/run/udhcpc.pid -s /etc/init.d/dhcpc-event
 else
   ifconfig eth0 $IPV4 netmask $IPV4_NETMASK broadcast $IPV4_BROADCAST
   route add default gw $IPV4_GATEWAY
@@ -12,3 +12,11 @@ fi
 if test -r /etc/sysconfig/resolv.conf; then
   ln -s sysconfig/resolv.conf /etc/resolv.conf
 fi
+
+# notify satip init script
+touch /tmp/satip-network
+echo "ok" | nc 127.0.0.1 999 2> /dev/null
+sleep 0.5
+echo "ok" | nc 127.0.0.1 999 2> /dev/null
+sleep 1
+echo "ok" | nc 127.0.0.1 999 2> /dev/null

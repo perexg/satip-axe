@@ -8,6 +8,9 @@ fi
 
 cd /tmp
 while test ! -f /tmp/nosatip; do
+  while ! test -r /tmp/satip-network; do
+    nc -l 127.0.0.1:999 -e /etc/init.d/satip-network
+  done
   minisatip -f -g $MINISATIP_OPTS
   logger "minisatip exited $?, restarting"
 done
