@@ -15,8 +15,11 @@ Usage:
 #include <dlfcn.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
+#include <arpa/inet.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -56,6 +59,7 @@ static int (*real_close)(int fd);
 static int (*real_dup)(int oldfd);
 static int (*real_dup2)(int oldfd, int newfd);
 static int (*real_eventfd)(unsigned int initval, int flags);
+static int (*real_bind)(int socket, const struct sockaddr *address, socklen_t address_len);
 static int (*real_system)(const char *command);
 static FILE *(*real_fopen)(const char *pathname, const char *mode);
 static FILE *(*real_freopen)(const char *pathname, const char *mode, FILE *stream);
@@ -392,6 +396,25 @@ int eventfd(unsigned int initval, int flags)
 
   r = real_eventfd(initval, flags);
   dlog("eventfd(%u, %d) = %d (%d)\n", initval, flags, r, E(r));
+  return r;
+}
+
+/* bind() wrapper */
+int bind(int socket, const struct sockaddr *address, socklen_t address_len)
+{
+  int r;
+  char s[32];
+
+  REDIR(real_bind, "bind");
+
+  if (address->sa_family == AF_UNIX)
+    dlog("bind AF_UNIX to '%s'\n", ((struct sockaddr_un *)address)->sun_path);
+  else if (address->sa_family == AF_INET)
+    dlog("bind AF_INET to '%s:%d'\n", inet_ntop(AF_INET, &(((struct sockaddr_in*)address)->sin_addr), s, sizeof(s)), ((struct sockaddr_in  *)address)->sin_port);
+  else if (address->sa_family == AF_INET6)
+    dlog("bind AF_INET to '%s:%d'\n", inet_ntop(AF_INET6, &(((struct sockaddr_in6*)address)->sin6_addr), s, sizeof(s)), ((struct sockaddr_in6 *)address)->sin6_port);
+  r = real_bind(socket, address, address_len);
+  dlog("bind(%d, %p, %zi) = %d (%d)\n", socket, address, (size_t)address_len, r, E(r));
   return r;
 }
 

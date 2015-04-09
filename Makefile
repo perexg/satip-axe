@@ -175,27 +175,9 @@ tools/syscall-dump.so.$(HOST_ARCH): tools/syscall-dump.c
 .PHONY: s2i_dump
 s2i_dump: tools/syscall-dump.so
 	if test -z "$(SATIP_HOST)"; then echo "Define SATIP_HOST variable"; exit 1; fi
-	scp tools/syscall-dump.so \
-	    tools/s2i-dump.sh \
-	    firmware/initramfs/root/s2i.bin \
-	    firmware/initramfs/usr/lib/libuuid.so.1 \
-	    firmware/initramfs/usr/lib/libcurl.so.4 \
-	    firmware/initramfs/usr/lib/liboauth.so.0 \
-	    firmware/initramfs/usr/lib/libsoup-2.4.so.1 \
-	    firmware/initramfs/usr/lib/libgio-2.0.so.0 \
-	    firmware/initramfs/usr/lib/libgobject-2.0.so.0 \
-	    firmware/initramfs/usr/lib/libgmodule-2.0.so.0 \
-	    firmware/initramfs/usr/lib/libgthread-2.0.so.0 \
-	    firmware/initramfs/usr/lib/libssl.so.1.0.0 \
-	    firmware/initramfs/usr/lib/libcrypto.so.1.0.0 \
-	    firmware/initramfs/usr/lib/libxml2.so.2 \
-	    root@$(SATIP_HOST):/usr/lib
-	scp firmware/initramfs/root/default_sl.json \
-	    firmware/initramfs/root/*.txt \
-	    firmware/initramfs/root/*.m3u \
+	cd firmware/initramfs && tar cvzf ../fw.tgz --owner=root --group=root *
+	scp tools/syscall-dump.so tools/s2i-dump.sh firmware/fw.tgz \
 	    root@$(SATIP_HOST):/root
-	scp firmware/initramfs/usr/local/bin/mdnsd root@$(SATIP_HOST):/usr/bin
-	scp $(TOOLCHAIN)/target/bin/netstat root@$(SATIP_HOST):/bin
 
 #
 # minisatip
