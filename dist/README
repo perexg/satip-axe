@@ -17,12 +17,15 @@ Installation:
   - the firmware is not written to the internal flash - when the USB stick
     is not in the box, the original firmware will be booted
 
-Installation to flash:
+Installation to internal flash:
 
-  - WARNING! The original firmware will be overwritten!
-  - same steps, just replace satip-axe-$(VERSION).usb to satip-axe-$(VERSION).flash
+  - WARNING! The original firmware will be deactivated!
+  - the original firmware can be turned on using idl4k.recovery (see bellow)
+  - same steps, but use satip-axe-$(VERSION).flash file as idl4k.scr
   - after boot of the new version, remove the USB stick to not write
     the .fw file multiple times to flash (on each box start)
+  - the firmware is written to another internal flash area than
+    the original firmware, but uboot is reconfigured
 
 Customization:
 
@@ -30,6 +33,7 @@ Customization:
   - localboot script can be in /etc/sysconfig/localboot
   - passwd file is copied from /etc/sysconfig/passwd
   - ssh authorized_keys file is copied from /etc/sysconfig/authorized_keys
+  - oscam configs are in /etc/sysconfig/oscam directory
 
 Minisatip config:
 
