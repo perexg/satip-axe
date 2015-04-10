@@ -17,6 +17,7 @@ mkdir /dev/pts /dev/input
 mount -t devpts none /dev/pts -ogid=5,mode=620
 
 # use mdev/sysfs
+mkdir -p /lib/modules/$(uname -r)
 mount -t sysfs sysfs /sys
 touch /dev/mdev.seq
 mkdir -p /media
@@ -37,15 +38,6 @@ sysctl -q -p
 # start syslogd
 syslogd -C256
 
-# loopback
-ifconfig lo 127.0.0.1 netmask 255.255.255.0
-
-# AXE modules and AXE hw initialization
-/lib/modules/axe/load_modules.sh
-/etc/init.d/axe &
-nc -l 127.0.0.1:1001 -e /bin/true
-rm -f /root/main_init.sh
-
 # config/data storage
 mkdir -p /mnt/data
 mount -t jffs2 /dev/mtdblock4 /mnt/data/
@@ -57,6 +49,17 @@ fi
 if test -r /etc/sysconfig/passwd ; then
   cp /etc/sysconfig/passwd /etc/passwd
 fi
+
+# loopback
+ifconfig lo 127.0.0.1 netmask 255.255.255.0
+
+# AXE modules and AXE hw initialization
+sync
+/lib/modules/axe/load_modules.sh
+/etc/init.d/axe &
+axehelper wait 5000 -10 /tmp/axe-done
+#nc -l 127.0.0.1:1001 -e /bin/true
+rm -f /root/main_init.sh /tmp/axe-done
 
 # hostname
 test -r /etc/sysconfig/config && . /etc/sysconfig/config

@@ -1,4 +1,4 @@
-BUILD=5
+BUILD=6
 VERSION=$(shell date +%Y%m%d%H%M)-$(BUILD)
 CPUS=4
 STLINUX=/opt/STM/STLinux-2.4
@@ -23,6 +23,8 @@ KMODULES = drivers/usb/serial/cp210x.ko \
            drivers/usb/serial/ftdi_sio.ko \
 	   drivers/usb/serial/oti6858.ko
 
+MINISATIP_COMMIT=54df9348e7bd7e6075f54f1b93ec4ad36429abe0
+
 BUSYBOX=busybox-1.23.2
 
 DROPBEAR=dropbear-2015.67
@@ -35,6 +37,7 @@ OSCAM_REV=10619
 define GIT_CLONE
 	@mkdir -p apps/
 	git clone $(1) apps/$(2)
+	cd apps/$(2) && git checkout -b axe $(3)
 endef
 
 define WGET
@@ -62,13 +65,14 @@ dist:
 # create CPIO
 #
 
-fs.cpio: kernel-modules busybox dropbear minisatip oscam
+fs.cpio: kernel-modules busybox dropbear minisatip oscam tools/axehelper
 	fakeroot tools/do_min_fs.py \
 	  -r "$(VERSION)" \
 	  -b "bash strace" \
 	  $(foreach m,$(EXTRA_AXE_MODULES), -e "$(EXTRA_AXE_MODULES_DIR)/$(m):lib/modules/axe/$(m)") \
 	  $(foreach m,$(ORIG_FILES), -e "$(EXTRA_AXE_MODULES_DIR)/../$(m):lib/modules/axe/$(m)") \
 	  $(foreach m,$(KMODULES), -e "kernel/$(m):lib/modules/$(m)") \
+	  -e "tools/axehelper:sbin/axehelper" \
 	  -e "apps/$(BUSYBOX)/busybox:bin/busybox" \
 	  $(foreach f,$(DROPBEAR_SBIN_FILES), -e "apps/$(DROPBEAR)/$(f):sbin/$(f)") \
 	  $(foreach f,$(DROPBEAR_BIN_FILES), -e "apps/$(DROPBEAR)/$(f):usr/bin/$(f)") \
@@ -163,6 +167,9 @@ firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32BITS/axe_dmx.ko:
 # syscall dump
 #
 
+tools/axehelper: tools/axehelper.c
+	$(TOOLCHAIN)/bin/sh4-linux-gcc -o tools/axehelper -Wall -lrt tools/axehelper.c
+
 tools/syscall-dump.so: tools/syscall-dump.c
 	$(TOOLCHAIN)/bin/sh4-linux-gcc -o tools/syscall-dump.o -c -fPIC -Wall tools/syscall-dump.c
 	$(TOOLCHAIN)/bin/sh4-linux-gcc -o tools/syscall-dump.so -shared -rdynamic tools/syscall-dump.o -ldl
@@ -183,7 +190,7 @@ s2i_dump: tools/syscall-dump.so
 #
 
 apps/minisatip/axe.h:
-	$(call GIT_CLONE,https://github.com/catalinii/minisatip.git,minisatip)
+	$(call GIT_CLONE,https://github.com/catalinii/minisatip.git,minisatip,$(MINISATIP_COMMIT))
 	cd apps/minisatip; patch -p1 < ../../patches/minisatip-axe.patch
 
 apps/minisatip/minisatip: apps/minisatip/axe.h
