@@ -111,6 +111,10 @@ Bugs:
 
 History:
 
+  satip-axe-201504101512-6 - Fri Apr 10 2015
+    - extended minisatip (quattro LNB, master/slave, unicable on other input)
+    - another shuffling in the AXE modules load procedure
+
   satip-axe-201504092035-5 - Thu Apr  9 2015
     - fixed minisatip & dhcp issue - minisatip is started with good IP
     - changed load order of AXE modules and AXE hw initialization
