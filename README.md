@@ -6,6 +6,8 @@ A firmware with minisatip for Inverto IDL-400s/Grundig GSS.BOX/Telestar Digibit 
 Releases:
 
   - see to dist directory - README file
+  - a TTL USB serial is not required to boot this precompiled firmware
+    from the USB stick or an installation to the internal flash
 
 Requirements:
 
