@@ -40,6 +40,14 @@ Minisatip config:
   - you may add extra parameters to MINISATIP_OPTS= in /etc/sysconfig/config
   - example 1: only two tuners: MINISATIP_OPTS="-e 0-1"
   - example 2: unicable: MINISATIP_OPTS="-u 0:1-1420,1:0-1210,2:2-1680,3:3-2040"
+  - AXE hardware specific options:
+     -L link adapters (identical src,lo/hi,h/v), the format is M:S (master:slave)
+     -Q quattro LNB config (H/H,H/V,L/H,L/V)
+     -X X AXE unicable/jess input (0-3)
+  - example 3: unicable coax in input 2: MINISATIP_OPTS="-X 1"
+  - example 4: quattro LNB: MINISATIP_OPTS="-Q"
+  - example 5: coax in inputs 1,2, tuner 3 slave to input 1, tuner 4 slave to input 2
+               MINISATIP_OPTS="-L 0:2,1:3"
 
 OSCAM config:
 
