@@ -52,6 +52,7 @@ Minisatip config:
 OSCAM config:
 
   - in /etc/sysconfig/oscam directory
+  - login/password is oscam/satip, http webui available at http://<boxip>:8888
   - use persistent serial device names (like /dev/ttyUSB1-1.2:1.0)
   - or use customized serial device names (see /etc/sysconfig/config)
 
