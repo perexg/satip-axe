@@ -74,7 +74,7 @@ if test -n "$KMODULES"; then
 fi
 
 # basic network
-ifconfig eth0 up
+ifconfig eth0 txqueuelen 2000 up
 route add -net 224.0.0.0 netmask 240.0.0.0 dev eth0
 
 # local boot

@@ -6,13 +6,20 @@ if test "$MINISATIP" != "yes"; then
   exit 0
 fi
 
+# renice kernel demuxers
+a=""
+for i in $(ps -o pid,nice,comm | grep "kdmxts_64" | cut -d 'k' -f 1); do
+  if test "$i" -gt 15; then a="$a $i"; fi
+done
+renice -15 $a
+
 cd /tmp
 while test ! -f /tmp/nosatip; do
   while ! test -r /tmp/satip-network; do
     nc -l 127.0.0.1:999 -e /etc/init.d/satip-network
   done
   . /etc/sysconfig/config
-  minisatip -f -g $MINISATIP_OPTS
+  nice -5 minisatip -f -g $MINISATIP_OPTS
   logger "minisatip exited $?, restarting"
 done
 if test -f /tmp/nosatip; then
