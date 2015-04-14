@@ -59,6 +59,7 @@ d=/lib/modules/axe
 insmod $d/stapi_core_stripped.ko
 insmod $d/stapi_ioctl_stripped.ko
 insmod $d/axe_i2c.ko
+echo "i2c_dbg_trans 1" > /proc/bus/ivo_i2c
 insmod $d/axe_fe.ko
 insmod $d/axe_fp.ko
 insmod $d/axe_dmx.ko
@@ -102,8 +103,10 @@ for i in $(cat /proc/devices); do
 done
 /etc/init.d/axe &
 axehelper wait 5000 -10 /tmp/axe-done
+axehelper wait 2000 -10
 #nc -l 127.0.0.1:1001 -e /bin/true
 rm -f /root/main_init.sh /tmp/axe-done
+echo "i2c_dbg_trans 0" > /proc/bus/ivo_i2c
 
 # hostname
 test -r /etc/sysconfig/config && . /etc/sysconfig/config

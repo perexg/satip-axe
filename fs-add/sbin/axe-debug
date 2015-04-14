@@ -1,0 +1,55 @@
+#!/bin/sh
+
+show_help() {
+  echo "AXE debug script, commands:"
+  echo "  tuner [0x<mask>]  : enable tuner (fe) debug"
+  echo "  i2c               : enable i2c debug"
+  echo "  off               : all debug off"
+  echo "  reset             : reset all tuners and kill (restart) minisatip"
+  echo "  pti [dmesg|pid|util|pdev|vdev] [num0-3]"
+}
+
+case "$1" in
+tuner)
+  val1="$2"
+  test -z "$val1" && val1="0xffffffff"
+  echo "Enabling tuner debug $val1"
+  echo "deb $val1" > /proc/bus/nim_sockets
+  ;;
+i2c)
+  if test -z "$2"; then
+    echo "Enabling i2c debug"
+    echo "i2c_dbg_trans 1" > /proc/bus/ivo_i2c
+  fi
+  ;;
+off)
+  echo "Disabling kernel driver debug"
+  echo "deb 0" > /proc/bus/nim_sockets
+  echo "i2c_dbg_trans 0" > /proc/bus/ivo_i2c
+  ;;
+reset)
+  echo "Reset all tuners"
+  echo "i2c_dbg_trans 1" > /proc/bus/ivo_i2c
+  echo "res" > /proc/bus/nim_sockets
+  sleep 10
+  echo "i2c_dbg_trans 0" > /proc/bus/ivo_i2c
+  killall -9 minisatip
+  ;;
+pti)
+  cmd="$2"
+  test -z "$cmd" && cmd=vdev
+  num="$3"
+  test -z "$num" && num=0
+  noex="AAAAAAAAAABBBBBBBBB"
+  d="/proc/STAPI/stpti/PTI$num"
+  case "$cmd" in
+  dmesg) grep -v $noex $d/PrintBuffer ;;
+  pid) grep -v $noex $d/PIDTable ;;
+  util) while [ 1 -eq 1 ]; do grep -v $noex $d/UtilisationTP ; sleep 0.2; done ;;
+  pdev) while [ 1 -eq 1 ]; do grep -v $noex $d/pDevice ; sleep 0.2 ; done ;;
+  vdev) while [ 1 -eq 1 ]; do grep -v $noex $d/vDeviceInfo ; sleep 0.2 ; done ;;
+  esac
+  ;;
+*)
+  show_help
+esac
