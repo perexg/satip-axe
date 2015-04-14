@@ -55,7 +55,51 @@ ifconfig lo 127.0.0.1 netmask 255.255.255.0
 
 # AXE modules and AXE hw initialization
 sync
-/lib/modules/axe/load_modules.sh
+d=/lib/modules/axe
+insmod $d/stapi_core_stripped.ko
+insmod $d/stapi_ioctl_stripped.ko
+insmod $d/axe_i2c.ko
+insmod $d/axe_fe.ko
+insmod $d/axe_fp.ko
+insmod $d/axe_dmx.ko
+insmod $d/axe_dmxts.ko
+mkdir -p /dev/axe /dev/stapi
+maj=
+for i in $(cat /proc/devices); do
+  if test -z "$maj"; then
+    if test "$i" = "Block"; then
+      break
+    fi
+    maj=$i
+    continue
+  fi
+  if test -z "$i"; then
+    maj=
+    continue
+  elif test "${i::2}" = "st" -a "${i:$(expr ${#i} - 6)}" = "_ioctl"; then
+    mknod /dev/stapi/$i c $maj 0
+  elif test "$i" = "i2c_drv"; then
+    mknod /dev/axe/i2c_drv-0 c $maj 0
+  elif test "$i" = "fp"; then
+    mknod /dev/axe/fp-0 c $maj 0
+  elif test "$i" = "frontend"; then
+    mknod /dev/axe/frontend-0 c $maj 0
+    mknod /dev/axe/frontend-1 c $maj 1
+    mknod /dev/axe/frontend-2 c $maj 2
+    mknod /dev/axe/frontend-3 c $maj 3
+  elif test "$i" = "demux"; then
+    mknod /dev/axe/demux-0 c $maj 0
+    mknod /dev/axe/demux-1 c $maj 1
+    mknod /dev/axe/demux-2 c $maj 2
+    mknod /dev/axe/demux-3 c $maj 3
+  elif test "$i" = "demuxts"; then
+    mknod /dev/axe/demuxts-0 c $maj 0
+    mknod /dev/axe/demuxts-1 c $maj 1
+    mknod /dev/axe/demuxts-2 c $maj 2
+    mknod /dev/axe/demuxts-3 c $maj 3
+  fi
+  maj=
+done
 /etc/init.d/axe &
 axehelper wait 5000 -10 /tmp/axe-done
 #nc -l 127.0.0.1:1001 -e /bin/true

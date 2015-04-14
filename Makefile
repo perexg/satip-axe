@@ -1,4 +1,4 @@
-BUILD=6
+BUILD=7
 VERSION=$(shell date +%Y%m%d%H%M)-$(BUILD)
 CPUS=4
 STLINUX=/opt/STM/STLinux-2.4
@@ -9,10 +9,9 @@ HOST_ARCH=$(shell uname -m)
 
 EXTRA_AXE_MODULES_DIR=firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32BITS
 EXTRA_AXE_MODULES=axe_dmx.ko axe_dmxts.ko axe_fe.ko axe_fp.ko axe_i2c.ko \
-                  stapi_core_stripped.ko stapi_ioctl_stripped.ko stsys_ioctl.ko \
-                  load_modules_list_32BITS.txt load_modules_list_axe_32BITS.txt
+                  stapi_core_stripped.ko stapi_ioctl_stripped.ko stsys_ioctl.ko
 
-ORIG_FILES=main_axe.out mknodes.out
+ORIG_FILES=main_axe.out
 
 KMODULES = drivers/usb/serial/cp210x.ko \
 	   drivers/usb/serial/pl2303.ko \
