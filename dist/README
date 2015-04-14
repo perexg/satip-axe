@@ -56,6 +56,10 @@ OSCAM config:
   - use persistent serial device names (like /dev/ttyUSB1-1.2:1.0)
   - or use customized serial device names (see /etc/sysconfig/config)
 
+Misc:
+
+  - full tuner reset - "axe-debug reset"
+
 Recovery of the original firmware:
 
   - copy idl4k.recovery file as idl4k.scr file to the root directory on the USB stick
