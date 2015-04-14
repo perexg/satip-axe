@@ -6,6 +6,7 @@ show_help() {
   echo "  i2c               : enable i2c debug"
   echo "  off               : all debug off"
   echo "  reset             : reset all tuners and kill (restart) minisatip"
+  echo "  dmxts"
   echo "  pti [dmesg|pid|util|pdev|vdev] [num0-3]"
 }
 
@@ -34,6 +35,10 @@ reset)
   sleep 10
   echo "i2c_dbg_trans 0" > /proc/bus/ivo_i2c
   killall -9 minisatip
+  ;;
+dmxts)
+  noex="AAAAAAAAAABBBBBBBBB"
+  while [ 1 -eq 1 ]; do grep -v $noex /proc/driver/axedmx-ts ; sleep 0.2; done
   ;;
 pti)
   cmd="$2"
