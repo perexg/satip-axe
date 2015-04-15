@@ -4,12 +4,34 @@
 
 echo "deb 0xffffffff" > /proc/bus/nim_sockets
 
+# AXE-firmware command
+axe-debug tuner
+
 #
 # Enable i2c debug
 #
 
 echo "i2c_dbg_trans 1" > /proc/bus/ivo_i2c
 
+# AXE-firmware command
+axe-debug i2c
+
+#
+# Disable debugging
+#
+
+echo "deb 0" > /proc/bus/nim_sockets
+echo "i2c_dbg_trans 0" > /proc/bus/ivo_i2c
+
+# AXE-firmware command
+axe-debug off
+
 #
 # proc PTI files - see PTI.txt
 #
+axe-debug pti
+axe-debug pti dmesg <fe_num_0-3>
+axe-debug pti pid <fe_num 0-3>
+axe-debug pti util <fe_num 0-3>
+axe-debug pti pdev <fe_num 0-3>
+axe-debug pti vdev <fe_num 0-3>

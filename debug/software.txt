@@ -1,0 +1,17 @@
+TS flow
+*******
+
+main_axe.out binary initializes paths using STAPI from PTI to the dmxts interface
+which provides buffers of size 2695168 bytes per queue.
+
+Kernel modules
+**************
+
+Demodulators and LNB supply/DiseqC chips are driven from the axe-fe module
+(which uses axe-i2c module doing the I2C I/O).
+
+The frontend (probably only LED control ?through I2S bus?) is driven from
+the axe-fp module.
+
+The dmx module is not used but it works as a section decoder. Unfortunately,
+there is no DVR module to collect output and to offer standard DVR API.

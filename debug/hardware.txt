@@ -1,0 +1,25 @@
+Hardware:
+=========
+
+* CPU STx7108, 32-bit kernel
+  6 x PTI interface (used first four - 0-3)
+      (appears something like programmable transfer interface or so)
+* Demodulators 2x STV0900 (dual)
+* 2x LNBH24 - Dual LNB supply and control IC with step-up and I2C interface
+
+I2C address map:
+================
+
+0x10 - LNBH24 #1 / section A : cfg write
+0x11 - LNBH24 #1 / section A : diagnostic read
+0x12 - LNBH24 #1 / section B : cfg write
+0x13 - LNBH24 #1 / section B : diagnostic read
+0x14 - LNBH24 #2 / section A : cfg write
+0x15 - LNBH24 #2 / section A : diagnostic read
+0x16 - LNBH24 #2 / section B : cfg write
+0x17 - LNBH24 #2 / section B : diagnostic read
+
+0xd0 - STV0900 #1 - write
+0xd1 - STV0900 #1 - read
+0xd2 - STV0900 #2 - write
+0xd3 - STV0900 #3 - read

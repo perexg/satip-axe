@@ -1,0 +1,21 @@
+A problem with the original firmware and satip-axe firmware is that
+sometimes there are many continuity errors in the stream. Also, sometimes
+the 8192 PID (means FULLMUX) does not work (bandwidth only few KB instead
+megabytes).
+
+The CC errors are visible using 'axe-debug pti vdev 0' or
+'grep -v AAAAAAAAAAAA /proc/STAPI/stpti/PTI0/vDeviceInfo'.
+The CC errors are not detected by the PTI interface when 8192 PID (fullmux)
+is used.
+
+So there is a data-loss somewhere between STV0900 (demux) and STx7018 (PTI).
+
+The data-loss is visible more when multiple tuners are used together.
+
+Possible steps:
+
+- decode I2C communication with the demodulator
+- try to inject I2C commands to STV0900
+- write own axe-fe module ? because nothing else depends on it,
+  it could be replaced, the only big thing is to determine the i2c
+  connection to STx7018
