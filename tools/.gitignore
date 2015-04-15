@@ -1,4 +1,5 @@
 axehelper
+axehelper.x86_64
 syscall-dump.o
 syscall-dump.o.x86_64
 syscall-dump.so

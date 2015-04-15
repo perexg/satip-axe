@@ -169,6 +169,9 @@ firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32BITS/axe_dmx.ko:
 tools/axehelper: tools/axehelper.c
 	$(TOOLCHAIN)/bin/sh4-linux-gcc -o tools/axehelper -Wall -lrt tools/axehelper.c
 
+tools/axehelper.$(HOST_ARCH): tools/axehelper.c
+	gcc -o tools/axehelper.$(HOST_ARCH) -Wall -lrt tools/axehelper.c
+
 tools/syscall-dump.so: tools/syscall-dump.c
 	$(TOOLCHAIN)/bin/sh4-linux-gcc -o tools/syscall-dump.o -c -fPIC -Wall tools/syscall-dump.c
 	$(TOOLCHAIN)/bin/sh4-linux-gcc -o tools/syscall-dump.so -shared -rdynamic tools/syscall-dump.o -ldl
