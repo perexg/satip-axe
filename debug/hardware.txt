@@ -5,6 +5,7 @@ Hardware:
   6 x PTI interface (used first four - 0-3)
       (appears something like programmable transfer interface or so)
 * Demodulators 2x STV0900 (dual)
+* 2x STV6120 tuners (dual)
 * 2x LNBH24 - Dual LNB supply and control IC with step-up and I2C interface
 
 I2C address map:
@@ -18,6 +19,11 @@ I2C address map:
 0x15 - LNBH24 #2 / section A : diagnostic read
 0x16 - LNBH24 #2 / section B : cfg write
 0x17 - LNBH24 #2 / section B : diagnostic read
+
+0xc0 - STV6120 #1 / write
+0xc1 - STV6120 #1 / read
+0xc6 - STV6120 #2 / write
+0xc7 - STV6120 #2 / read
 
 0xd0 - STV0900 #1 - write
 0xd1 - STV0900 #1 - read
