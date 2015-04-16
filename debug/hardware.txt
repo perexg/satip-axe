@@ -29,3 +29,10 @@ I2C address map:
 0xd1 - STV0900 #1 - read
 0xd2 - STV0900 #2 - write
 0xd3 - STV0900 #3 - read
+
+I2C access
+==========
+
+All chips are on the first I2C bus accessible through /dev/i2c-0. You may
+look to tools/axehelper.c - i2c_scan routine. Note that linux i2c address is
+without the read/write bit (so (0xd0 >> 1) = 0x68).

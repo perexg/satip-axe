@@ -3,6 +3,12 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <linux/i2c.h>
+#include <linux/i2c-dev.h>
 
 static unsigned long
 getTick ()
@@ -269,6 +275,54 @@ i2c_decoder(void)
 	}
 }
 
+static void
+i2c_scan(void)
+{
+	int i, fd, l;
+	char path[32];
+	unsigned char buf1[16], buf2[16];
+	struct i2c_rdwr_ioctl_data d;
+	struct i2c_msg m[2];
+
+	for (i = 0; i < 9; i++) {
+		if (i < 8)
+			sprintf(path, "/dev/i2c-%d", i);
+		else
+			strcpy(path, "/dev/axe/i2c_drv-0");
+		fd = open(path, O_RDWR);
+		if (fd < 0)
+			continue;
+
+		memset(&d, 0, sizeof(d));
+		memset(&m, 0, sizeof(m));
+		memset(buf1, 0, sizeof(buf1));
+		memset(buf2, 0, sizeof(buf2));
+
+		buf1[0] = 0xd0 >> 1;
+		buf1[1] = 0xf1;
+		buf1[2] = 0x00;
+		l = 2;
+
+		m[0].addr = buf1[0];
+		m[0].len = l;
+		m[0].flags = 0;
+		m[0].buf = buf1 + 1;
+
+		m[1].addr = buf1[0];
+		m[1].len = 1;
+		m[1].flags = I2C_M_RD;
+		m[1].buf = buf2;
+
+		d.nmsgs = 2;
+		d.msgs = m;
+		if (ioctl(fd, I2C_RDWR, &d) < 0)
+			printf("I2C RDWR failed for '%s'\n", path);
+		else
+			printf("I2C byte from '%s': %02x\n", path, buf2[0]);
+		close(fd);
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	if (argc > 1 && !strcmp(argv[1], "wait")) {
@@ -287,6 +341,9 @@ int main(int argc, char *argv[])
 	}
 	if (argc > 1 && !strcmp(argv[1], "i2c_decoder")) {
 		i2c_decoder();
+	}
+	if (argc > 1 && !strcmp(argv[1], "i2c_scan")) {
+		i2c_scan();
 	}
 	return 0;
 }
