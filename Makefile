@@ -139,7 +139,7 @@ kernel: kernel/arch/sh/boot/uImage.gz
 
 .PHONY: kernel-mrproper
 kernel-mrproper:
-	make -C kernel ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- mrproper
+	make -C kernel -k ${CPUS} ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- mrproper
 
 define RPM_UNPACK
 	@mkdir -p $(1)

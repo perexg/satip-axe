@@ -10,6 +10,8 @@
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 
+typedef unsigned char u8;
+
 static unsigned long
 getTick ()
 {
@@ -275,51 +277,123 @@ i2c_decoder(void)
 	}
 }
 
-static void
-i2c_scan(void)
+static int i2c_fd = -1;
+
+static int
+i2c_open(int num, char *_path)
 {
-	int i, fd, l;
 	char path[32];
-	unsigned char buf1[16], buf2[16];
+	if (num < 8)
+		sprintf(path, "/dev/i2c-%d", num);
+	else
+		strcpy(path, "/dev/axe/i2c_drv-0");
+	i2c_fd = open(path, O_RDWR);
+	if (i2c_fd < 0)
+		return -1;
+	if (_path)
+		strcpy(_path, path);
+	return 0;
+}
+
+static int
+i2c_open_check(void)
+{
+	if (i2c_fd >= 0)
+		return 0;
+	if (i2c_open(0, NULL)) {
+		printf("Unable to open i2c device\n");
+		return -1;
+	}
+	return 0;
+}
+
+static int
+i2c_demod_reg_read(int addr, int reg, u8 *buf, int cnt)
+{
+	u8 buf1[3];
 	struct i2c_rdwr_ioctl_data d;
 	struct i2c_msg m[2];
 
+	printf("read addr 0x%x reg 0x%x cnt %i\n", addr, reg, cnt);
+
+	if (i2c_open_check())
+		return -1;
+
+	memset(&d, 0, sizeof(d));
+	memset(&m, 0, sizeof(m));
+	memset(buf1, 0, sizeof(buf1));
+	memset(buf, 0, cnt);
+
+	buf1[0] = reg >> 8;
+	buf1[1] = reg;
+
+	m[0].addr = addr >> 1;
+	m[0].len = 2;
+	m[0].flags = 0;
+	m[0].buf = buf1;
+
+	m[1].addr = addr >> 1;
+	m[1].len = cnt;
+	m[1].flags = I2C_M_RD;
+	m[1].buf = buf;
+
+	d.nmsgs = 2;
+	d.msgs = m;
+	if (ioctl(i2c_fd, I2C_RDWR, &d) < 0) {
+		printf("I2C RDWR failed for addr 0x%x\n", addr);
+		return -1;
+	}
+	return 0;
+}
+
+static int
+i2c_demod_reg_write(int addr, int reg, u8 *buf, int cnt)
+{
+	u8 buf1[32];
+	struct i2c_rdwr_ioctl_data d;
+	struct i2c_msg m[2];
+
+	if (i2c_open_check())
+		return -1;
+
+	memset(&d, 0, sizeof(d));
+	memset(&m, 0, sizeof(m));
+	memset(buf1, 0, sizeof(buf1));
+
+	buf1[0] = reg >> 8;
+	buf1[1] = reg;
+	memcpy(buf1 + 2, buf, cnt);
+
+	m[0].addr = addr >> 1;
+	m[0].len = 2 + cnt;
+	m[0].flags = 0;
+	m[0].buf = buf1;
+
+	d.nmsgs = 1;
+	d.msgs = m;
+	if (ioctl(i2c_fd, I2C_RDWR, &d) < 0) {
+		printf("I2C RDWR failed for addr 0x%x\n", addr);
+		return -1;
+	}
+	return cnt;
+}
+
+static void
+i2c_scan(void)
+{
+	int i, a, r;
+	u8 v;
+	char path[32];
+
 	for (i = 0; i < 9; i++) {
-		if (i < 8)
-			sprintf(path, "/dev/i2c-%d", i);
-		else
-			strcpy(path, "/dev/axe/i2c_drv-0");
-		fd = open(path, O_RDWR);
-		if (fd < 0)
+		if (i2c_open(i, path))
 			continue;
-
-		memset(&d, 0, sizeof(d));
-		memset(&m, 0, sizeof(m));
-		memset(buf1, 0, sizeof(buf1));
-		memset(buf2, 0, sizeof(buf2));
-
-		buf1[0] = 0xd0 >> 1;
-		buf1[1] = 0xf1;
-		buf1[2] = 0x00;
-		l = 2;
-
-		m[0].addr = buf1[0];
-		m[0].len = l;
-		m[0].flags = 0;
-		m[0].buf = buf1 + 1;
-
-		m[1].addr = buf1[0];
-		m[1].len = 1;
-		m[1].flags = I2C_M_RD;
-		m[1].buf = buf2;
-
-		d.nmsgs = 2;
-		d.msgs = m;
-		if (ioctl(fd, I2C_RDWR, &d) < 0)
-			printf("I2C RDWR failed for '%s'\n", path);
-		else
-			printf("I2C byte from '%s': %02x\n", path, buf2[0]);
-		close(fd);
+		a = 0xd0;
+		r = i2c_demod_reg_read(a, 0xf000, &v, 1);
+		if (r >= 0)
+			printf("I2C read succeed for %s, addr 0x%02x: 0x%02x\n", path, a, r);
+		close(i2c_fd);
+		i2c_fd = -1;
 	}
 }
 
@@ -344,6 +418,44 @@ int main(int argc, char *argv[])
 	}
 	if (argc > 1 && !strcmp(argv[1], "i2c_scan")) {
 		i2c_scan();
+	}
+	if (argc > 1 && !strcmp(argv[1], "i2c_demod_reg_read")) {
+		if (argc > 3) {
+			int i;
+			int a = strtol(argv[2], NULL, 0);
+			int r = strtol(argv[3], NULL, 0);
+			int c = argc > 4 ? strtol(argv[4], NULL, 0) : 1;
+			u8 buf[16];
+			if (a > 0 && r > 0) {
+				i = i2c_demod_reg_read(a, r, buf, c > sizeof(buf) ? sizeof(buf) : c);
+				if (i < 0)
+					printf("Unable to read register 0x%x from addr 0x%x\n", r, a);
+				else {
+					for (r = 0; r < i; r++)
+						printf("%s0x%02x", r > 0 ? ":" : "", buf[i]);
+					exit(EXIT_SUCCESS);
+				}
+			}
+		}
+		exit(EXIT_FAILURE);
+	}
+	if (argc > 1 && !strcmp(argv[1], "i2c_demod_reg_write")) {
+		if (argc > 4) {
+			int i, j;
+			int a = strtol(argv[2], NULL, 0);
+			int r = strtol(argv[3], NULL, 0);
+			u8 buf[16];
+			for (j = 4; j < argc && j < sizeof(buf) + 4; j++)
+				buf[j-4] = strtol(argv[j], NULL, 0);
+			if (a > 0 && r > 0) {
+				i = i2c_demod_reg_write(a, r, buf, j);
+				if (i < 0)
+					printf("Unable to write register 0x%x to addr 0x%x\n", r, a);
+				else
+					exit(EXIT_SUCCESS);
+			}
+		}
+		exit(EXIT_FAILURE);
 	}
 	return 0;
 }

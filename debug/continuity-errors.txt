@@ -19,3 +19,6 @@ Possible steps:
 - write own axe-fe module ? because nothing else depends on it,
   it could be replaced, the only big thing is to determine the i2c
   connection to STx7018
+
+Checking STV0900 registers:
+
