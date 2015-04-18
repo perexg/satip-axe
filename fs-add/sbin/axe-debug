@@ -55,6 +55,28 @@ pti)
   vdev) while [ 1 -eq 1 ]; do grep -v $noex $d/vDeviceInfo ; sleep 0.2 ; done ;;
   esac
   ;;
+demod)
+  for a in 0xd0:f2:f3:Input_1 0xd0:f4:f5:Input_2 \
+           0xd2:f2:f3:Input_3 0xd2:f4:f5:Input_4; do
+    d=$(echo $a | cut -d ':' -f 1)
+    a1=$(echo $a | cut -d ':' -f 2)
+    a2=$(echo $a | cut -d ':' -f 3)
+    n=$(echo $a | cut -d ':' -f 4)
+    echo
+    echo ">>> $n"
+    echo "********************************************************"
+    echo
+    axehelper i2c_demod_reg_read --decode $d 0x${a1}12 2
+    axehelper i2c_demod_reg_read --decode $d 0x${a1}16 1
+    axehelper i2c_demod_reg_read --decode $d 0x${a2}69 2
+    axehelper i2c_demod_reg_read --decode $d 0x${a2}70 1
+    axehelper i2c_demod_reg_read --decode $d 0x${a2}80 5
+    axehelper i2c_demod_reg_read --decode $d 0x${a2}99 3
+    axehelper i2c_demod_reg_read --decode $d 0x${a2}9d 3
+    axehelper i2c_demod_reg_read --decode $d 0x${a2}a4 1
+    axehelper i2c_demod_reg_read --decode $d 0x${a2}ad 3
+  done
+  ;;
 *)
   show_help
 esac

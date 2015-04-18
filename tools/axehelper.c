@@ -178,6 +178,15 @@ static struct regdmp f212[] = {
 	{ 0, 0, 0, NULL }
 };
 
+static struct regdmp f213[] = {
+	{ 0, 7, 1, "DEMOD_DELOCK" },
+	{ 0, 3, 3, "AGC1_NOSIGNALACK" },
+	{ 0, 2, 1, "AGC2_OVERFLOW" },
+	{ 0, 1, 1, "CFR_OVERFLOW" },
+	{ 0, 0, 1, "GAMMA_OVERUNDER" },
+	{ 0, 0, 0, NULL }
+};
+
 static struct regdmp f214[] = {
 	{ 0, 7, 1, "DVBS2_ENABLE" },
 	{ 0, 6, 1, "DVBS1_ENABLE" },
@@ -468,6 +477,22 @@ static struct regdmp f369[] = {
 	{ 0, 0, 0, NULL }
 };
 
+static struct regdmp f36a[] = {
+	{ 0, 3,31, "FRAME_MODCOD" },
+	{ 0, 0, 3, "FRAME_TYPE" },
+	{ 0, 0, 0, NULL }
+};
+
+static struct regdmp f370[] = {
+	{ 0, 7, 1, "TSDIL_ON" },
+	{ 0, 6, 1, "TSRS_ON" },
+	{ 0, 4, 1, "TSDESCRAMB_ON" },
+	{ 0, 3, 1, "TSFRAME_MODE" },
+	{ 0, 2, 1, "TS_DISABLE" },
+	{ 0, 0, 1, "TSOUT_NOSYNC" },
+	{ 0, 0, 0, NULL }
+};
+
 static struct regdmp f372[] = {
 	{ 0, 7, 1, "TSFIFO_DVBCI" },
 	{ 0, 6, 7, "TSFIFO_SERIAL" },
@@ -492,6 +517,12 @@ static struct regdmp f398[] = {
 	{ 0, 0, 0, NULL }
 };
 
+static struct regdmp f39d[] = {
+	{ 0, 7, 1, "OLDVALUE" },
+	{ 0, 0,127,"VAL" },
+	{ 0, 0, 0, NULL }
+};
+
 static struct regdmp f3a0[] = {
 	{ 0, 7, 1, "SPY_ENABLE" },
 	{ 0, 6, 1, "NO_SYNCBYTE" },
@@ -500,6 +531,15 @@ static struct regdmp f3a0[] = {
 	{ 0, 3, 1, "BERMETER_DATAMODE" },
 	{ 0, 1, 1, "BERMETER_LMODE" },
 	{ 0, 0, 1, "BERMETER_RESET" },
+	{ 0, 0, 0, NULL }
+};
+
+static struct regdmp f3a4[] = {
+	{ 0, 7, 1, "SPY_ENDSIM" },
+	{ 0, 6, 1, "VALID_SIM" },
+	{ 0, 5, 1, "FOUND_SIGNAL" },
+	{ 0, 4, 1, "DSS_SYNCBYTE" },
+	{ 0, 0,15, "RESULT_STATE" },
 	{ 0, 0, 0, NULL }
 };
 
@@ -583,6 +623,7 @@ static struct reg reg_tbl[] = {
 	{ 0xf20f, 0, byte, "AGCIQIN0" },
 	{ 0xf211, 0, f211, "DMDMODCOD" },
 	{ 0xf212, 0, f212, "DSTATUS" },
+	{ 0xf213, 0, f213, "DSTATUS2" },
 	{ 0xf214, 0, f214, "DMDCFGMD" },
 	{ 0xf215, 0, f215, "DMDCFG2" },
 	{ 0xf216, 0, f216, "DMDISTATE" },
@@ -667,14 +708,24 @@ static struct reg reg_tbl[] = {
 	{ 0xf33c, 0, f33c, "PRVIT" },
 	{ 0xf33d, 0, f33d, "VAVSRVIT" },
 	{ 0xf33e, 0, f33e, "VSTATUSVIT" },
+	{ 0xf370, 0, f370, "TSSTATEM" },
 	{ 0xf372, 0, f372, "TSCFGH" },
 	{ 0xf369, 0, f369, "PDELSTATUS1" },
+	{ 0xf36a, 0, f36a, "PDELSTATUS2" },
+	{ 0xf380, 0, byte, "TSFIFO_OUTSPEED" },
 	{ 0xf381, 0, f381, "TSSTATUS" },
 	{ 0xf398, 0, f398, "ERRCTRL1" },
 	{ 0xf399, 0, byte, "ERRCNT12" },
 	{ 0xf39a, 0, byte, "ERRCNT11" },
 	{ 0xf39b, 0, byte, "ERRCNT10" },
+	{ 0xf39d, 0, f39d, "ERRCNT22" },
+	{ 0xf39e, 0, byte, "ERRCNT21" },
+	{ 0xf39f, 0, byte, "ERRCNT20" },
 	{ 0xf3a0, 0, f3a0, "FECSPY" },
+	{ 0xf3a4, 0, f3a4, "FSTATUS" },
+	{ 0xf3ad, 0, byte, "FBERERR2" },
+	{ 0xf3ae, 0, byte, "FBERERR1" },
+	{ 0xf3af, 0, byte, "FBERERR0" },
 	{ 0xf332, 0, f332, "VITSCALE" },
 	{ 0xf600, 0, byte, "RCCFG2" },
 	{ 0xfa43, 0, byte, "GAINLLR_NF4/QP_1_2" },
@@ -710,7 +761,7 @@ i2c_prefix(int addr)
 }
 
 static int
-i2c_line(int rd, int t1, const char *s)
+i2c_line(int rd, int t1, int start, const char *s)
 {
 	static struct reg *old_rt[2] = { NULL, NULL };
 	static int old_cmd[2] = { 0, 0 };
@@ -719,7 +770,7 @@ i2c_line(int rd, int t1, const char *s)
 	struct regdmp *rtd;
 	char buf[1024];
 
-	r = sscanf(s + 11, "%x, %d) %x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x",
+	r = sscanf(s + start, "%x, %d) %x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x",
 	           &addr, &cnt,
 	           &d[0], &d[1], &d[2], &d[3], &d[4], &d[5], &d[6], &d[7],
 	           &d[8], &d[9], &d[10], &d[11], &d[12], &d[13], &d[14], &d[15]);
@@ -837,13 +888,13 @@ i2c_decoder(void)
 		buf[strlen(buf)-1] = '\0';
 		r = -1;
 		if (!strncmp(buf, "[i2c] wrte(", 11))
-			r = i2c_line(0, 0, buf);
+			r = i2c_line(0, 0, 11, buf);
 		else if (!strncmp(buf, "[i2c] read(", 11))
-			r = i2c_line(1, 0, buf);
+			r = i2c_line(1, 0, 11, buf);
 		else if (!strncmp(buf, "[i2c] t1_w(", 11))
-			r = i2c_line(0, 1, buf);
+			r = i2c_line(0, 1, 11, buf);
 		else if (!strncmp(buf, "[i2c] t1_r(", 11))
-			r = i2c_line(1, 1, buf);
+			r = i2c_line(1, 1, 11, buf);
 		if (r < 0)
 			printf("%s\n", buf);
 	}
@@ -967,8 +1018,51 @@ i2c_scan(void)
 	}
 }
 
-int main(int argc, char *argv[])
+#define MAXARGV 32
+#define MAXOPTS 32
+
+static char *argv[MAXARGV];
+static int argc;
+static char *opts[MAXOPTS];
+static int optc;
+
+static int
+find_opt(const char *name)
 {
+	int i;
+	for (i = 0; i < optc; i++)
+		if (strcmp(opts[i], name) == 0)
+			return 1;
+	return 0;
+}
+
+static void
+parse_args(int _argc, char *_argv[])
+{
+	char *s;
+	int i;
+
+	argv[0] = _argv[0];
+	argc = 1;
+	for (i = 1; i < _argc; i++) {
+		s = _argv[i];
+		if (s[0] == '-') {
+			s++;
+			if (s[0] == '-')
+				s++;
+			if (optc < MAXOPTS)
+				opts[optc++] = s;
+		} else {
+			if (argc < MAXARGV)
+				argv[argc++] = s;
+		}
+	}
+}
+
+int
+main(int _argc, char *_argv[])
+{
+	parse_args(_argc, _argv);
 	if (argc > 1 && !strcmp(argv[1], "wait")) {
 		long int ms = 1000;
 		const char *f = NULL;
@@ -991,19 +1085,32 @@ int main(int argc, char *argv[])
 	}
 	if (argc > 1 && !strcmp(argv[1], "i2c_demod_reg_read")) {
 		if (argc > 3) {
-			int i;
+			int i, j;
 			int a = strtol(argv[2], NULL, 0);
 			int r = strtol(argv[3], NULL, 0);
 			int c = argc > 4 ? strtol(argv[4], NULL, 0) : 1;
 			u8 buf[16];
+			char buf2[256];
 			if (a > 0 && r > 0) {
 				i = i2c_demod_reg_read(a, r, buf, c > sizeof(buf) ? sizeof(buf) : c);
 				if (i < 0)
 					printf("Unable to read register 0x%x from addr 0x%x\n", r, a);
 				else {
-					for (r = 0; r < i; r++)
-						printf("%s0x%02x", r > 0 ? ":" : "", buf[r]);
-					printf("\n");
+					if (find_opt("decode")) {
+						sprintf(buf2, "  > (%x, %d) %02x.%02x", a & ~1, 2, (r >> 8) & 0xff, r & 0xff);
+						if (i2c_line(0, 0, 5, buf2) >= 0) {
+							sprintf(buf2, "  < (%x, %d) ", a | 1, i);
+							for (j = 0; j < i; j++)
+								sprintf(buf2 + strlen(buf2), "%s%02x", j > 0 ? "." : "", buf[j]);
+							if (i2c_line(1, 0, 5, buf2) >= 0)
+								exit(EXIT_SUCCESS);
+						}
+					}
+					if (!find_opt("decode") || find_opt("raw")) {
+						for (j = 0; j < i; j++)
+							printf("%s0x%02x", j > 0 ? ":" : "", buf[j]);
+						printf("\n");
+					}
 					exit(EXIT_SUCCESS);
 				}
 			}
