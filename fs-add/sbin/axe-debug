@@ -66,16 +66,43 @@ demod)
     echo ">>> $n"
     echo "********************************************************"
     echo
-    axehelper i2c_demod_reg_read --decode $d 0x${a1}12 2
-    axehelper i2c_demod_reg_read --decode $d 0x${a1}16 1
-    axehelper i2c_demod_reg_read --decode $d 0x${a2}69 2
-    axehelper i2c_demod_reg_read --decode $d 0x${a2}70 1
-    axehelper i2c_demod_reg_read --decode $d 0x${a2}80 5
-    axehelper i2c_demod_reg_read --decode $d 0x${a2}99 3
-    axehelper i2c_demod_reg_read --decode $d 0x${a2}9d 3
-    axehelper i2c_demod_reg_read --decode $d 0x${a2}a4 1
-    axehelper i2c_demod_reg_read --decode $d 0x${a2}ad 3
+    axehelper i2c_reg_read --decode $d 0x${a1}12 2
+    axehelper i2c_reg_read --decode $d 0x${a1}16 1
+    axehelper i2c_reg_read --decode $d 0x${a2}69 2
+    axehelper i2c_reg_read --decode $d 0x${a2}70 1
+    axehelper i2c_reg_read --decode $d 0x${a2}80 5
+    axehelper i2c_reg_read --decode $d 0x${a2}99 3
+    axehelper i2c_reg_read --decode $d 0x${a2}9d 3
+    axehelper i2c_reg_read --decode $d 0x${a2}a4 1
+    axehelper i2c_reg_read --decode $d 0x${a2}ad 3
   done
+  ;;
+gain)
+  val1="$2"
+  test -z "$val1" && val1="3"
+  echo "Tuner gain set to 0x5${val1}"
+  axehelper i2c_reg_write 0xc0 0x01 0x5${val1}
+  axehelper i2c_reg_write 0xc0 0x0b 0x5${val1}
+  axehelper i2c_reg_write 0xc6 0x01 0x5${val1}
+  axehelper i2c_reg_write 0xc6 0x0b 0x5${val1}
+  ;;
+gain2)
+  val1="$2"
+  test -z "$val1" && val1="9"
+  echo "Demod gain set to 0x4${val1}"
+  axehelper i2c_reg_write 0xd0 0xf2e8 0x4${val1}
+  axehelper i2c_reg_write 0xd0 0xf4e8 0x4${val1}
+  axehelper i2c_reg_write 0xd2 0xf2e8 0x4${val1}
+  axehelper i2c_reg_write 0xd2 0xf4e8 0x4${val1}
+  ;;
+agc2)
+  val1="$2"
+  test -z "$val1" && val1="38"
+  echo "Demod gain set to 0x${val1}"
+  axehelper i2c_reg_write 0xd0 0xf22d 0x${val1}
+  axehelper i2c_reg_write 0xd0 0xf42d 0x${val1}
+  axehelper i2c_reg_write 0xd2 0xf22d 0x${val1}
+  axehelper i2c_reg_write 0xd2 0xf42d 0x${val1}
   ;;
 *)
   show_help

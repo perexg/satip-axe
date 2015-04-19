@@ -1103,6 +1103,15 @@ int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
 				(msgs[ret].flags & I2C_M_RECV_LEN) ? "+" : "");
 		}
 #endif
+#if 0
+		for (ret = 0; ret < num; ret++) {
+			printk("i2c master_xfer[%d] %c, addr=0x%02x, "
+				"len=%d%s, flags=0x%x\n", ret, (msgs[ret].flags & I2C_M_RD)
+				? 'R' : 'W', msgs[ret].addr, msgs[ret].len,
+				(msgs[ret].flags & I2C_M_RECV_LEN) ? "+" : "",
+				msgs[ret].flags);
+		}
+#endif
 
 		if (in_atomic() || irqs_disabled()) {
 			ret = mutex_trylock(&adap->bus_lock);
