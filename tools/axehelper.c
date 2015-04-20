@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <malloc.h>
 #include <time.h>
 #include <fcntl.h>
 #include <sys/types.h>
@@ -933,12 +934,12 @@ i2c_open_check(void)
 static u8 i2c_repeater[3] = { 0xf1, 0x2a, 0xbc };
 
 static int
-i2c_reg_read(int addr, int reg, u8 *buf, int cnt)
+i2c_reg_read(int addr, int reg, u8 *buf, int cnt, int trans)
 {
 	u8 buf1[3];
 	struct i2c_rdwr_ioctl_data d;
 	struct i2c_msg m[4];
-	int mi = 0, fmask = 0;
+	int mi = 0, fmask = trans ? I2C_M_NOREPSTART : 0;
 
 	if (i2c_open_check())
 		return -1;
@@ -996,12 +997,12 @@ i2c_reg_read(int addr, int reg, u8 *buf, int cnt)
 }
 
 static int
-i2c_reg_write(int addr, int reg, u8 *buf, int cnt)
+i2c_reg_write(int addr, int reg, u8 *buf, int cnt, int trans)
 {
 	u8 buf1[32];
 	struct i2c_rdwr_ioctl_data d;
 	struct i2c_msg m[2];
-	int mi = 0, fmask = 0;
+	int mi = 0, fmask = trans ? I2C_M_NOREPSTART : 0;
 
 	if (i2c_open_check())
 		return -1;
@@ -1055,7 +1056,7 @@ i2c_scan(void)
 		if (i2c_open(i, path))
 			continue;
 		a = 0xd0;
-		r = i2c_reg_read(a, 0xf000, &v, 1);
+		r = i2c_reg_read(a, 0xf000, &v, 1, 1);
 		if (r >= 0)
 			printf("I2C read succeed for %s, addr 0x%02x: 0x%02x\n", path, a, v);
 		close(i2c_fd);
@@ -1137,9 +1138,9 @@ main(int _argc, char *_argv[])
 		int c = argc > 4 ? strtol(argv[4], NULL, 0) : 1;
 		u8 buf[16];
 		char buf2[256];
-		if (a <= 0 || r < 0 || c < 0)
+		if (a < 0 || r < 0 || c < 0)
 			exit(EXIT_FAILURE);
-		i = i2c_reg_read(a, r, buf, c > sizeof(buf) ? sizeof(buf) : c);
+		i = i2c_reg_read(a, r, buf, c > sizeof(buf) ? sizeof(buf) : c, find_opt("trans"));
 		if (i < 0) {
 			printf("Unable to read register 0x%x from addr 0x%x\n", r, a);
 			exit(EXIT_FAILURE);
@@ -1175,7 +1176,7 @@ main(int _argc, char *_argv[])
 			buf[j-4] = strtol(argv[j], NULL, 0);
 		if (a <= 0 && r < 0)
 			exit(EXIT_FAILURE);
-		i = i2c_reg_write(a, r, buf, j);
+		i = i2c_reg_write(a, r, buf, j, find_opt("trans"));
 		if (i < 0) {
 			printf("Unable to write register 0x%x to addr 0x%x\n", r, a);
 			exit(EXIT_FAILURE);
