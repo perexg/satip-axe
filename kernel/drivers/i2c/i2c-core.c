@@ -1072,7 +1072,7 @@ module_exit(i2c_exit);
  * Note that there is no requirement that each message be sent to
  * the same slave address, although that is the most common model.
  */
-int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
+int i2c_transfer2(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
 {
 	unsigned long orig_jiffies;
 	int ret, try;
@@ -1103,15 +1103,6 @@ int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
 				(msgs[ret].flags & I2C_M_RECV_LEN) ? "+" : "");
 		}
 #endif
-#if 0
-		for (ret = 0; ret < num; ret++) {
-			printk("i2c master_xfer[%d] %c, addr=0x%02x, "
-				"len=%d%s, flags=0x%x\n", ret, (msgs[ret].flags & I2C_M_RD)
-				? 'R' : 'W', msgs[ret].addr, msgs[ret].len,
-				(msgs[ret].flags & I2C_M_RECV_LEN) ? "+" : "",
-				msgs[ret].flags);
-		}
-#endif
 
 		if (in_atomic() || irqs_disabled()) {
 			ret = mutex_trylock(&adap->bus_lock);
@@ -1138,6 +1129,17 @@ int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
 		dev_dbg(&adap->dev, "I2C level transfers not supported\n");
 		return -EOPNOTSUPP;
 	}
+}
+EXPORT_SYMBOL(i2c_transfer2);
+
+int (*i2c_transfer_mangle)(struct i2c_adapter *adap, struct i2c_msg *msgs, int num);
+EXPORT_SYMBOL(i2c_transfer_mangle);
+
+int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
+{
+	if (i2c_transfer_mangle)
+		return i2c_transfer_mangle(adap, msgs, num);
+	return i2c_transfer2(adap, msgs, num);
 }
 EXPORT_SYMBOL(i2c_transfer);
 

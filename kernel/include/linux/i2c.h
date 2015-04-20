@@ -60,6 +60,8 @@ extern int i2c_master_recv(struct i2c_client *client, char *buf, int count);
 
 /* Transfer num messages.
  */
+extern int (*i2c_transfer_mangle)
+			(struct i2c_adapter *adap, struct i2c_msg *msgs, int num);
 extern int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
 			int num);
 
