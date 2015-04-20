@@ -57,6 +57,11 @@ MINISATIP="yes"
 MINISATIP_OPTS=""
 
 #
+# inetd (httpd,ftpd)
+#
+INETD="yes"
+
+#
 # oscamd
 #
 OSCAMD="yes"

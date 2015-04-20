@@ -1,0 +1,14 @@
+#!/bin/sh
+
+test -r /etc/sysconfig/config && . /etc/sysconfig/config
+
+if test "$INETD" != "yes"; then
+  exit 0
+fi
+
+if test -r /etc/sysconfig/inetd.conf ; then
+  rm /etc/inetd.conf
+  ln -s /etc/sysconfig/inetd.conf /etc/inetd.conf
+fi
+
+exec /usr/sbin/inetd -f

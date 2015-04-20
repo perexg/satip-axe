@@ -3,6 +3,10 @@ This directory contains USB and flash firmware for
   * Grundig GSS.BOX
   * Telestar Digibit R1
 
+Update:
+
+  - check differences in /etc/config.default against /etc/sysconfig/config
+
 Installation:
 
   - setup a DHCP server for the box ethernet MAC address
@@ -33,6 +37,7 @@ Customization:
   - localboot script can be in /etc/sysconfig/localboot
   - passwd file is copied from /etc/sysconfig/passwd
   - ssh authorized_keys file is copied from /etc/sysconfig/authorized_keys
+  - inetd.conf file is linked to /etc/sysconfig/inetd.conf
   - oscam configs are in /etc/sysconfig/oscam directory
 
 Minisatip config:

@@ -12,6 +12,8 @@ ttyAS0::askfirst:/bin/sh
 ::once:/etc/init.d/telnetd
 # dropbear
 ::once:/etc/init.d/dropbear
+# inetd
+::once:/etc/init.d/inetd
 # oscamd
 ::once:/etc/init.d/oscamd
 # Others
