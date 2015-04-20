@@ -6,12 +6,16 @@ if test "$MINISATIP" != "yes"; then
   exit 0
 fi
 
+. /etc/init.d/axe-settings
+
 # renice kernel demuxers
-a=""
-for i in $(ps -o pid,nice,comm | grep "kdmxts_64" | cut -d 'k' -f 1); do
-  if test "$i" -gt 15; then a="$a $i"; fi
-done
-renice -15 $a
+if test "$DEMUXERS_RENICE" = "yes"; then
+  a=""
+  for i in $(ps -o pid,nice,comm | grep "kdmxts_64" | cut -d 'k' -f 1); do
+    if test "$i" -gt 15; then a="$a $i"; fi
+  done
+  renice -15 $a
+fi
 
 cd /tmp
 while test ! -f /tmp/nosatip; do
@@ -20,8 +24,8 @@ while test ! -f /tmp/nosatip; do
   done
   . /etc/sysconfig/config
   nice -5 minisatip -f -g $MINISATIP_OPTS
-  logger "minisatip exited $?, restarting"
+  logger -p local0.notice "minisatip exited $?, restarting"
+  if test -f /tmp/nosatip; then
+    sleep 87323123
+  fi
 done
-if test -f /tmp/nosatip; then
-  sleep 87323123
-fi

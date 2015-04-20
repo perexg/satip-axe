@@ -1,6 +1,12 @@
+*.cmd
 axehelper
 axehelper.x86_64
 syscall-dump.o
 syscall-dump.o.x86_64
 syscall-dump.so
 syscall-dump.so.x86_64
+i2c_mangle.mod.*
+i2c_mangle.o
+i2c_mangle.ko
+Module.symvers
+modules.order

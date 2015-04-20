@@ -30,6 +30,8 @@ DROPBEAR=dropbear-2015.67
 DROPBEAR_SBIN_FILES=dropbear
 DROPBEAR_BIN_FILES=dbclient dropbearconvert dropbearkey scp
 
+ETHTOOL=ethtool-3.18
+
 # 10087?
 OSCAM_REV=10619
 
@@ -64,17 +66,19 @@ dist:
 # create CPIO
 #
 
-fs.cpio: kernel-modules busybox dropbear minisatip oscam tools/axehelper
+fs.cpio: kernel-modules busybox dropbear ethtool minisatip oscam tools/axehelper
 	fakeroot tools/do_min_fs.py \
 	  -r "$(VERSION)" \
 	  -b "bash strace" \
 	  $(foreach m,$(EXTRA_AXE_MODULES), -e "$(EXTRA_AXE_MODULES_DIR)/$(m):lib/modules/axe/$(m)") \
 	  $(foreach m,$(ORIG_FILES), -e "$(EXTRA_AXE_MODULES_DIR)/../$(m):lib/modules/axe/$(m)") \
+	  -e "tools/i2c_mangle.ko:lib/modules/axe/i2c_mangle.ko" \
 	  $(foreach m,$(KMODULES), -e "kernel/$(m):lib/modules/$(m)") \
 	  -e "tools/axehelper:sbin/axehelper" \
 	  -e "apps/$(BUSYBOX)/busybox:bin/busybox" \
 	  $(foreach f,$(DROPBEAR_SBIN_FILES), -e "apps/$(DROPBEAR)/$(f):sbin/$(f)") \
 	  $(foreach f,$(DROPBEAR_BIN_FILES), -e "apps/$(DROPBEAR)/$(f):usr/bin/$(f)") \
+	  -e "apps/$(ETHTOOL)/ethtool:sbin/ethtool" \
 	  -e "apps/minisatip/minisatip:sbin/minisatip" \
 	  -e "apps/minisatip/icons/lr.jpg:usr/share/minisatip/icons/lr.jpg" \
 	  -e "apps/minisatip/icons/lr.png:usr/share/minisatip/icons/lr.png" \
@@ -131,7 +135,10 @@ kernel/arch/sh/boot/uImage.gz: kernel/drivers/usb/serial/cp210x.ko fs.cpio
 	make -C kernel -j ${CPUS} PATH="$(PATH):$(TOOLPATH)" \
 	                          ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- uImage.gz
 
-.PHONY: kernel-modules
+tools/i2c_mangle.ko: tools/i2c_mangle.c
+	make -C tools ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- all
+
+.PHONY: kernel-modules tools/i2c_mangle.ko
 kernel-modules: kernel/drivers/usb/serial/cp210x.ko
 
 .PHONY: kernel
@@ -249,6 +256,26 @@ apps/$(DROPBEAR)/dropbear: apps/$(DROPBEAR)/configure
 
 .PHONY: dropbear
 dropbear: apps/$(DROPBEAR)/dropbear
+
+#
+# ethtool
+#
+
+apps/$(ETHTOOL)/configure:
+	$(call WGET,https://www.kernel.org/pub/software/network/ethtool/$(ETHTOOL).tar.gz,apps/$(ETHTOOL).tar.gz)
+	tar -C apps -xzf apps/$(ETHTOOL).tar.gz
+
+apps/$(ETHTOOL)/ethtool: apps/$(ETHTOOL)/configure
+	cd apps/$(ETHTOOL) && \
+	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+	  CFLAGS="-O2" \
+	./configure \
+	  --host=sh4-linux \
+	  --prefix=/
+	make -C apps/$(ETHTOOL)
+
+.PHONY: ethtool
+ethtool: apps/$(ETHTOOL)/ethtool
 
 #
 # oscam

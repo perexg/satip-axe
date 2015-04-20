@@ -54,12 +54,14 @@ fi
 ifconfig lo 127.0.0.1 netmask 255.255.255.0
 
 # AXE modules and AXE hw initialization
-sync
+logger -p local0.notice "AXE drivers load start"
+axehelper i2c_reg_read 0xd0 0xf000 > /dev/null 2> /dev/null || logger -p local0.notice "I2C Demod #1(D0) failed"
+axehelper i2c_reg_read 0xd2 0xf000 > /dev/null 2> /dev/null || logger -p local0.notice "I2C Demod #2(D2) failed"
 d=/lib/modules/axe
 insmod $d/stapi_core_stripped.ko
 insmod $d/stapi_ioctl_stripped.ko
 insmod $d/axe_i2c.ko
-echo "i2c_dbg_trans 1" > /proc/bus/ivo_i2c
+insmod $d/i2c_mangle.ko
 insmod $d/axe_fe.ko
 insmod $d/axe_fp.ko
 insmod $d/axe_dmx.ko
@@ -102,11 +104,9 @@ for i in $(cat /proc/devices); do
   maj=
 done
 /etc/init.d/axe &
-axehelper wait 5000 -10 /tmp/axe-done
-axehelper wait 2000 -10
-#nc -l 127.0.0.1:1001 -e /bin/true
+nc -l 127.0.0.1:1001 -e /bin/true
 rm -f /root/main_init.sh /tmp/axe-done
-echo "i2c_dbg_trans 0" > /proc/bus/ivo_i2c
+logger -p local0.notice "AXE drivers load finish"
 
 # hostname
 test -r /etc/sysconfig/config && . /etc/sysconfig/config
