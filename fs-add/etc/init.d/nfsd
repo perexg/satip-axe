@@ -1,0 +1,19 @@
+#!/bin/sh
+
+test -r /etc/sysconfig/config && . /etc/sysconfig/config
+
+if test "$NFSD" != "yes"; then
+  exit 0
+fi
+
+if test -r /etc/sysconfig/exports ; then
+  rm /etc/exports
+  ln -s /etc/sysconfig/exports /etc/exports
+fi
+
+opts="--no-nfs-version 4"
+
+rpcbind &
+exportfs -r
+nfsd $opts 8 &
+exec mountd -F $opts

@@ -1,0 +1,23 @@
+#!/bin/sh
+
+if test -z "$STV6210_BAMP"; then
+  test -r /etc/sysconfig/config && . /etc/sysconfig/config
+fi
+
+val=""
+case "$STV6210_BAMP" in
+0dB|0|1dB|1) val=0 ;;
+2dB|2|3dB|3) val=1 ;;
+4dB|4|5dB|5) val=2 ;;
+6dB|6|7dB|7) val=3 ;;
+8dB|8|9dB|9) val=4 ;;
+10dB|10|11dB|11) val=5 ;;
+12dB|12|13dB|13) val=6 ;;
+14dB|14|15dB|15) val=7 ;;
+16dB|16|17dB|17) val=8 ;;
+esac
+if ! test -z "$val"; then
+  axe-debug tdump > /tmp/stv6120-init.txt
+  logger -p local0.notice "Setting STV6210 gain to ${val}"
+  echo $val > /sys/devices/platform/i2c-stm.0/i2c-0/stv6120_gain
+fi

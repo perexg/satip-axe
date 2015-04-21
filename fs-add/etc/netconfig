@@ -1,0 +1,5 @@
+udp       tpi_clts     v   inet       udp      /dev/udp        -
+tcp       tpi_cots_ord v   inet       tcp      /dev/tcp        -
+icmp      tpi_raw      -   inet       icmp     /dev/icmp       -
+rawip     tpi_raw      -   inet       -        /dev/rawip      -
+local     tpi_cots_ord -   loopback   -        -               -

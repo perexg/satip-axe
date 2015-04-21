@@ -62,6 +62,12 @@ MINISATIP_OPTS=""
 INETD="yes"
 
 #
+# nfsd v3
+#
+NFSD="yes"
+NFSD_HOTPLUG_EXPORT="*" # replace with host or subnet, '*' = world
+
+#
 # oscamd
 #
 OSCAMD="yes"

@@ -1,4 +1,4 @@
-BUILD=7
+BUILD=8
 VERSION=$(shell date +%Y%m%d%H%M)-$(BUILD)
 CPUS=4
 STLINUX=/opt/STM/STLinux-2.4
@@ -31,6 +31,24 @@ DROPBEAR_SBIN_FILES=dropbear
 DROPBEAR_BIN_FILES=dbclient dropbearconvert dropbearkey scp
 
 ETHTOOL=ethtool-3.18
+
+LIBTIRPC_VERSION=0.2.5
+LIBTIRPC=libtirpc-$(LIBTIRPC_VERSION)
+
+RPCBIND_VERSION=0.2.2
+RPCBIND=rpcbind-$(RPCBIND_VERSION)
+RPCBIND_SBIN_FILES=rpcbind rpcinfo
+
+NFSUTILS_VERSION=1.3.2
+NFSUTILS=nfs-utils-$(NFSUTILS_VERSION)
+NFSUTILS_SBIN_FILES=utils/showmount/showmount \
+		    utils/exportfs/exportfs \
+		    utils/nfsstat/nfsstat \
+		    utils/mountd/mountd \
+		    utils/statd/start-statd \
+		    utils/statd/sm-notify \
+		    utils/statd/statd \
+		    utils/nfsd/nfsd
 
 # 10087?
 OSCAM_REV=10619
@@ -66,7 +84,7 @@ dist:
 # create CPIO
 #
 
-fs.cpio: kernel-modules busybox dropbear ethtool minisatip oscam tools/axehelper
+fs.cpio: kernel-modules busybox dropbear ethtool minisatip oscam tools/axehelper nfsutils
 	fakeroot tools/do_min_fs.py \
 	  -r "$(VERSION)" \
 	  -b "bash strace" \
@@ -79,6 +97,8 @@ fs.cpio: kernel-modules busybox dropbear ethtool minisatip oscam tools/axehelper
 	  $(foreach f,$(DROPBEAR_SBIN_FILES), -e "apps/$(DROPBEAR)/$(f):sbin/$(f)") \
 	  $(foreach f,$(DROPBEAR_BIN_FILES), -e "apps/$(DROPBEAR)/$(f):usr/bin/$(f)") \
 	  -e "apps/$(ETHTOOL)/ethtool:sbin/ethtool" \
+	  $(foreach f,$(RPCBIND_SBIN_FILES), -e "apps/$(RPCBIND)/$(f):usr/sbin/$(f)") \
+	  $(foreach f,$(NFSUTILS_SBIN_FILES), -e "apps/$(NFSUTILS)/$(f):usr/sbin/$(notdir $(f))") \
 	  -e "apps/minisatip/minisatip:sbin/minisatip" \
 	  -e "apps/minisatip/icons/lr.jpg:usr/share/minisatip/icons/lr.jpg" \
 	  -e "apps/minisatip/icons/lr.png:usr/share/minisatip/icons/lr.png" \
@@ -146,7 +166,7 @@ kernel: kernel/arch/sh/boot/uImage.gz
 
 .PHONY: kernel-mrproper
 kernel-mrproper:
-	make -C kernel -k ${CPUS} ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- mrproper
+	make -C kernel -j ${CPUS} ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- mrproper
 
 define RPM_UNPACK
 	@mkdir -p $(1)
@@ -276,6 +296,81 @@ apps/$(ETHTOOL)/ethtool: apps/$(ETHTOOL)/configure
 
 .PHONY: ethtool
 ethtool: apps/$(ETHTOOL)/ethtool
+
+#
+# libtirpc
+#
+
+apps/$(LIBTIRPC)/configure:
+	$(call WGET,http://sourceforge.net/projects/libtirpc/files/libtirpc/$(LIBTIRPC_VERSION)/$(LIBTIRPC).tar.bz2,apps/$(LIBTIRPC).tar.bz2)
+	tar -C apps -xjf apps/$(LIBTIRPC).tar.bz2
+
+apps/$(LIBTIRPC)/src/.libs/libtirpc.a: apps/$(LIBTIRPC)/configure
+	cd apps/$(LIBTIRPC) && \
+	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+	  CFLAGS="-O2" \
+	./configure \
+	  --host=sh4-linux \
+	  --prefix=/ \
+	  --disable-shared \
+	  --disable-gssapi \
+	  --disable-ipv6
+	make -C apps/$(LIBTIRPC)
+
+.PHONY: libtirpc
+libtirpc: apps/$(LIBTIRPC)/src/.libs/libtirpc.a
+
+#
+# rpcbind
+#
+
+apps/$(RPCBIND)/configure:
+	$(call WGET,http://sourceforge.net/projects/rpcbind/files/rpcbind/$(RPCBIND_VERSION)/$(RPCBIND).tar.bz2,apps/$(RPCBIND).tar.bz2)
+	tar -C apps -xjf apps/$(RPCBIND).tar.bz2
+
+apps/$(RPCBIND)/rpcbind: apps/$(LIBTIRPC)/src/.libs/libtirpc.a apps/$(RPCBIND)/configure
+	cd apps/$(RPCBIND) && \
+	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+	  CFLAGS="-O2" \
+	  TIRPC_CFLAGS="-I$(PWD)/apps/$(LIBTIRPC)/tirpc" \
+	  TIRPC_LIBS="-L$(PWD)/apps/$(LIBTIRPC)/src/.libs -Wl,-Bstatic -ltirpc -Wl,-Bdynamic" \
+	./configure \
+	  --host=sh4-linux \
+	  --prefix=/ \
+	  --with-systemdsystemunitdir=no
+	make -C apps/$(RPCBIND)
+
+.PHONY: rpcbind
+rpcbind: apps/$(RPCBIND)/rpcbind
+
+#
+# nfs-utils
+#
+
+apps/$(NFSUTILS)/configure:
+	$(call WGET,http://sourceforge.net/projects/nfs/files/nfs-utils/$(NFSUTILS_VERSION)/$(NFSUTILS).tar.bz2,apps/$(NFSUTILS).tar.bz2)
+	tar -C apps -xjf apps/$(NFSUTILS).tar.bz2
+
+apps/$(NFSUTILS)/utils/exportfs/exportfs: apps/$(RPCBIND)/rpcbind apps/$(NFSUTILS)/configure
+	cd apps/$(NFSUTILS) && \
+	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+	  CFLAGS="-O2" \
+	  TIRPC_CFLAGS="-I$(PWD)/apps/$(LIBTIRPC)/tirpc" \
+	  TIRPC_LIBS="-L$(PWD)/apps/$(LIBTIRPC)/src/.libs -Wl,-Bstatic -ltirpc -Wl,-Bdynamic" \
+	./configure \
+	  --host=sh4-linux \
+	  --prefix=/ \
+	  --disable-mount \
+	  --disable-nfsdcltrack \
+	  --disable-nfsv4 \
+	  --disable-gss \
+	  --disable-ipv6 \
+	  --disable-uuid \
+	  --without-tcp-wrappers
+	make -C apps/$(NFSUTILS)
+
+.PHONY: nfsutils
+nfsutils: apps/$(NFSUTILS)/utils/exportfs/exportfs
 
 #
 # oscam

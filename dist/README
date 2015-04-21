@@ -6,6 +6,7 @@ This directory contains USB and flash firmware for
 Update:
 
   - check differences in /etc/config.default against /etc/sysconfig/config
+    - example: diff -u /etc/config.default /etc/sysconfig/config
 
 Installation:
 
@@ -39,6 +40,20 @@ Customization:
   - ssh authorized_keys file is copied from /etc/sysconfig/authorized_keys
   - inetd.conf file is linked to /etc/sysconfig/inetd.conf
   - oscam configs are in /etc/sysconfig/oscam directory
+
+httpd:
+
+  - /media tree is exported
+
+ftpd:
+
+  - /media tree is exported, use root/satip as login
+
+nfsd:
+
+  - only v3 protocol is supported
+  - to list connected clients 'showmount'
+  - to list exports 'exportfs'
 
 Minisatip config:
 
@@ -120,6 +135,14 @@ Bugs:
   - reboot command cannot be used (uboot usb init fails, hw init fails)
 
 History:
+
+  satip-axe-201504211434-8 - Tue Apr 21 2015
+    - faster boot (approx. 25 seconds from flash)
+    - tuners - configurable gain (0-16dB) - STV6210_BAMP in config
+    - enabled inetd/httpd/ftpd/nfsd by default
+    - added nfsd v3 support
+    - added ethtool
+    - extended debug tools for I2C bus (axe-debug, axehelper)
 
   satip-axe-201504142137-7 - Tue Apr 14 2015
     - minisatip

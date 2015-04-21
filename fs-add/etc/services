@@ -281,3 +281,10 @@ remotefs        556/tcp         rfs_server rfs  # Brunhoff remote filesystem
 
 socks           1080/tcp                        # socks proxy server
 socks           1080/udp                        # socks proxy server
+
+#
+# NFSD
+#
+
+nfs             2049/tcp
+nfs             2049/udp

@@ -1,0 +1,2 @@
+# example line:
+#/mnt/1 *(ro,insecure,all_squash,no_subtree_check)

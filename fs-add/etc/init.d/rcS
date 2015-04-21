@@ -30,7 +30,8 @@ mv /var /var.2
 mkdir /tmp/var
 ln -s /tmp/var /var
 rm -rf /var.2
-mkdir -p /tmp/var/run /tmp/var/log /tmp/var/spool
+mkdir -p /tmp/var/run /tmp/var/log /tmp/var/spool /var/lib/nfs
+mount -t nfsd nfsd /proc/fs/nfsd
 
 # sysctl.conf
 sysctl -q -p
