@@ -13,6 +13,10 @@
 
 #define PWIDTH 90
 
+#ifndef I2C_M_NOREPSTART
+#define I2C_M_NOREPSTART 0
+#endif
+
 typedef unsigned char u8;
 
 static unsigned long
@@ -512,6 +516,15 @@ static struct regdmp f381[] = {
 	{ 0, 0, 0, NULL }
 };
 
+static struct regdmp f382[] = {
+	{ 0, 7, 1, "TSFIFO_DEMODSEL" },
+	{ 0, 6, 1, "TSFIFOSPEED_STORE" },
+	{ 0, 5, 1, "DILXX_RESET" },
+	{ 0, 4, 1, "TSSERIAL_IMPOS" },
+	{ 0, 1, 1, "SCRAMBDETECT" },
+	{ 0, 0, 0, NULL }
+};
+
 static struct regdmp f398[] = {
 	{ 0, 7, 1, "ERR_SOURCE1" },
 	{ 0, 0,127,"NUM_EVENT1" },
@@ -564,7 +577,7 @@ static struct regdmp ff11[] = {
 	{ 0, 0, 0, NULL }
 };
 
-static struct reg reg_tbl[] = {
+static struct reg demod_reg_tbl[] = {
 	{ 0xf100, 0, f100, "MID" },
 	{ 0xf129, 0, f129, "I2CCFG" },
 	{ 0xf12a, 0, f12a, "P1_I2CRPT" },
@@ -715,6 +728,9 @@ static struct reg reg_tbl[] = {
 	{ 0xf36a, 0, f36a, "PDELSTATUS2" },
 	{ 0xf380, 0, byte, "TSFIFO_OUTSPEED" },
 	{ 0xf381, 0, f381, "TSSTATUS" },
+	{ 0xf382, 0, f382, "TSSTATUS2" },
+	{ 0xf383, 0, byte, "BITRATE1" },
+	{ 0xf384, 0, byte, "BITRATE0" },
 	{ 0xf398, 0, f398, "ERRCTRL1" },
 	{ 0xf399, 0, byte, "ERRCNT12" },
 	{ 0xf39a, 0, byte, "ERRCNT11" },
@@ -744,20 +760,37 @@ static struct reg reg_tbl[] = {
 };
 
 static int
-i2c_demod_valid(int addr)
+i2c_demod_valid(int reg)
 {
-	if (addr >= 0xf100 && addr < 0x10000)
+	if (reg >= 0xf100 && reg < 0x10000)
 		return 1;
 	return 0;
 }
 
 static const char *
-i2c_prefix(int addr)
+i2c_demod_prefix(int reg)
 {
-	if (addr >= 0xf200 && addr < 0xf400)
+	if (reg >= 0xf200 && reg < 0xf400)
 		return "P2_";
-	if (addr >= 0xf400 && addr < 0xf600)
+	if (reg >= 0xf400 && reg < 0xf600)
 		return "P1_";
+	return "";
+}
+
+static struct reg *i2c_demod_find(int reg)
+{
+	int reg2 = reg >= 0xf400 && reg < 0xf600 ? reg - 0x200 : reg;
+	struct reg *rt;
+	for (rt = demod_reg_tbl; rt->name; rt++)
+		if (rt->reg == reg2)
+			break;
+	return rt->name ? rt : NULL;
+}
+
+static const char *i2c_print_old(const char *s)
+{
+	if (s[0])
+		printf("%s\n", s);
 	return "";
 }
 
@@ -766,7 +799,7 @@ i2c_line(int rd, int t1, int start, const char *s)
 {
 	static struct reg *old_rt[2] = { NULL, NULL };
 	static int old_cmd[2] = { 0, 0 };
-	int r, ptr, addr, addr2, cnt, d[16], val;
+	int r, ptr, addr, cnt, d[16], val;
 	struct reg *rt;
 	struct regdmp *rtd;
 	char buf[1024];
@@ -792,19 +825,13 @@ i2c_line(int rd, int t1, int start, const char *s)
 	ptr = 0;
 	do {
 		val = d[ptr];
-		addr2 = addr >= 0xf400 && addr < 0xf600 ? addr - 0x200 : addr;
-		for (rt = reg_tbl; rt->name; rt++)
-			if (rt->reg == addr2)
-				break;
-		addr++;
+		rt = i2c_demod_find(addr++);
 		if (rt == NULL) {
-			if (s[0])
-				printf("%s\n", s);
-			s = "";
+			s = i2c_print_old(s);
 			continue;
 		}
 		snprintf(buf, sizeof(buf), "%-40s ; %s%s{%04x}", s,
-		         i2c_prefix(addr - 1), rt->name, addr - 1);
+			i2c_demod_prefix(addr - 1), rt->name, addr - 1);
 		for (rtd = rt->dmp; rtd && rtd->name; rtd++) {
 			if (strlen(buf) > PWIDTH) {
 				printf("%s\n", buf);
@@ -821,8 +848,7 @@ i2c_line(int rd, int t1, int start, const char *s)
 			}
 			snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), " UNKNOWN=0x%x", val);
 		}
-		printf("%s\n", buf);
-		s = "";
+		s = i2c_print_old(buf);
 	} while (++ptr < cnt);
 	old_rt[t1] = NULL;
 	return 0;
@@ -835,21 +861,15 @@ wr:
 	old_cmd[t1] = ((d[0] << 8) | d[1]) - 1;
 	ptr = 2;
 	do {
-		addr = addr2 = ++old_cmd[t1];
-		if (addr2 >= 0xf400 && addr2 < 0xf600)
-			addr2 -= 0x200;
-		for (rt = reg_tbl; rt->name; rt++)
-			if (rt->reg == addr2)
-				break;
-		if (rt->name == NULL) {
-			if (s[0])
-				printf("%s\n", s);
-			s = "";
+		addr = ++old_cmd[t1];
+		rt = i2c_demod_find(addr);
+		if (rt == NULL) {
+			s = i2c_print_old(s);
 			continue;
 		}
 		old_rt[t1] = rt;
 		snprintf(buf, sizeof(buf), "%-40s ; %s%s{%04x}", s,
-		         i2c_prefix(addr), rt->name, addr);
+			i2c_demod_prefix(addr), rt->name, addr);
 		if (ptr < cnt) {
 			val = d[ptr];
 			for (rtd = rt->dmp; rtd && rtd->name; rtd++) {
@@ -869,8 +889,7 @@ wr:
 				snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), " UNKNOWN=0x%x", val);
 			}
 		}
-		printf("%s\n", buf);
-		s = "";
+		s = i2c_print_old(buf);
 	} while (++ptr < cnt);
 	return 0;
 }
