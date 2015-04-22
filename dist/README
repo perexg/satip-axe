@@ -28,7 +28,9 @@ Installation to internal flash:
   - the original firmware can be turned on using idl4k.recovery (see bellow)
   - same steps, but use satip-axe-$(VERSION).flash file as idl4k.scr
   - after boot of the new version, remove the USB stick to not write
-    the .fw file multiple times to flash (on each box start)
+    the .fw file multiple times to flash (on each box start); eventually
+    the idl4k.scr file can be removed from the USB stick to prevent
+    another reflash
   - the firmware is written to another internal flash area than
     the original firmware, but uboot is reconfigured
 
