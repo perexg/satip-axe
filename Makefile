@@ -1,10 +1,11 @@
 BUILD=8
 VERSION=$(shell date +%Y%m%d%H%M)-$(BUILD)
 CPUS=4
+CURDIR=$(shell pwd)
 STLINUX=/opt/STM/STLinux-2.4
 TOOLPATH=$(STLINUX)/host/bin
 TOOLCHAIN=$(STLINUX)/devkit/sh4
-TOOLCHAIN_KERNEL=$(shell pwd)/toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4
+TOOLCHAIN_KERNEL=$(CURDIR)/toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4
 HOST_ARCH=$(shell uname -m)
 
 EXTRA_AXE_MODULES_DIR=firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32BITS
@@ -49,6 +50,8 @@ NFSUTILS_SBIN_FILES=utils/showmount/showmount \
 		    utils/statd/sm-notify \
 		    utils/statd/statd \
 		    utils/nfsd/nfsd
+
+TVHEADEND_COMMIT=master
 
 # 10087?
 OSCAM_REV=10619
@@ -225,7 +228,7 @@ apps/minisatip/axe.h:
 apps/minisatip/minisatip: apps/minisatip/axe.h
 	make -C apps/minisatip \
 	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
-	  CFLAGS="-O2 -DAXE=1 -DSYS_DVBT2=16"
+	  CFLAGS="-O2 -DAXE=1 -DSYS_DVBT2=16 -I$(CURDIR)/kernel/include"
 
 .PHONY: minisatip
 minisatip: apps/minisatip/minisatip
@@ -384,6 +387,28 @@ apps/oscam-svn/Distribution/oscam-1.20-unstable_svn$(OSCAM_REV)-sh4-linux: apps/
 
 .PHONY: oscam
 oscam: apps/oscam-svn/Distribution/oscam-1.20-unstable_svn$(OSCAM_REV)-sh4-linux
+
+#
+# tvheadend
+#
+
+apps/tvheadend/Makefile:
+	$(call GIT_CLONE,https://github.com/tvheadend/tvheadend.git,tvheadend,$(TVHEADEND_COMMIT))
+
+apps/tvheadend/build.linux/tvheadend: apps/tvheadend/Makefile
+	cd apps/tvheadend && \
+	  PKG_CONFIG_PATH=$(TOOLCHAIN)/target/usr/lib/pkgconfig \
+	  PKG_CONFIG=$(TOOLPATH)/pkg-config \
+	  ARCH=sh \
+	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+	./configure \
+	  --disable-dbus_1 \
+	  --disable-imagecache \
+	  --enable-bundle
+	$(MAKE) -j $(CPUS) -C apps/tvheadend
+
+.PHONY: tvheadend
+tvheadend: apps/tvheadend/build.linux/tvheadend
 
 #
 # clean all
