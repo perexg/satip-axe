@@ -11,6 +11,7 @@ if test -r /root/fw.tgz; then
   cp -av /root/syscall-dump.so /1/usr/lib
   cp -av /root/s2i-dump.sh /1
   cp -av /usr/bin/strace /1/usr/bin
+  rm /root/fw.tgz
   exit 0
 fi
 if ! test -d /mnt/s2i-log; then
