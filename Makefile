@@ -33,6 +33,8 @@ DROPBEAR_BIN_FILES=dbclient dropbearconvert dropbearkey scp
 
 ETHTOOL=ethtool-3.18
 
+MTD_UTILS_COMMIT=v1.5.1
+
 LIBTIRPC_VERSION=0.2.5
 LIBTIRPC=libtirpc-$(LIBTIRPC_VERSION)
 
@@ -59,7 +61,7 @@ NANO_DOWNLOAD=http://www.nano-editor.org/dist/v2.4/$(NANO_FILENAME)
 TVHEADEND_COMMIT=master
 
 # 10087?
-OSCAM_REV=10619
+OSCAM_REV=10663
 
 define GIT_CLONE
 	@mkdir -p apps/
@@ -315,6 +317,21 @@ apps/$(ETHTOOL)/ethtool: apps/$(ETHTOOL)/configure
 
 .PHONY: ethtool
 ethtool: apps/$(ETHTOOL)/ethtool
+
+#
+# mtd-utils
+#
+
+apps/mtd-utils/Makefile:
+	$(call GIT_CLONE,git://git.infradead.org/mtd-utils.git,mtd-utils,$(MTD_UTILS_COMMIT))
+
+apps/mtd-utils/nanddump: apps/mtd-utils/Makefile
+	make -C apps/mtd-utils \
+	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+	  CFLAGS="-O2 -I$(CURDIR)/kernel/include"
+
+.PHONY: mtd-utils
+mtd-utils: apps/mtd-utils/nanddump
 
 #
 # libtirpc
