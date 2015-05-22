@@ -404,6 +404,7 @@ apps/tvheadend/build.linux/tvheadend: apps/tvheadend/Makefile
 	./configure \
 	  --disable-dbus_1 \
 	  --disable-imagecache \
+	  --disable-uriparser \
 	  --enable-bundle
 	$(MAKE) -j $(CPUS) -C apps/tvheadend
 
