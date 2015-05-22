@@ -1,0 +1,27 @@
+#!/bin/sh
+
+FILE="$1"
+CHECKSTR="Linux-2.6.32.42_stm24_0208-idl4k"
+
+if test -z "$FILE"; then
+  echo "Usage: $0 FIRMWARE"
+  exit 1
+fi
+
+if ! grep "$CHECKSTR" "$FILE" > /dev/null; then
+  echo "$FILE does not appear to be the satip-axe firmware!"
+  exit 1
+fi
+
+if ! cp "$FILE" /root/new.fw; then
+  echo "Copy error..."
+  exit 1
+fi
+
+if nandwrite -p /dev/mtd3 /root/new.fw; then
+  echo "Success, type 'reboot' to reboot"
+else
+  echo "FAIL (try again)"
+fi
+
+rm -f /root/new.fw
