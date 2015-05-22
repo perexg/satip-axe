@@ -309,6 +309,8 @@ def gen_fs(lib_list, init_type):
     run_cmd('cp  -d ' + target_prefix + '/usr/lib/libstdc++.so*' + ' fs/usr/lib/')
     run_cmd('cp  -d ' + target_prefix + '/usr/lib/libglib-2.0.so*' + ' fs/usr/lib/')
     run_cmd('cp  -d ' + target_prefix + '/lib/libnsl*' + ' fs/usr/lib/')
+    run_cmd('cp  -d ' + target_prefix + '/lib/libncurses.so*' + ' fs/lib/')
+    run_cmd('cp  -d ' + target_prefix + '/usr/lib/libmagic.so*' + ' fs/usr/lib/')
 
     if init_type == 'busybox':
        setup_busybox()

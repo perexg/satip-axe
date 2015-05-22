@@ -51,6 +51,11 @@ NFSUTILS_SBIN_FILES=utils/showmount/showmount \
 		    utils/statd/statd \
 		    utils/nfsd/nfsd
 
+NANO_VERSION=2.4.1
+NANO=nano-$(NANO_VERSION)
+NANO_FILENAME=$(NANO).tar.gz
+NANO_DOWNLOAD=http://www.nano-editor.org/dist/v2.4/$(NANO_FILENAME)
+
 TVHEADEND_COMMIT=master
 
 # 10087?
@@ -87,7 +92,17 @@ dist:
 # create CPIO
 #
 
-fs.cpio: kernel-modules busybox dropbear ethtool minisatip oscam tools/axehelper nfsutils
+CPIO_SRCS  = kernel-modules
+CPIO_SRCS += busybox
+CPIO_SRCS += dropbear
+CPIO_SRCS += ethtool
+CPIO_SRCS += minisatip
+CPIO_SRCS += oscam
+CPIO_SRCS += tools/axehelper
+CPIO_SRCS += nfsutils
+CPIO_SRCS += nano
+
+fs.cpio: $(CPIO_SRCS)
 	fakeroot tools/do_min_fs.py \
 	  -r "$(VERSION)" \
 	  -b "bash strace" \
@@ -107,6 +122,7 @@ fs.cpio: kernel-modules busybox dropbear ethtool minisatip oscam tools/axehelper
 	  -e "apps/minisatip/icons/lr.png:usr/share/minisatip/icons/lr.png" \
 	  -e "apps/minisatip/icons/sm.jpg:usr/share/minisatip/icons/sm.jpg" \
 	  -e "apps/minisatip/icons/sm.png:usr/share/minisatip/icons/sm.png" \
+	  -e "apps/$(NANO)/src/nano:usr/bin/nano" \
 	  -e "apps/oscam-svn/Distribution/oscam-1.20-unstable_svn$(OSCAM_REV)-sh4-linux:sbin/oscamd"
 
 .PHONY: fs-list
@@ -387,6 +403,26 @@ apps/oscam-svn/Distribution/oscam-1.20-unstable_svn$(OSCAM_REV)-sh4-linux: apps/
 
 .PHONY: oscam
 oscam: apps/oscam-svn/Distribution/oscam-1.20-unstable_svn$(OSCAM_REV)-sh4-linux
+
+#
+# nano
+#
+
+apps/$(NANO)/configure:
+	$(call WGET,$(NANO_DOWNLOAD),apps/$(NANO_FILENAME))
+	tar -C apps -xzf apps/$(NANO_FILENAME)
+
+apps/$(NANO)/nano: apps/$(NANO)/configure
+	cd apps/$(NANO) && \
+	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+	  CFLAGS="-O2" \
+	./configure \
+	  --host=sh4-linux \
+	  --prefix=/
+	make -C apps/$(NANO)
+
+.PHONY: nano
+nano: apps/$(NANO)/nano
 
 #
 # tvheadend
