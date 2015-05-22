@@ -30,6 +30,7 @@ renew|bound)
     logger -p local0.notice "DHCP IPv4 changed, killing minisatip"
     rm -f /tmp/satip-network
     killall -9 minisatip 2> /dev/null
+    killall -9 ntpd 2> /dev/null
   fi
   ifconfig $interface $ip $BROADCAST $NETMASK
   if test -n "$router" ; then
