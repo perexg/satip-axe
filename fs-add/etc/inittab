@@ -16,8 +16,12 @@ ttyAS0::askfirst:/bin/sh
 ::once:/etc/init.d/dropbear
 # inetd
 ::once:/etc/init.d/inetd
+# crond
+::once:/etc/init.d/crond
 # oscamd
 ::once:/etc/init.d/oscamd
+# custom service
+::once:/etc/init.d/customd
 # Others
 ::ctrlaltdel:/sbin/reboot
 ::shutdown:/sbin/swapoff -a

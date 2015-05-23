@@ -2,7 +2,7 @@
 # SATIP AXE firmware configuration
 #
 
-CFGVER="8"
+CFGVER="9"
 HOSTNAME="satip-axe"
 KMODULES="drivers/usb/serial/cp210x.ko drivers/usb/serial/pl2303.ko drivers/usb/serial/ftdi_sio.ko"
 
@@ -62,6 +62,11 @@ MINISATIP_OPTS=""
 INETD="yes"
 
 #
+# crond
+#
+CROND="yes"
+
+#
 # nfsd v3
 #
 NFSD="yes"
@@ -71,3 +76,8 @@ NFSD_HOTPLUG_EXPORT="*" # replace with host or subnet, '*' = world
 # oscamd
 #
 OSCAMD="yes"
+
+#
+# custom daemon/service/setup executed from sysinit
+#
+#CUSTOMD="/etc/sysconfig/myboot"

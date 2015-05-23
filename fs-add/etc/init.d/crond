@@ -1,0 +1,13 @@
+#!/bin/sh
+
+test -r /etc/sysconfig/config && . /etc/sysconfig/config
+
+if test "$CROND" != "yes"; then
+  exit 0
+fi
+
+mkdir -p /var/spool/cron
+mkdir /etc/sysconfig/crontabs
+ln -sf /etc/sysconfig/crontabs /var/spool/cron/crontabs
+
+exec /usr/sbin/crond -f -S -c /etc/sysconfig/crontabs
