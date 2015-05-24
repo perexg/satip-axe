@@ -1,4 +1,4 @@
-BUILD=8
+BUILD=9
 VERSION=$(shell date +%Y%m%d%H%M)-$(BUILD)
 CPUS=4
 CURDIR=$(shell pwd)
@@ -103,11 +103,12 @@ CPIO_SRCS += oscam
 CPIO_SRCS += tools/axehelper
 CPIO_SRCS += nfsutils
 CPIO_SRCS += nano
+CPIO_SRCS += mtd-utils
 
 fs.cpio: $(CPIO_SRCS)
 	fakeroot tools/do_min_fs.py \
 	  -r "$(VERSION)" \
-	  -b "bash strace" \
+	  -b "bash strace openssl" \
 	  $(foreach m,$(EXTRA_AXE_MODULES), -e "$(EXTRA_AXE_MODULES_DIR)/$(m):lib/modules/axe/$(m)") \
 	  $(foreach m,$(ORIG_FILES), -e "$(EXTRA_AXE_MODULES_DIR)/../$(m):lib/modules/axe/$(m)") \
 	  -e "tools/i2c_mangle.ko:lib/modules/axe/i2c_mangle.ko" \
@@ -125,6 +126,7 @@ fs.cpio: $(CPIO_SRCS)
 	  -e "apps/minisatip/icons/sm.jpg:usr/share/minisatip/icons/sm.jpg" \
 	  -e "apps/minisatip/icons/sm.png:usr/share/minisatip/icons/sm.png" \
 	  -e "apps/$(NANO)/src/nano:usr/bin/nano" \
+	  -e "apps/mtd-utils/nandwrite:usr/sbin/nandwrite2" \
 	  -e "apps/oscam-svn/Distribution/oscam-1.20-unstable_svn$(OSCAM_REV)-sh4-linux:sbin/oscamd"
 
 .PHONY: fs-list

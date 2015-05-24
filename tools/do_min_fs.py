@@ -311,6 +311,8 @@ def gen_fs(lib_list, init_type):
     run_cmd('cp  -d ' + target_prefix + '/lib/libnsl*' + ' fs/usr/lib/')
     run_cmd('cp  -d ' + target_prefix + '/lib/libncurses.so*' + ' fs/lib/')
     run_cmd('cp  -d ' + target_prefix + '/usr/lib/libmagic.so*' + ' fs/usr/lib/')
+    run_cmd('cp  -d ' + target_prefix + '/usr/lib/libssl.so*' + ' fs/usr/lib/')
+    run_cmd('cp  -d ' + target_prefix + '/usr/lib/libcrypto.so*' + ' fs/usr/lib/')
 
     if init_type == 'busybox':
        setup_busybox()
@@ -582,9 +584,9 @@ f.close()
 files = run_cmd('find fs -name "*~"')
 for f in files:
   run_cmd('rm ' + f.strip())
-for r in ['usr/bin/bashbug']:
+for r in ['usr/bin/bashbug', 'usr/lib/pkgconfig']:
   if os.path.exists('fs/' + r):
-    run_cmd('rm fs/' + r)
+    run_cmd('rm -rf fs/' + r)
 for e in extra_list:
   src, dst = e.split(':')
   dir = os.path.dirname(dst)
