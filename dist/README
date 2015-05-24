@@ -54,6 +54,7 @@ Customization:
   - inetd.conf file is linked to /etc/sysconfig/inetd.conf
   - oscam configs are in /etc/sysconfig/oscam directory
   - if /etc/sysconfig/customd script exists, it is executed from init
+  - if /etc/sysconfig/profile script exists, it is executed at login
 
 httpd:
 
@@ -158,6 +159,7 @@ History:
     - added nano text editor
     - updated oscam to 10663
     - added upgrade-fw script for the internal flash upgrade without an USB stick
+    - added /etc/sysconfig/profile support
 
   satip-axe-201504211434-8 - Tue Apr 21 2015
     - faster boot (approx. 25 seconds from flash)
