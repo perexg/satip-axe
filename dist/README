@@ -7,6 +7,14 @@ Update:
 
   - check differences in /etc/config.default against /etc/sysconfig/config
     - example: diff -u /etc/config.default /etc/sysconfig/config
+  - since build 9 firmware upgrade may be upgraded using upgrade-fw tool
+    - file can be fetched directly from github
+    - or specified as a local firmware file directly
+    - example: 'upgrade-fw'
+      - lists firmwares on github
+    - example: 'upgrade-fw satip-axe-201504211434-8.fw'
+      - fetches file from github and flashes it, but if the local
+        file satip-axe-201504211434-8.fw exists, it is preferred
 
 Installation:
 
@@ -138,6 +146,8 @@ Bugs:
 
 History:
 
+  satip-axe-?
+    - added upgrade-fw script for easy upgrade inside firmware
     - added http://boxip:8080/axe-status.txt status page (shell parseable)
     - fixed ntpd start
     - added crond start / configuration
