@@ -109,6 +109,11 @@ nc -l 127.0.0.1:1001 -e /bin/true
 rm -f /root/main_init.sh /tmp/axe-done
 logger -p local0.notice "AXE drivers load finish"
 
+# localtime
+if test -r /etc/sysconfig/localtime; then
+  ln -s sysconfig/localtime /etc/localtime
+fi
+
 # hostname
 test -r /etc/sysconfig/config && . /etc/sysconfig/config
 test -n "$HOSTNAME" && hostname "$HOSTNAME"

@@ -10,6 +10,8 @@ Update:
   - since build 9 firmware upgrade may be upgraded using upgrade-fw tool
     - file can be fetched directly from github
     - or specified as a local firmware file directly
+    - the file is copied to ramfs before flashing
+    - the first attempt fails usually (ask Inverto), press Enter to repeat
     - example: 'upgrade-fw'
       - lists firmwares on github
     - example: 'upgrade-fw satip-axe-201504211434-8.fw'
@@ -45,11 +47,13 @@ Installation to internal flash:
 Customization:
 
   - configuration file is in /etc/sysconfig/config
+  - put localtime file (glibc) to /etc/sysconfig/localtime
   - localboot script can be in /etc/sysconfig/localboot
   - passwd file is copied from /etc/sysconfig/passwd
   - ssh authorized_keys file is copied from /etc/sysconfig/authorized_keys
   - inetd.conf file is linked to /etc/sysconfig/inetd.conf
   - oscam configs are in /etc/sysconfig/oscam directory
+  - if /etc/sysconfig/customd script exists, it is executed from init
 
 httpd:
 
@@ -150,7 +154,7 @@ History:
     - added http://boxip:8080/axe-status.txt status page (shell parseable)
     - fixed ntpd start
     - added crond start / configuration
-    - added customd start (custom daemon/service/setup - script) from sysinit
+    - added customd start (custom daemon/service/setup - script) from init
     - added nano text editor
     - updated oscam to 10663
     - added upgrade-fw script for the internal flash upgrade without an USB stick
