@@ -147,14 +147,13 @@ Bugs:
 History:
 
   satip-axe-?
-    - added upgrade-fw script for easy upgrade inside firmware
     - added http://boxip:8080/axe-status.txt status page (shell parseable)
     - fixed ntpd start
     - added crond start / configuration
     - added customd start (custom daemon/service/setup - script) from sysinit
     - added nano text editor
     - updated oscam to 10663
-    - added update-fw script for the internal flash upgrade without an USB stick
+    - added upgrade-fw script for the internal flash upgrade without an USB stick
 
   satip-axe-201504211434-8 - Tue Apr 21 2015
     - faster boot (approx. 25 seconds from flash)
