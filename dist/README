@@ -48,6 +48,7 @@ Customization:
 
   - configuration file is in /etc/sysconfig/config
   - put localtime file (glibc) to /etc/sysconfig/localtime
+  - put resolv.conf file to /etc/sysconfig/resolv.conf
   - localboot script can be in /etc/sysconfig/localboot
   - passwd file is copied from /etc/sysconfig/passwd
   - ssh authorized_keys file is copied from /etc/sysconfig/authorized_keys
@@ -55,6 +56,8 @@ Customization:
   - oscam configs are in /etc/sysconfig/oscam directory
   - if /etc/sysconfig/customd script exists, it is executed from init
   - if /etc/sysconfig/profile script exists, it is executed at login
+  - writeable ftp - copy /etc/inetd.conf to /etc/sysconfig/inetd.conf and
+    add -w argument to the ftpd daemon
 
 httpd:
 
