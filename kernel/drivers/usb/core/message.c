@@ -134,11 +134,22 @@ int usb_control_msg(struct usb_device *dev, unsigned int pipe, __u8 request,
 		    __u16 size, int timeout)
 {
 	struct usb_ctrlrequest *dr;
+	__u8 *data2;
 	int ret;
 
 	dr = kmalloc(sizeof(struct usb_ctrlrequest), GFP_NOIO);
 	if (!dr)
 		return -ENOMEM;
+
+	data2 = kmalloc(max(size, 2), GFP_KERNEL);
+	if (data2 == NULL) {
+		kfree(dr);
+		return -ENOMEM;
+	}
+	if (data == NULL)
+		size = 0;
+	data2[0] = data2[1] = 0;
+	memcpy(data2, data, size);
 
 	dr->bRequestType = requesttype;
 	dr->bRequest = request;
@@ -148,8 +159,10 @@ int usb_control_msg(struct usb_device *dev, unsigned int pipe, __u8 request,
 
 	/* dbg("usb_control_msg"); */
 
-	ret = usb_internal_control_msg(dev, pipe, dr, data, size, timeout);
+	ret = usb_internal_control_msg(dev, pipe, dr, data2, size, timeout);
 
+	memcpy(data, data2, size);
+	kfree(data2);
 	kfree(dr);
 
 	return ret;
