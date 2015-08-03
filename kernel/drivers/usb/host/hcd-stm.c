@@ -71,20 +71,21 @@ static int stm_usb_boot(struct platform_device *pdev)
 	void *wrapper_base = usb_data->ahb2stbus_wrapper_glue_base;
 	void *protocol_base = usb_data->ahb2stbus_protocol_base;
 	unsigned long reg, req_reg;
+	unsigned long flags = pl_data->flags;
 
-	if (pl_data->flags &
-		(STM_PLAT_USB_FLAGS_STRAP_8BIT |
-		 STM_PLAT_USB_FLAGS_STRAP_16BIT)) {
+
+	if (flags & (STM_PLAT_USB_FLAGS_STRAP_8BIT |
+		     STM_PLAT_USB_FLAGS_STRAP_16BIT)) {
 		/* Set strap mode */
 		reg = readl(wrapper_base + AHB2STBUS_STRAP_OFFSET);
-		if (pl_data->flags & STM_PLAT_USB_FLAGS_STRAP_16BIT)
+		if (flags & STM_PLAT_USB_FLAGS_STRAP_16BIT)
 			reg |= AHB2STBUS_STRAP_16_BIT;
 		else
 			reg &= ~AHB2STBUS_STRAP_16_BIT;
 		writel(reg, wrapper_base + AHB2STBUS_STRAP_OFFSET);
 	}
 
-	if (pl_data->flags & STM_PLAT_USB_FLAGS_STRAP_PLL) {
+	if (flags & STM_PLAT_USB_FLAGS_STRAP_PLL) {
 		/* Start PLL */
 		reg = readl(wrapper_base + AHB2STBUS_STRAP_OFFSET);
 		writel(reg | AHB2STBUS_STRAP_PLL,
@@ -95,7 +96,7 @@ static int stm_usb_boot(struct platform_device *pdev)
 		mdelay(30);
 	}
 
-	if (pl_data->flags & STM_PLAT_USB_FLAGS_OPC_MSGSIZE_CHUNKSIZE) {
+	if (flags & STM_PLAT_USB_FLAGS_OPC_MSGSIZE_CHUNKSIZE) {
 		/* Set the STBus Opcode Config for load/store 32 */
 		writel(AHB2STBUS_STBUS_OPC_32BIT,
 			protocol_base + AHB2STBUS_STBUS_OPC_OFFSET);
@@ -109,7 +110,7 @@ static int stm_usb_boot(struct platform_device *pdev)
 			protocol_base + AHB2STBUS_CHUNKSIZE_OFFSET);
 	}
 
-	if (pl_data->flags &
+	if (flags &
 		(STM_PLAT_USB_FLAGS_STBUS_CONFIG_THRESHOLD128 |
 		STM_PLAT_USB_FLAGS_STBUS_CONFIG_THRESHOLD256)) {
 
@@ -134,23 +135,13 @@ static int stm_usb_boot(struct platform_device *pdev)
 
 static int stm_usb_remove(struct platform_device *pdev)
 {
-	struct resource *res;
-	struct device *dev = &pdev->dev;
 	struct drv_usb_data *dr_data = platform_get_drvdata(pdev);
 
+	platform_device_unregister(dr_data->ehci_device);
+	platform_device_unregister(dr_data->ohci_device);
+
 	stm_device_power(dr_data->device_state, stm_device_power_off);
-
 	stm_usb_clk_disable(dr_data);
-
-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "wrapper");
-	devm_release_mem_region(dev, res->start, resource_size(res));
-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "protocol");
-	devm_release_mem_region(dev, res->start, resource_size(res));
-
-	if (dr_data->ehci_device)
-		platform_device_unregister(dr_data->ehci_device);
-	if (dr_data->ohci_device)
-		platform_device_unregister(dr_data->ohci_device);
 
 	return 0;
 }
@@ -191,7 +182,7 @@ static int __init stm_usb_probe(struct platform_device *pdev)
 	struct drv_usb_data *dr_data;
 	struct device *dev = &pdev->dev;
 	struct resource *res;
-	int ret = 0, i;
+	int i;
 	static char __initdata *usb_clks_n[USB_CLKS_NR] = {
 		[USB_48_CLK] = "usb_48_clk",
 		[USB_IC_CLK] = "usb_ic_clk",
@@ -200,7 +191,7 @@ static int __init stm_usb_probe(struct platform_device *pdev)
 	resource_size_t len;
 
 	dgb_print("\n");
-	dr_data = kzalloc(sizeof(struct drv_usb_data), GFP_KERNEL);
+	dr_data = devm_kzalloc(dev, sizeof(*dr_data), GFP_KERNEL);
 	if (!dr_data)
 		return -ENOMEM;
 
@@ -215,57 +206,47 @@ static int __init stm_usb_probe(struct platform_device *pdev)
 
 	stm_usb_clk_enable(dr_data);
 
-	dr_data->device_state = devm_stm_device_init(&pdev->dev,
-		plat_data->device_config);
-	if (!dr_data->device_state) {
-		ret = -EBUSY;
-		goto err_0;
-	}
+	dr_data->device_state =
+		devm_stm_device_init(&pdev->dev, plat_data->device_config);
+	if (!dr_data->device_state)
+		return -EBUSY;
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "wrapper");
-	if (!res) {
-		ret = -ENXIO;
-		goto err_0;
-	}
+	if (!res)
+		return -ENXIO;
+
 	len = resource_size(res);
-	if (devm_request_mem_region(dev, res->start, len, pdev->name) < 0) {
-		ret = -EBUSY;
-		goto err_0;
-	}
+	if (devm_request_mem_region(dev, res->start, len, pdev->name) < 0)
+		return -EBUSY;
+
 	dr_data->ahb2stbus_wrapper_glue_base =
 		devm_ioremap_nocache(dev, res->start, len);
 
-	if (!dr_data->ahb2stbus_wrapper_glue_base) {
-		ret = -EFAULT;
-		goto err_1;
-	}
+	if (!dr_data->ahb2stbus_wrapper_glue_base)
+		return -EFAULT;
+
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "protocol");
-	if (!res) {
-		ret = -ENXIO;
-		goto err_2;
-	}
+	if (!res)
+		return -ENXIO;
+
 	len = resource_size(res);
-	if (devm_request_mem_region(dev, res->start, len, pdev->name) < 0) {
-		ret = -EBUSY;
-		goto err_2;
-	}
+	if (devm_request_mem_region(dev, res->start, len, pdev->name) < 0)
+		return -EBUSY;
+
 	dr_data->ahb2stbus_protocol_base =
 		devm_ioremap_nocache(dev, res->start, len);
 
-	if (!dr_data->ahb2stbus_protocol_base) {
-		ret = -EFAULT;
-		goto err_3;
-	}
+	if (!dr_data->ahb2stbus_protocol_base)
+		return -EFAULT;
+
 	stm_usb_boot(pdev);
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ehci");
 	if (res) {
 		dr_data->ehci_device = stm_usb_device_create("stm-ehci",
 			pdev->id, pdev);
-		if (IS_ERR(dr_data->ehci_device)) {
-			ret = (int)dr_data->ehci_device;
-			goto err_4;
-		}
+		if (IS_ERR(dr_data->ehci_device))
+			return PTR_ERR(dr_data->ehci_device);
 	}
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ohci");
@@ -273,10 +254,8 @@ static int __init stm_usb_probe(struct platform_device *pdev)
 		dr_data->ohci_device =
 			stm_usb_device_create("stm-ohci", pdev->id, pdev);
 		if (IS_ERR(dr_data->ohci_device)) {
-			if (dr_data->ehci_device)
-				platform_device_del(dr_data->ehci_device);
-			ret = (int)dr_data->ohci_device;
-			goto err_4;
+			platform_device_del(dr_data->ehci_device);
+			return PTR_ERR(dr_data->ohci_device);
 		}
 	}
 
@@ -285,21 +264,7 @@ static int __init stm_usb_probe(struct platform_device *pdev)
 	pm_suspend_ignore_children(&pdev->dev, 1);
 	pm_runtime_enable(&pdev->dev);
 
-	return ret;
-
-err_4:
-	devm_iounmap(dev, dr_data->ahb2stbus_protocol_base);
-err_3:
-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "protocol");
-	devm_release_mem_region(dev, res->start, resource_size(res));
-err_2:
-	devm_iounmap(dev, dr_data->ahb2stbus_wrapper_glue_base);
-err_1:
-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "wrapper");
-	devm_release_mem_region(dev, res->start, resource_size(res));
-err_0:
-	kfree(dr_data);
-	return ret;
+	return 0;
 }
 
 static void stm_usb_shutdown(struct platform_device *pdev)

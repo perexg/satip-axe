@@ -23,6 +23,7 @@
 #include <linux/mutex.h>
 #include <linux/freezer.h>
 #include <linux/usb/quirks.h>
+#include <linux/random.h>
 
 #include <asm/uaccess.h>
 #include <asm/byteorder.h>
@@ -458,10 +459,8 @@ hub_clear_tt_buffer (struct usb_device *hdev, u16 devinfo, u16 tt)
  * talking to TTs must queue control transfers (not just bulk and iso), so
  * both can talk to the same hub concurrently.
  */
-static void hub_tt_work(struct work_struct *work)
+void _hub_tt_work(struct usb_hub *hub)
 {
-	struct usb_hub		*hub =
-		container_of(work, struct usb_hub, tt.clear_work);
 	unsigned long		flags;
 	int			limit = 100;
 
@@ -494,6 +493,14 @@ static void hub_tt_work(struct work_struct *work)
 		spin_lock_irqsave(&hub->tt.lock, flags);
 	}
 	spin_unlock_irqrestore (&hub->tt.lock, flags);
+}
+
+void hub_tt_work(struct work_struct *work)
+{
+	struct usb_hub		*hub =
+		container_of(work, struct usb_hub, tt.clear_work);
+
+	_hub_tt_work(hub);
 }
 
 /**
@@ -543,7 +550,20 @@ int usb_hub_clear_tt_buffer(struct urb *urb)
 	/* tell keventd to clear state for this TT */
 	spin_lock_irqsave (&tt->lock, flags);
 	list_add_tail (&clear->clear_list, &tt->clear_list);
-	schedule_work(&tt->clear_work);
+	/* don't schedule on kevent if we're running on keventd (e.g.,
+	 * in hid_reset we can get here on kevent) unless on >=2.6.36
+	 */
+	if (!current_is_keventd())
+		/* put it on keventd */
+		schedule_work(&tt->clear_work);
+	else {
+		/* let khubd do it */
+		struct usb_hub		*hub =
+			container_of(&tt->clear_work, struct usb_hub,
+					tt.clear_work);
+		kick_khubd(hub);
+	}
+
 	spin_unlock_irqrestore (&tt->lock, flags);
 	return 0;
 }
@@ -1812,6 +1832,16 @@ int usb_new_device(struct usb_device *udev)
 	/* Tell the world! */
 	announce_device(udev);
 
+#if 0
+	if (udev->serial)
+		add_device_randomness(udev->serial, strlen(udev->serial));
+	if (udev->product)
+		add_device_randomness(udev->product, strlen(udev->product));
+	if (udev->manufacturer)
+		add_device_randomness(udev->manufacturer,
+				      strlen(udev->manufacturer));
+#endif
+
 	/* Register the device.  The device driver is responsible
 	 * for configuring the device and invoking the add-device
 	 * notifier chain (used by usbfs and possibly others).
@@ -2188,6 +2218,10 @@ int usb_port_suspend(struct usb_device *udev, pm_message_t msg)
 				USB_DEVICE_REMOTE_WAKEUP, 0,
 				NULL, 0,
 				USB_CTRL_SET_TIMEOUT);
+
+		/* System sleep transitions should never fail */
+		if (!(msg.event & PM_EVENT_AUTO))
+			status = 0;
 	} else {
 		/* device has up to 10 msec to fully suspend */
 		dev_dbg(&udev->dev, "usb %ssuspend\n",
@@ -2427,16 +2461,15 @@ static int hub_suspend(struct usb_interface *intf, pm_message_t msg)
 	struct usb_device	*hdev = hub->hdev;
 	unsigned		port1;
 
-	/* fail if children aren't already suspended */
+	/* Warn if children aren't already suspended */
 	for (port1 = 1; port1 <= hdev->maxchild; port1++) {
 		struct usb_device	*udev;
 
 		udev = hdev->children [port1-1];
 		if (udev && udev->can_submit) {
-			if (!(msg.event & PM_EVENT_AUTO))
-				dev_dbg(&intf->dev, "port %d nyet suspended\n",
-						port1);
-			return -EBUSY;
+			dev_warn(&intf->dev, "port %d nyet suspended\n", port1);
+			if (msg.event & PM_EVENT_AUTO)
+				return -EBUSY;
 		}
 	}
 
@@ -3270,6 +3303,10 @@ static void hub_events(void)
 		/* If this is an inactive hub, do nothing */
 		if (hub->quiescing)
 			goto loop_autopm;
+
+		/* _hub_tt_work usually run on keventd */
+		if (!list_empty(&hub->tt.clear_list))
+			_hub_tt_work(hub);
 
 		if (hub->error) {
 			dev_dbg (hub_dev, "resetting for error %d\n",

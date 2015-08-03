@@ -56,7 +56,7 @@ static int stm_ohci_bus_suspend(struct usb_hcd *hcd)
 
 static const struct hc_driver ohci_st40_hc_driver = {
 	.description =		hcd_name,
-	.product_desc =		"stm-ohci",
+	.product_desc =		"STMicroelectronics OHCI Host Controller",
 	.hcd_priv_size =	sizeof(struct ohci_hcd),
 
 	/* generic hardware linkage */
@@ -165,6 +165,7 @@ static struct platform_driver ohci_hcd_stm_driver = {
 	.shutdown = usb_hcd_platform_shutdown,
 	.driver = {
 		.name = "stm-ohci",
+		.owner = THIS_MODULE,
 	},
 };
 
@@ -183,7 +184,7 @@ int stm_ohci_hcd_unregister(struct platform_device *dev)
 	ret = ohci_hcd_stm_remove(dev);
 	mutex_unlock(&stm_ohci_usb_mutex);
 	if (ret)
-		dgb_print("[STM][USB] Error on %s 0x%x\n", __func__, dev);
+		dgb_print("[STM][USB] Error on %s %p\n", __func__, dev);
 	return ret;
 }
 EXPORT_SYMBOL(stm_ohci_hcd_unregister);
@@ -196,7 +197,7 @@ int stm_ohci_hcd_register(struct platform_device *dev)
 	ret = ohci_hcd_stm_probe(dev);
 	mutex_unlock(&stm_ohci_usb_mutex);
 	if (ret)
-		dgb_print("[STM][USB] Error on %s 0x%x\n", __func__, dev);
+		dgb_print("[STM][USB] Error on %s %p\n", __func__, dev);
 
 	return ret;
 }
