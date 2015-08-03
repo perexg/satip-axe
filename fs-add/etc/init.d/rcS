@@ -66,7 +66,8 @@ insmod $d/i2c_mangle.ko
 insmod $d/axe_fe.ko
 insmod $d/axe_fp.ko
 insmod $d/axe_dmx.ko
-insmod $d/axe_dmxts.ko
+#insmod $d/axe_dmxts.ko
+insmod $d/axe_dmxts_std.ko
 mkdir -p /dev/axe /dev/stapi
 maj=
 for i in $(cat /proc/devices); do
@@ -92,15 +93,15 @@ for i in $(cat /proc/devices); do
     mknod /dev/axe/frontend-2 c $maj 2
     mknod /dev/axe/frontend-3 c $maj 3
   elif test "$i" = "demux"; then
-    mknod /dev/axe/demux-0 c $maj 0
-    mknod /dev/axe/demux-1 c $maj 1
-    mknod /dev/axe/demux-2 c $maj 2
-    mknod /dev/axe/demux-3 c $maj 3
+    mknod /dev/axe/demux-0 c $maj 1
+    mknod /dev/axe/demux-1 c $maj 0
+    mknod /dev/axe/demux-2 c $maj 3
+    mknod /dev/axe/demux-3 c $maj 2
   elif test "$i" = "demuxts"; then
-    mknod /dev/axe/demuxts-0 c $maj 0
-    mknod /dev/axe/demuxts-1 c $maj 1
-    mknod /dev/axe/demuxts-2 c $maj 2
-    mknod /dev/axe/demuxts-3 c $maj 3
+    mknod /dev/axe/demuxts-0 c $maj 1
+    mknod /dev/axe/demuxts-1 c $maj 0
+    mknod /dev/axe/demuxts-2 c $maj 3
+    mknod /dev/axe/demuxts-3 c $maj 2
   fi
   maj=
 done

@@ -592,5 +592,5 @@ for e in extra_list:
   dir = os.path.dirname(dst)
   if not os.path.exists('fs/' + dir):
     run_cmd('mkdir -p fs/' + dir)
-  run_cmd('cp ' + src + ' fs/' + dst)
+  run_cmd('cp -P ' + src + ' fs/' + dst)
 do_cpio('fs')

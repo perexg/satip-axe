@@ -1,4 +1,4 @@
-BUILD=9
+BUILD=10
 VERSION=$(shell date +%Y%m%d%H%M)-$(BUILD)
 CPUS=4
 CURDIR=$(shell pwd)
@@ -11,6 +11,13 @@ HOST_ARCH=$(shell uname -m)
 EXTRA_AXE_MODULES_DIR=firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32BITS
 EXTRA_AXE_MODULES=axe_dmx.ko axe_dmxts.ko axe_fe.ko axe_fp.ko axe_i2c.ko \
                   stapi_core_stripped.ko stapi_ioctl_stripped.ko stsys_ioctl.ko
+
+EXTRA_AXE_LIBS_DIR=firmware/initramfs/usr/local/lib
+EXTRA_AXE_LIBS=libboost_date_time.so libboost_date_time.so.1.53.0 \
+               libboost_thread.so libboost_thread.so.1.53.0 \
+               libboost_filesystem.so libboost_filesystem.so.1.53.0 \
+               libboost_serialization.so libboost_serialization.so.1.53.0 \
+               libboost_system.so libboost_system.so.1.53.0
 
 ORIG_FILES=main_axe.out
 
@@ -110,7 +117,9 @@ fs.cpio: $(CPIO_SRCS)
 	  -r "$(VERSION)" \
 	  -b "bash strace openssl" \
 	  $(foreach m,$(EXTRA_AXE_MODULES), -e "$(EXTRA_AXE_MODULES_DIR)/$(m):lib/modules/axe/$(m)") \
+	  -e "patches/axe_dmxts_std.ko:lib/modules/axe/axe_dmxts_std.ko" \
 	  $(foreach m,$(ORIG_FILES), -e "$(EXTRA_AXE_MODULES_DIR)/../$(m):lib/modules/axe/$(m)") \
+	  $(foreach m,$(EXTRA_AXE_LIBS), -e "$(EXTRA_AXE_LIBS_DIR)/$(m):lib/$(m)") \
 	  -e "tools/i2c_mangle.ko:lib/modules/axe/i2c_mangle.ko" \
 	  $(foreach m,$(KMODULES), -e "kernel/$(m):lib/modules/$(m)") \
 	  -e "tools/axehelper:sbin/axehelper" \
