@@ -67,8 +67,8 @@ NANO_DOWNLOAD=http://www.nano-editor.org/dist/v2.4/$(NANO_FILENAME)
 
 TVHEADEND_COMMIT=master
 
-# 10087?
-OSCAM_REV=10663
+# 10663
+OSCAM_REV=10937
 
 define GIT_CLONE
 	@mkdir -p apps/
