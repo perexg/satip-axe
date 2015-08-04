@@ -98,6 +98,13 @@ Misc:
 
   - full tuner reset - "axe-debug reset"
 
+Recovery from the wrong configuration:
+
+  - copy idl4k.cfgreset file as idl4k.scr file to the root directory on the USB stick
+  - plug the USB stick to the upper USB port in box
+  - turn on the box
+  - the old configuration file is moved to /etc/sysconfig/config.old
+
 Recovery of the original firmware:
 
   - copy idl4k.recovery file as idl4k.scr file to the root directory on the USB stick
@@ -153,6 +160,15 @@ Bugs:
   - reboot command cannot be used (uboot usb init fails, hw init fails)
 
 History:
+
+  -10 -
+    - replaced stapi / frontend / demuxer drivers with latest from Inverto
+    - updated kernel USB stack, fixed ftdi_sio kernel oops (mouse readers)
+    - updated minisatip to new demuxts (reduce CPU usage)
+    - fixed -b option for minisatip
+    - updated oscamd to 10937
+    - fixed /etc/mdev.conf to mount USB sticks without partitions
+    - added idl4k.cfgreset script to reset wrong config
 
   satip-axe-201505242057-9 - Sun May 24 2015
     - added http://boxip:8080/axe-status.txt status page (shell parseable)

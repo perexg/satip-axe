@@ -1,10 +1,11 @@
 #!/bin/busybox sh
 
+busybox mount -t proc proc /proc
+
 AXECFG=$(busybox awk 'match($0, /axecfg=[^ ]*/) {print substr($0,RSTART,RLENGTH)}' /proc/cmdline)
 busybox echo "Welcome to SATIP-AXE Linux! $AXECFG"
 AXECFG=${AXECFG:7:255}
 
-busybox mount -t proc proc /proc
 # remount root filesystem in rw mode
 busybox mount -o remount,rw /
 # Create all symbolic links. 
@@ -51,13 +52,12 @@ if test "$AXECFG" = "reset"; then
   mv /etc/sysconfig/config /etc/sysconfig/config.old 2> /dev/null
   mv /etc/sysconfig/passwd.old /etc/sysconfig/passwd.old1 2> /dev/null
   mv /etc/sysconfig/passwd /etc/sysconfig/passwd.old 2> /dev/null
-else
-  if ! test -r /etc/sysconfig/config ; then
-    cp /etc/config.default /etc/sysconfig/config
-  fi
-  if test -r /etc/sysconfig/passwd ; then
-    cp /etc/sysconfig/passwd /etc/passwd
-  fi
+fi
+if ! test -r /etc/sysconfig/config ; then
+  cp /etc/config.default /etc/sysconfig/config
+fi
+if test -r /etc/sysconfig/passwd ; then
+  cp /etc/sysconfig/passwd /etc/passwd
 fi
 
 # load config
