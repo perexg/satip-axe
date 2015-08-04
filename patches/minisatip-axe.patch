@@ -1,5 +1,5 @@
 diff --git a/adapter.c b/adapter.c
-index 285faea..382cefb 100755
+index 285faea..c9fa823 100755
 --- a/adapter.c
 +++ b/adapter.c
 @@ -29,10 +29,15 @@
@@ -172,19 +172,20 @@ index 285faea..382cefb 100755
  		rv = tune_it_s2 (ad->fe, &ad->tp);
  		a[aid].status = 0;
  		a[aid].status_cnt = 0;
-@@ -428,6 +489,11 @@ int tune (int aid, int sid)
+@@ -428,6 +489,12 @@ int tune (int aid, int sid)
  			close_streams_for_adapter (aid, sid);
  			update_pids (aid);
  		}
 +#ifdef AXE
 +		//do { drv = read(ad->dvr, buf, sizeof(buf)); } while (drv > 0);
++		axe_dmxts_start(ad->dvr);
 +		if (rv < 0)
 +			axe_set_tuner_led(aid + 1, 0);
 +#endif
  	}
  	else
  		LOG ("not tuning for SID %d (do_tune=%d, master_sid=%d)", sid,
-@@ -684,7 +750,11 @@ describe_adapter (int sid, int aid)
+@@ -684,7 +751,11 @@ describe_adapter (int sid, int aid)
  	memset (dad, 0, sizeof (dad));
  	x = 0;
  								 // do just max 3 signal check 1s after tune
@@ -196,7 +197,7 @@ index 285faea..382cefb 100755
  	{
  		int new_gs = 1;
  		ts = getTick ();
-@@ -701,11 +771,20 @@ describe_adapter (int sid, int aid)
+@@ -701,11 +772,20 @@ describe_adapter (int sid, int aid)
  		if (ad->max_snr <= ad->snr) ad->max_snr = (ad->snr>0)?ad->snr:1;
  		LOG ("get_signal%s took %d ms for adapter %d handle %d (status: %d, ber: %d, strength:%d, snr: %d, max_strength: %d, max_snr: %d %d)",
  			new_gs?"":"_new", getTick () - ts, aid, ad->fe, ad->status, ad->ber, ad->strength, ad->snr, ad->max_strength, ad->max_snr, opts.force_scan);
@@ -217,7 +218,7 @@ index 285faea..382cefb 100755
  	}
  	if(use_ad)
  	{
-@@ -715,14 +794,14 @@ describe_adapter (int sid, int aid)
+@@ -715,14 +795,14 @@ describe_adapter (int sid, int aid)
  	}
  	if (t->sys == SYS_DVBS || t->sys == SYS_DVBS2)
  		sprintf (dad, "ver=1.0;src=%d;tuner=%d,%d,%d,%d,%d,%s,%s,%s,%s,%s,%d,%s;pids=",
@@ -235,7 +236,7 @@ index 285faea..382cefb 100755
  						t->c2tft, t->ds, t->plp, t->inversion);
  	for (i = 0; i < MAX_PIDS; i++)
  		if (use_ad && ad->pids[i].flags == 1)
-@@ -825,7 +904,7 @@ void enable_adapters(char *o)
+@@ -825,7 +905,7 @@ void enable_adapters(char *o)
  
  void set_unicable_adapters(char *o, int type)
  {
@@ -244,7 +245,7 @@ index 285faea..382cefb 100755
  	char buf[100], *arg[20], *sep1, *sep2;
  
  	strncpy(buf, o, sizeof(buf));
-@@ -839,17 +918,46 @@ void set_unicable_adapters(char *o, int type)
+@@ -839,17 +919,46 @@ void set_unicable_adapters(char *o, int type)
  		sep2 = strchr(arg[i], '-');
  		if( !sep1 || !sep2)
  			continue;
@@ -292,7 +293,7 @@ index 285faea..382cefb 100755
  
  int delsys_match(adapter *ad, int del_sys)
  {
-@@ -866,3 +974,68 @@ int delsys_match(adapter *ad, int del_sys)
+@@ -866,3 +975,71 @@ int delsys_match(adapter *ad, int del_sys)
  	return 0;
  		
  }
@@ -324,9 +325,10 @@ index 285faea..382cefb 100755
 +axe_status(char *buf, size_t buflen)
 +{
 +	size_t idx = 0;
-+	int i, k, j, port;
++	int i, k, j, port, t;
 +	char *host;
 +
++	t = getTick();
 +	buf[0] = '\0';
 +	myf(buf, buflen, "StatusVersion=1\n");
 +	for (i = 0; i < MAX_ADAPTERS; i++) {
@@ -357,6 +359,8 @@ index 285faea..382cefb 100755
 +				myf(buf, buflen, "IOCnt_%d_%d=%zu\n", i + 1, j, s->sp);
 +				myf(buf, buflen, "Bytes_%d_%d=%zu\n", i + 1, j, s->sb);
 +			}
++			myf(buf, buflen, "LastRTSP_%d_%d=%d\n", i + 1, j, t - s->rtime);
++			myf(buf, buflen, "TimeoutRTSP_%d_%d=%d\n", i + 1, j, s->timeout);
 +		}
 +	}
 +}
@@ -383,10 +387,10 @@ index 629bd9c..d95e59a 100755
  
 diff --git a/axe.h b/axe.h
 new file mode 100644
-index 0000000..f6e9772
+index 0000000..cfc1927
 --- /dev/null
 +++ b/axe.h
-@@ -0,0 +1,117 @@
+@@ -0,0 +1,149 @@
 +#ifndef __AXE_H
 +#define __AXE_H
 +
@@ -432,8 +436,35 @@ index 0000000..f6e9772
 +  return ioctl(fd, FE_FRONTEND_INPUT, &in);
 +}
 +
-+#define DMXTS_ADD_PID     _IOW('o', 1, __u16)
-+#define DMXTS_REMOVE_PID  _IOW('o', 2, __u16)
++typedef struct dmx_stream_params_s {
++  __u32  srcIp;
++  __u16  srcPort;
++  __u16  dstPort;
++  __u32  dstIp;
++  __u32  ts;     /* timestamp              */
++  __u32  ssrc;   /* synchronization source */
++  __u16  seq;
++} dmx_stream_params_t;
++              
++typedef struct rtp_state {
++  __u32 ssrc;
++  __u32 ts;
++  __u32 spc;
++  __u32 soc;
++  __u16 seq;
++} rtp_state_t;
++
++#define DMXTS_ADD_PID            _IOW('o', 1, __u16)
++#define DMXTS_REMOVE_PID         _IOW('o', 2, __u16)
++                        
++#define DMXTS_TRANSFER_START      _IO('o', 5)
++#define DMXTS_TRANSFER_START_RTP _IOW('o', 6, dmx_stream_params_t)
++#define DMXTS_TRANSFER_STOP       _IO('o', 7)
++#define DMXTS_RTP_SETUP_SSRC     _IOW('o', 8, __u32)
++#define DMXTS_TRANSFER_PAUSE      _IO('o', 9)
++#define DMXTS_TRANSFER_RESUME     _IO('o', 10)
++                        
++#define DMXTS_GET_RTP_STREAM_STATE _IOR('o', 11, rtp_state_t)
 +
 +static inline int axe_dmxts_add_pid(int fd, __u16 pid)
 +{
@@ -443,6 +474,11 @@ index 0000000..f6e9772
 +static inline int axe_dmxts_remove_pid(int fd, __u16 pid)
 +{
 +  return ioctl(fd, DMXTS_REMOVE_PID, &pid);
++}
++
++static inline int axe_dmxts_start(int fd)
++{
++  return ioctl(fd, DMXTS_TRANSFER_START);
 +}
 +
 +#ifdef AXE_MAIN
@@ -863,7 +899,7 @@ index 5701bd2..32fd683 100755
  }
  
 diff --git a/minisatip.c b/minisatip.c
-index d4076ba..39f0671 100755
+index d4076ba..923e7fd 100755
 --- a/minisatip.c
 +++ b/minisatip.c
 @@ -36,6 +36,7 @@
@@ -917,7 +953,18 @@ index d4076ba..39f0671 100755
  			case HELP_OPT:
  			{
  				usage ();
-@@ -209,6 +221,28 @@ set_options (int argc, char *argv[])
+@@ -164,6 +176,10 @@ set_options (int argc, char *argv[])
+ 			case DVRBUFFER_OPT:
+ 			{
+ 				opts.dvr = atoi (optarg) * 1024;
++#ifdef AXE
++                                opts.dvr += 7*188 - 1;
++                                opts.dvr -= opts.dvr % (7*188);
++#endif
+ 				break;
+ 			}
+ 
+@@ -209,6 +225,28 @@ set_options (int argc, char *argv[])
  				break;
  			}
  
@@ -946,7 +993,7 @@ index d4076ba..39f0671 100755
  		}
  	}
  	
-@@ -483,6 +517,11 @@ http_response (sockets *s, int rc, char *ah, char *desc, int cseq, int lr)
+@@ -483,6 +521,11 @@ http_response (sockets *s, int rc, char *ah, char *desc, int cseq, int lr)
  
  #define RBUF 4000
  
@@ -958,7 +1005,7 @@ index d4076ba..39f0671 100755
  int
  read_rtsp (sockets * s)
  {
-@@ -507,8 +546,7 @@ read_rtsp (sockets * s)
+@@ -507,8 +550,7 @@ read_rtsp (sockets * s)
  		}
  	}
  	
@@ -968,7 +1015,7 @@ index d4076ba..39f0671 100755
  	{
  		if( s->rlen > RBUF - 10 )
  		{
-@@ -524,6 +562,9 @@ read_rtsp (sockets * s)
+@@ -524,6 +566,9 @@ read_rtsp (sockets * s)
  		return 0;
  	}
  
@@ -978,7 +1025,7 @@ index d4076ba..39f0671 100755
  	rlen = s->rlen;
  	s->rlen = 0;
  
-@@ -726,8 +767,7 @@ read_http (sockets * s)
+@@ -726,8 +771,7 @@ read_http (sockets * s)
  		"%s"
  		"</device></root>";
  
@@ -988,7 +1035,7 @@ index d4076ba..39f0671 100755
  	{
  		if( s->rlen > RBUF - 10 )
  		{
-@@ -749,6 +789,9 @@ read_http (sockets * s)
+@@ -749,6 +793,9 @@ read_http (sockets * s)
  		return 0;
  	}
  
@@ -998,7 +1045,7 @@ index d4076ba..39f0671 100755
  	rlen = s->rlen;
  	s->rlen = 0;
  	
-@@ -781,6 +824,15 @@ read_http (sockets * s)
+@@ -781,6 +828,15 @@ read_http (sockets * s)
  		return 0;
  	}
  
@@ -1014,7 +1061,7 @@ index d4076ba..39f0671 100755
  	if (strncmp (arg[1], "/icons/", 7) == 0)
  	{
  		char *ctype = NULL;
-@@ -904,6 +956,9 @@ ssdp_reply (sockets * s)
+@@ -904,6 +960,9 @@ ssdp_reply (sockets * s)
  		return 0;
  	}
  
@@ -1024,7 +1071,7 @@ index d4076ba..39f0671 100755
  	// not my uuid
  	LOG("Received SSDP packet from %s:%d -> handle %d", inet_ntoa(s->sa.sin_addr), ntohs(s->sa.sin_port), s->sock);
  	LOGL(3, "%s", s->buf);
-@@ -987,7 +1042,13 @@ main (int argc, char *argv[])
+@@ -987,7 +1046,13 @@ main (int argc, char *argv[])
  	set_options (argc, argv);
  	if (opts.daemon)
  		becomeDaemon ();
@@ -1038,7 +1085,7 @@ index d4076ba..39f0671 100755
  	readBootID();
  	if ((ssdp = udp_bind (NULL, 1900)) < 1)
  		FAIL ("SSDP: Could not bind on udp port 1900");
-@@ -1021,7 +1082,9 @@ main (int argc, char *argv[])
+@@ -1021,7 +1086,9 @@ main (int argc, char *argv[])
  	select_and_execute ();
  	unlink(PID_FILE);
  	free_all ();
@@ -1049,7 +1096,7 @@ index d4076ba..39f0671 100755
  }
  
  
-@@ -1247,12 +1310,16 @@ void _log(int level, char * file, int line, const char *fmt, ...) {
+@@ -1247,12 +1314,16 @@ void _log(int level, char * file, int line, const char *fmt, ...) {
  		idx = 1;
  	else if ( idx < 0)
  		idx = 0;
@@ -1069,7 +1116,7 @@ index d4076ba..39f0671 100755
  	both = 0;
      va_start(arg, fmt);
      len += vsnprintf(output[idx] + len, sizeof(output[0]) - len, fmt, arg);
-@@ -1271,9 +1338,9 @@ void _log(int level, char * file, int line, const char *fmt, ...) {
+@@ -1271,9 +1342,9 @@ void _log(int level, char * file, int line, const char *fmt, ...) {
  	}
  	
  	if(both){
@@ -1082,9 +1129,18 @@ index d4076ba..39f0671 100755
  	fflush(stdout);
  }
 diff --git a/minisatip.h b/minisatip.h
-index 821e756..e2be224 100755
+index 821e756..427f429 100755
 --- a/minisatip.h
 +++ b/minisatip.h
+@@ -9,7 +9,7 @@
+ 
+ #define VERSION_BUILD "84"
+ #define CC(a,b,c) #a b #c
+-#define VERSION CC(0.1.,VERSION_BUILD,)
++#define VERSION CC(0.1.,VERSION_BUILD,-axe1)
+ 
+ void set_options (int argc, char *argv[]);
+ 
 @@ -30,6 +30,10 @@ void set_options (int argc, char *argv[]);
  #define ENABLE_ADAPTERS_OPT 'e'
  #define UNICABLE_OPT 'u'
@@ -1136,7 +1192,7 @@ index b4891f1..1857089 100755
  					if(ss->lbuf >= ss->rlen)
  						ss->buf[ss->rlen] = 0;
 diff --git a/stream.c b/stream.c
-index db4a46d..d5b7761 100755
+index db4a46d..2036841 100755
 --- a/stream.c
 +++ b/stream.c
 @@ -320,6 +320,7 @@ int decode_transport (sockets * s, char *arg, char *default_rtp, int start_rtp)
@@ -1170,6 +1226,50 @@ index db4a46d..d5b7761 100755
  	copy32( rtcp, 56, sid->ssrc);  
  	rtcp[60] = 'S';
  	rtcp[61] = 'E';
+@@ -617,13 +625,18 @@ extern uint32_t nsecs, reads;
+ void
+ flush_streamb (streams * sid, char *buf, int rlen, int ctime)
+ {
+-	int i, rv = 0;
++	int i, remain, rv = 0;
+ 	
+ 	if (sid->type == STREAM_HTTP)
+ 		rv = send (sid->rsock, buf, rlen, MSG_NOSIGNAL);
+-	else
+-		for (i = 0; i < rlen; i += DVB_FRAME * 7)
+-			rv += send_rtpb (sid, &buf[i], DVB_FRAME * 7);
++	else {
++		for (i = 0; i < rlen; i += DVB_FRAME * 7) {
++			remain = rlen - i;
++			rv += send_rtpb (sid, &buf[i],
++			                 remain < DVB_FRAME * 7 ?
++			                   remain : DVB_FRAME * 7);
++		}
++	}
+ 	
+ 	sid->iiov = 0;
+ 	sid->wtime = ctime;
+@@ -675,8 +688,9 @@ read_dmx (sockets * s)
+ 	int pid, flush_all = 0;
+ 	uint64_t stime;
+ 
+-	if (s->rlen % DVB_FRAME != 0)
+-		s->rlen = ((int) s->rlen / DVB_FRAME) * DVB_FRAME;
++	i = s->rlen % DVB_FRAME;
++	if (i)
++		s->rlen -= i;
+ 	if (s->rlen == s->lbuf)
+ 		cnt++;
+ 	else
+@@ -696,7 +710,7 @@ read_dmx (sockets * s)
+ 		LOG ("Buffer overrun %d %d", s->rlen, s->lbuf);
+ 
+ //	LOGL(2, "read_dmx called for adapter %d -> %d bytes read ",s->sid, s->rlen);
+-		
++
+ 	int rlen = s->rlen;
+ 	ad->rtime = s->rtime;
+ 	s->rlen = 0;
 diff --git a/stream.h b/stream.h
 index 5f1bd6f..5885c59 100755
 --- a/stream.h

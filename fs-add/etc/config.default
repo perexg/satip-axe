@@ -2,7 +2,7 @@
 # SATIP AXE firmware configuration
 #
 
-CFGVER="9"
+CFGVER="10"
 HOSTNAME="satip-axe"
 KMODULES="drivers/usb/serial/cp210x.ko drivers/usb/serial/pl2303.ko drivers/usb/serial/ftdi_sio.ko"
 
@@ -10,6 +10,7 @@ KMODULES="drivers/usb/serial/cp210x.ko drivers/usb/serial/pl2303.ko drivers/usb/
 # STV6210 baseband amplifier gain (0dB .. 16dB - 2dB step)
 #
 STV6210_BAMP="16dB"
+#DEMUXTS_OLD="yes"
 
 #
 # ttyUSB names

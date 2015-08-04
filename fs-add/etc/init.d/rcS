@@ -1,6 +1,8 @@
 #!/bin/busybox sh
 
-busybox echo "Welcome to SATIP-AXE Linux!"
+AXECFG=$(busybox awk 'match($0, /axecfg=[^ ]*/) {print substr($0,RSTART,RLENGTH)}' /proc/cmdline)
+busybox echo "Welcome to SATIP-AXE Linux! $AXECFG"
+AXECFG=${AXECFG:7:255}
 
 busybox mount -t proc proc /proc
 # remount root filesystem in rw mode
@@ -44,12 +46,22 @@ mkdir -p /mnt/data
 mount -t jffs2 /dev/mtdblock4 /mnt/data/
 mkdir -p /mnt/data/satip-axe/sysconfig
 ln -s /mnt/data/satip-axe/sysconfig /etc/sysconfig
-if ! test -r /etc/sysconfig/config ; then
-  cp /etc/config.default /etc/sysconfig/config
+if test "$AXECFG" = "reset"; then
+  mv /etc/sysconfig/config.old /etc/sysconfig/config.old1 2> /dev/null
+  mv /etc/sysconfig/config /etc/sysconfig/config.old 2> /dev/null
+  mv /etc/sysconfig/passwd.old /etc/sysconfig/passwd.old1 2> /dev/null
+  mv /etc/sysconfig/passwd /etc/sysconfig/passwd.old 2> /dev/null
+else
+  if ! test -r /etc/sysconfig/config ; then
+    cp /etc/config.default /etc/sysconfig/config
+  fi
+  if test -r /etc/sysconfig/passwd ; then
+    cp /etc/sysconfig/passwd /etc/passwd
+  fi
 fi
-if test -r /etc/sysconfig/passwd ; then
-  cp /etc/sysconfig/passwd /etc/passwd
-fi
+
+# load config
+test -r /etc/sysconfig/config && . /etc/sysconfig/config
 
 # loopback
 ifconfig lo 127.0.0.1 netmask 255.255.255.0
@@ -66,8 +78,11 @@ insmod $d/i2c_mangle.ko
 insmod $d/axe_fe.ko
 insmod $d/axe_fp.ko
 insmod $d/axe_dmx.ko
-#insmod $d/axe_dmxts.ko
-insmod $d/axe_dmxts_std.ko
+if test "$AXECFG" = "demuxts_old" -o "$DEMUXTS_OLD" = "yes"; then
+  insmod $d/axe_dmxts_std.ko
+else
+  insmod $d/axe_dmxts.ko
+fi
 mkdir -p /dev/axe /dev/stapi
 maj=
 for i in $(cat /proc/devices); do
@@ -116,7 +131,6 @@ if test -r /etc/sysconfig/localtime; then
 fi
 
 # hostname
-test -r /etc/sysconfig/config && . /etc/sysconfig/config
 test -n "$HOSTNAME" && hostname "$HOSTNAME"
 test -z "$HOSTNAME" && hostname satip-axe
 
