@@ -76,6 +76,7 @@ nfsd:
 Minisatip config:
 
   - you may add extra parameters to MINISATIP_OPTS= in /etc/sysconfig/config
+  - WARNING: use -d with unique numbers if you have _multiple_ SAT>IP servers on net
   - example 1: only two tuners: MINISATIP_OPTS="-e 0-1"
   - example 2: unicable: MINISATIP_OPTS="-u 0:1-1420,1:0-1210,2:2-1680,3:3-2040"
   - AXE hardware specific options:
