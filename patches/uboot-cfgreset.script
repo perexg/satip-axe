@@ -1,0 +1,2 @@
+set bootargs console=ttyAS0,115200 bigphysarea=20000 axecfg=reset
+nboot.jffs2 $load_addr fw2-nand0
