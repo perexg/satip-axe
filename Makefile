@@ -89,7 +89,7 @@ endef
 all: kernel-axe-modules kernel
 
 .PHONY: release
-release: kernel-axe-modules out/idl4k.scr out/idl4k.cfgreset out/idl4k.recovery
+release: kernel-axe-modules out/idl4k.scr out/idl4k.cfgreset out/idl4k.cfgresetusb out/idl4k.recovery
 	-ls -la out
 
 .PHONY: dist
@@ -150,6 +150,11 @@ out/idl4k.cfgreset: patches/uboot-cfgreset.script
 	$(TOOLPATH)/mkimage -T script -C none \
 	  -n 'Reset satip-axe fw configuration' \
 	  -d patches/uboot-cfgreset.script out/idl4k.cfgreset
+
+out/idl4k.cfgresetusb: patches/uboot-cfgresetusb.script
+	$(TOOLPATH)/mkimage -T script -C none \
+	  -n 'Reset satip-axe fw configuration (USB)' \
+	  -d patches/uboot-cfgresetusb.script out/idl4k.cfgresetusb
 
 out/idl4k.recovery: patches/uboot-recovery.script
 	$(TOOLPATH)/mkimage -T script -C none \

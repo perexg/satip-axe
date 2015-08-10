@@ -102,7 +102,10 @@ Misc:
 Recovery from the wrong configuration:
 
   - it works with firmware build 10 and later
-  - copy idl4k.cfgreset file as idl4k.scr file to the root directory on the USB stick
+  - for flashed firmware:
+    - copy idl4k.cfgreset file as idl4k.scr file to the root directory on the USB stick
+  - for firmare on the USB stick:
+    - copy idl4k.cfgresetusb file as idl4k.scr file to the root directory on the USB stick
   - plug the USB stick to the upper USB port in box
   - turn on the box
   - the old configuration file is moved to /etc/sysconfig/config.old
