@@ -20,6 +20,8 @@ Update:
 
 Installation:
 
+  - set DHCP in the original firmware (not 100% required, but several
+    users reported that without this change the network might not work)
   - setup a DHCP server for the box ethernet MAC address
   - copy satip-axe-$(VERSION).usb as idl4k.scr (rename the file) to the USB stick
   - copy satip-axe-$(VERSION).fw (no rename) to the USB stick
