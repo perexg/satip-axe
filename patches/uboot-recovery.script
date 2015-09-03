@@ -1,1 +1,2 @@
 if test \"${satip-axe}\" != \"\"; then set bootcmd run\ updatefw\;nboot.jffs2\ \$load_addr fw1-nand0; set satip-axe; saveenv; fi
+nboot.jffs2 $load_addr fw1-nand0
