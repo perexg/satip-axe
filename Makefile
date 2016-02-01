@@ -297,7 +297,7 @@ busybox: apps/$(BUSYBOX)/busybox
 #
 
 apps/$(DROPBEAR)/configure:
-	$(call WGET,https://matt.ucc.asn.au/dropbear/$(DROPBEAR).tar.bz2,apps/$(DROPBEAR).tar.bz2)
+	$(call WGET,https://matt.ucc.asn.au/dropbear/releases/$(DROPBEAR).tar.bz2,apps/$(DROPBEAR).tar.bz2)
 	tar -C apps -xjf apps/$(DROPBEAR).tar.bz2
 
 apps/$(DROPBEAR)/dropbear: apps/$(DROPBEAR)/configure
@@ -456,6 +456,7 @@ apps/$(NANO)/nano: apps/$(NANO)/configure
 	  CFLAGS="-O2" \
 	./configure \
 	  --host=sh4-linux \
+	  --disable-utf8 \
 	  --prefix=/
 	make -C apps/$(NANO)
 
