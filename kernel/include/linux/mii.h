@@ -21,6 +21,8 @@
 #define MII_EXPANSION       0x06        /* Expansion register          */
 #define MII_CTRL1000        0x09        /* 1000BASE-T control          */
 #define MII_STAT1000        0x0a        /* 1000BASE-T status           */
+#define	MII_MMD_CRTL	    0x0d	/* MMD Access Control Register */
+#define	MII_MMD_DATA	    0x0e	/* MMD Access Data Register */
 #define MII_ESTATUS	    0x0f	/* Extended Status */
 #define MII_DCOUNTER        0x12        /* Disconnect counter          */
 #define MII_FCSCOUNTER      0x13        /* False carrier counter       */
@@ -138,6 +140,15 @@
 /* Flow control flags */
 #define FLOW_CTRL_TX		0x01
 #define FLOW_CTRL_RX		0x02
+
+/* MMD Access Control register fields */
+#define MII_MMD_CRTL_DEVAD_MASK			0x1f	/* Mask MMD DEVAD*/
+#define MII_MMD_CRTL_FUNC_ADDR			0x0000	/* Address */
+#define MII_MMD_CTRL_FUNC_DATA_NOINCR		0x4000	/* no post increment */
+#define MII_MMD_CTRL_FUNC_DATA_INCR_ON_RDWT	0x8000	/* post increment on
+							 * reads & writes */
+#define MII_MMD_CTRL_FUNC_DATA_INCR_ON_WT	0xC000	/* post increment on
+							 * writes only */
 
 /* This structure is used in all SIOCxMIIxxx ioctl calls */
 struct mii_ioctl_data {

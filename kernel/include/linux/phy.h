@@ -248,6 +248,7 @@ enum phy_state {
  * changes in the link state.
  * adjust_state: Callback for the enet driver to respond to
  * changes in the state machine.
+ * wol: which WoL mode will be used to wake-up the system via ethtool.
  *
  * speed, duplex, pause, supported, advertising, and
  * autoneg are used like in mii_if_info
@@ -321,6 +322,7 @@ struct phy_device {
 	struct mutex lock;
 
 	struct net_device *attached_dev;
+	int wol;
 
 	void (*adjust_link)(struct net_device *dev);
 
@@ -339,6 +341,8 @@ struct phy_device {
  *   by this PHY
  * flags: A bitfield defining certain other features this PHY
  *   supports (like interrupts)
+ * wol: to define which Wake-up modes are supported (e.g. WoL
+ * via magic packet).
  *
  * The drivers must implement config_aneg and read_status.  All
  * other functions are optional. Note that none of these
@@ -354,6 +358,7 @@ struct phy_driver {
 	unsigned int phy_id_mask;
 	u32 features;
 	u32 flags;
+	u32 wol_supported;
 
 	/*
 	 * Called to initialize the PHY,
@@ -442,6 +447,9 @@ static inline int phy_write(struct phy_device *phydev, u16 regnum, u16 val)
 	return mdiobus_write(phydev->bus, phydev->addr, regnum, val);
 }
 
+int phy_read_page(struct phy_device *phydev, u16 regnum, int page);
+int phy_write_page(struct phy_device *phydev, u16 regnum, int page, int data);
+
 int get_phy_id(struct mii_bus *bus, int addr, u32 *phy_id);
 struct phy_device* get_phy_device(struct mii_bus *bus, int addr);
 int phy_device_register(struct phy_device *phy);
@@ -489,6 +497,9 @@ void phy_start_machine(struct phy_device *phydev,
 void phy_stop_machine(struct phy_device *phydev);
 int phy_ethtool_sset(struct phy_device *phydev, struct ethtool_cmd *cmd);
 int phy_ethtool_gset(struct phy_device *phydev, struct ethtool_cmd *cmd);
+int phy_ethtool_set_wol(struct phy_device *phydev, struct ethtool_wolinfo *wol);
+int phy_ethtool_get_wol(struct phy_device *phydev, struct ethtool_wolinfo *wol);
+
 int phy_mii_ioctl(struct phy_device *phydev,
 		struct mii_ioctl_data *mii_data, int cmd);
 int phy_start_interrupts(struct phy_device *phydev);
@@ -503,6 +514,9 @@ int phy_register_fixup_for_id(const char *bus_id,
 int phy_register_fixup_for_uid(u32 phy_uid, u32 phy_uid_mask,
 		int (*run)(struct phy_device *));
 int phy_scan_fixups(struct phy_device *phydev);
+
+int phy_check_eee(struct phy_device *phydev);
+int phy_get_eee_err(struct phy_device *phydev);
 
 int __init mdio_bus_init(void);
 void mdio_bus_exit(void);

@@ -277,6 +277,13 @@ static bool mdio_bus_phy_may_suspend(struct phy_device *phydev)
 	if (!netdev)
 		return true;
 
+	/* PHY supports WoL+ that has been enabled by ethtool.
+	 * So we can call the suspend function that is expected
+	 * able to program internal registers to wake-up the system.
+	 */
+	if (phydev->wol)
+		return true;
+
 	/*
 	 * Don't suspend PHY if the attched netdev parent may wakeup.
 	 * The parent may point to a PCI device, as in tg3 driver.

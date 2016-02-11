@@ -30,6 +30,7 @@
 #include <linux/mii.h>
 #include <linux/ethtool.h>
 #include <linux/phy.h>
+#include <linux/mdio.h>
 
 #include <asm/io.h>
 #include <asm/irq.h>
@@ -874,6 +875,140 @@ int genphy_resume(struct phy_device *phydev)
 }
 EXPORT_SYMBOL(genphy_resume);
 
+static inline void mmd_phy_cl45(struct mii_bus *bus, int prtad, int devad,
+				int addr)
+{
+	/* Write the desired MMD Devad */
+	bus->write(bus, addr, MII_MMD_CRTL, devad);
+
+	/* Write the desired MMD register address */
+	bus->write(bus, addr, MII_MMD_DATA, prtad);
+
+	/* Select the Function : DATA with no post increment */
+	bus->write(bus, addr, MII_MMD_CRTL,
+		   (devad | MII_MMD_CTRL_FUNC_DATA_NOINCR));
+}
+
+/**
+ * read_phy_mmd - reads data from the MMD register (clause 22 to access to
+ * 		  clause 45)
+ * @bus: the target MII bus
+ * @prtad: MMD Address
+ * @devad: MMD DEVAD
+ * @addr: PHY address on the MII bus
+ *
+ * Description: Reads data from the MMD regisetrs of the
+ * phy addr. To read these register we have:
+ * 1) Write reg 13 // DEVAD
+ * 2) Write reg 14 // MMD Address
+ * 3) Write reg 13 // MMD Data Command for MMD DEVAD
+ * 3) Read  reg 14 // Read MMD data
+ */
+static int read_phy_mmd(struct mii_bus *bus, int prtad, int devad, int addr)
+{
+	u32 ret;
+
+	mmd_phy_cl45(bus, prtad, devad, addr);
+
+	/* Read the content of the MMD's selected register */
+	ret = bus->read(bus, addr, MII_MMD_DATA);
+	if (ret < 0)
+		return -EIO;
+
+	return ret;
+}
+
+/**
+ * write_phy_mmd - writes data to the MMD register (clause 22 to access to
+ * 		   clause 45)
+ * @bus: the target MII bus
+ * @prtad: MMD Address
+ * @devad: MMD DEVAD
+ * @addr: PHY address on the MII bus
+ * @data: data to write in the MMD register
+ *
+ * Description: write data from the MMD regisetrs of the
+ * phy addr. To read these register we have:
+ * 1) Write reg 13 // DEVAD
+ * 2) Write reg 14 // MMD Address
+ * 3) Write reg 13 // MMD Data Command for MMD DEVAD
+ * 3) Write reg 14 // Write MMD data
+ */
+static void write_phy_mmd(struct mii_bus *bus, int prtad, int devad, int addr,
+			  u32 data)
+{
+	mmd_phy_cl45(bus, prtad, devad, addr);
+
+	/* Write the data into MMD's selected register */
+	bus->write(bus, addr, MII_MMD_DATA, data);
+}
+
+/* phy_check_eee
+ * @dev: device to probe and init
+ *
+ * Description: check if the Energy-Efficient Ethernet (EEE)
+ * is supported by looking at the MMD registers 3.20 and 3.60/61
+ */
+int phy_check_eee(struct phy_device *phydev)
+{
+	int ret = -EPROTONOSUPPORT;
+
+	/* According to 802.3az,the EEE is supported only in full duplex-mode.
+	 * Also EEE feature is active when core is operating with MII, GMII
+	 * or RGMII */
+	if ((phydev->duplex == DUPLEX_FULL) &&
+	    ((phydev->interface == PHY_INTERFACE_MODE_MII) ||
+	    (phydev->interface == PHY_INTERFACE_MODE_GMII) ||
+	    (phydev->interface == PHY_INTERFACE_MODE_RGMII))) {
+		int eee_cap, eee_link;
+
+		/* EEE ability must be supported in both local and remote
+		 * PHY devices. */
+		eee_cap = read_phy_mmd(phydev->bus, MDIO_EEE_PART_LINK,
+					MDIO_MMD_AN, phydev->addr);
+		if (eee_cap < 0)
+			return eee_cap;
+
+		eee_link = read_phy_mmd(phydev->bus, MDIO_EEE_CAP,
+					MDIO_MMD_PCS, phydev->addr);
+		if (eee_link < 0)
+			return eee_link;
+
+		if (eee_cap && eee_link) {
+			/* Configure the PHY to stop receiving xMII clock
+			 * while it is signaling LPI */
+			int pcs_ctrl = read_phy_mmd(phydev->bus, MDIO_CTRL1,
+						    MDIO_MMD_PCS,
+						    phydev->addr);
+			if (pcs_ctrl < 0)
+				return pcs_ctrl;
+
+			pcs_ctrl |= MDIO_PCS_CLK_STOP_ENABLE;
+			write_phy_mmd(phydev->bus, MDIO_CTRL1, MDIO_MMD_PCS,
+				      phydev->addr, pcs_ctrl);
+
+			ret = 0; /* EEE supported */
+		}
+	}
+
+	return ret;
+}
+EXPORT_SYMBOL(phy_get_eee_err);
+
+/* phy_get_eee_err
+ * @dev: device to probe and init
+ *
+ * Description: it is to report the number of time where the PHY
+ * failed to complete its normal wake sequence.
+ */
+int phy_get_eee_err(struct phy_device *phydev)
+{
+	return read_phy_mmd(phydev->bus, MDIO_EEE_WK_ERR, MDIO_MMD_PCS,
+			    phydev->addr);
+
+}
+EXPORT_SYMBOL(phy_check_eee);
+
 /**
  * phy_probe - probe and init a PHY device
  * @dev: device to probe and init
@@ -900,6 +1035,13 @@ static int phy_probe(struct device *dev)
 	/* Disable the interrupt if the PHY doesn't support it */
 	if (!(phydrv->flags & PHY_HAS_INTERRUPT))
 		phydev->irq = PHY_POLL;
+	else {
+		/* Check if the PHY is WoL capable but driver cannot work
+		 * in polling mode.
+		 */
+		if (phydrv->wol_supported)
+			device_set_wakeup_capable(dev, 1);
+	}
 
 	mutex_lock(&phydev->lock);
 

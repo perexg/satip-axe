@@ -107,6 +107,7 @@ static int stmmac_mdio_write(struct mii_bus *bus, int phyaddr, int phyreg,
  */
 static int stmmac_mdio_reset(struct mii_bus *bus)
 {
+#if defined(CONFIG_STMMAC_PLATFORM)
 	struct net_device *ndev = bus->priv;
 	struct stmmac_priv *priv = netdev_priv(ndev);
 	unsigned int mii_address = priv->hw->mii.addr;
@@ -121,7 +122,7 @@ static int stmmac_mdio_reset(struct mii_bus *bus)
 	 * on MDC, so perform a dummy mdio read.
 	 */
 	writel(0, priv->ioaddr + mii_address);
-
+#endif
 	return 0;
 }
 
@@ -183,7 +184,9 @@ int stmmac_mdio_register(struct net_device *ndev)
 			if ((mdio_bus_data->irqs == NULL) &&
 			    (mdio_bus_data->probed_phy_irq > 0)) {
 				irqlist[addr] = mdio_bus_data->probed_phy_irq;
-				phydev->irq = mdio_bus_data->probed_phy_irq;
+				if (!phydev->drv ||
+				    (phydev->drv->flags & PHY_HAS_INTERRUPT))
+					phydev->irq = irqlist[addr];
 			}
 
 			/*
@@ -217,8 +220,15 @@ int stmmac_mdio_register(struct net_device *ndev)
 		}
 	}
 
-	if (!found)
+	if (!found) {
 		pr_warning("%s: No PHY found\n", ndev->name);
+		/* Un-register the Bus and report an error */
+		mdiobus_unregister(new_bus);
+		priv->mii->priv = NULL;
+		mdiobus_free(new_bus);
+		priv->mii = NULL;
+		return -ENODEV;
+	}
 
 	return 0;
 

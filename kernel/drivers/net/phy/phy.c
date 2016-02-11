@@ -299,6 +299,36 @@ int phy_ethtool_gset(struct phy_device *phydev, struct ethtool_cmd *cmd)
 }
 EXPORT_SYMBOL(phy_ethtool_gset);
 
+int phy_ethtool_set_wol(struct phy_device *phydev, struct ethtool_wolinfo *wol)
+{
+	u32 support = phydev->drv->wol_supported;
+
+	if (wol->wolopts & ~support)
+		return -EINVAL;
+
+	phydev->wol = wol->wolopts;
+	if (wol->wolopts) {
+		device_set_wakeup_enable(&phydev->dev, 1);
+		enable_irq_wake(phydev->irq);
+	} else {
+		device_set_wakeup_enable(&phydev->dev, 0);
+		disable_irq_wake(phydev->irq);
+	}
+
+	return 0;
+}
+EXPORT_SYMBOL(phy_ethtool_set_wol);
+
+int phy_ethtool_get_wol(struct phy_device *phydev, struct ethtool_wolinfo *wol)
+{
+	if (device_can_wakeup(&phydev->dev)) {
+		wol->supported = phydev->drv->wol_supported;
+		wol->wolopts = phydev->wol;
+	}
+	return 0;
+}
+EXPORT_SYMBOL(phy_ethtool_get_wol);
+
 /**
  * phy_mii_ioctl - generic PHY MII ioctl interface
  * @phydev: the phy_device struct
@@ -510,7 +540,7 @@ static irqreturn_t phy_interrupt(int irq, void *phy_dat)
 {
 	struct phy_device *phydev = phy_dat;
 
-	if (PHY_HALTED == phydev->state)
+	if ((PHY_HALTED == phydev->state) && (!device_may_wakeup(&phydev->dev)))
 		return IRQ_NONE;		/* It can't be ours.  */
 
 	/* The MDIO bus is not allowed to be written in interrupt
@@ -964,3 +994,35 @@ static void phy_state_machine(struct work_struct *work)
 
 	schedule_delayed_work(&phydev->state_queue, PHY_STATE_TIME * HZ);
 }
+
+int phy_read_page(struct phy_device *phydev, u16 regnum, int page)
+{
+	int ret, old;
+
+	old = phy_read(phydev, 20);
+
+	/* Write the page in 0.20 reg */
+	phy_write(phydev, 20, page);
+	/* Read data from user page for the regnum */
+	ret = phy_read(phydev, regnum);
+	/* Restore page0 */
+	phy_write(phydev, 20, old);
+
+	return ret;
+}
+EXPORT_SYMBOL(phy_read_page);
+
+int phy_write_page(struct phy_device *phydev, u16 regnum, int page, int data)
+{
+	int old = phy_read(phydev, 20);
+
+	/* Write the page in 0.20 reg */
+	phy_write(phydev, 20, page);
+	/* Write date to page for regnum */
+	phy_write(phydev, regnum, data);
+	/* Restore page0 */
+	phy_write(phydev, 20, old);
+
+	return 0;
+}
+EXPORT_SYMBOL(phy_write_page);

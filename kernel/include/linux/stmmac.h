@@ -26,6 +26,8 @@
 #ifndef __STMMAC_PLATFORM_DATA
 #define __STMMAC_PLATFORM_DATA
 
+#include <linux/platform_device.h>
+
 /* Platfrom data for platform device structure's platform_data field */
 
 struct stmmac_mdio_bus_data {
@@ -48,6 +50,7 @@ struct plat_stmmacenet_data {
 	int tx_coe;
 	int bugged_jumbo;
 	int pmt;
+	int force_sf_dma_mode;
 	void (*fix_mac_speed)(void *priv, unsigned int speed);
 	void (*bus_setup)(void __iomem *ioaddr);
 	int (*init)(struct platform_device *pdev);

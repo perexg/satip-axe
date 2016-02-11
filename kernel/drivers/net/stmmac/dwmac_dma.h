@@ -34,6 +34,7 @@
 #define DMA_MISSED_FRAME_CTR	0x00001020	/* Missed Frame Counter */
 #define DMA_CUR_TX_BUF_ADDR	0x00001050	/* Current Host Tx Buffer */
 #define DMA_CUR_RX_BUF_ADDR	0x00001054	/* Current Host Rx Buffer */
+#define DMA_HW_FEATURE		0x00001058	/* HW Feature Register */
 
 /* DMA Control register defines */
 #define DMA_CONTROL_ST		0x00002000	/* Start/Stop Transmission */
@@ -68,6 +69,7 @@
 #define DMA_INTR_DEFAULT_MASK	(DMA_INTR_NORMAL | DMA_INTR_ABNORMAL)
 
 /* DMA Status register defines */
+#define DMA_STATUS_GLPII	0x40000000	/* GMAC LPI interrupt */
 #define DMA_STATUS_GPI		0x10000000	/* PMT interrupt */
 #define DMA_STATUS_GMI		0x08000000	/* MMC interrupt */
 #define DMA_STATUS_GLI		0x04000000	/* GMAC Line interface int */

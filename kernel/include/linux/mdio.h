@@ -42,7 +42,11 @@
 #define MDIO_PKGID2		15
 #define MDIO_AN_ADVERTISE	16	/* AN advertising (base page) */
 #define MDIO_AN_LPA		19	/* AN LP abilities (base page) */
+#define MDIO_EEE_CAP		20	/* EEE Capability register */
+#define MDIO_EEE_WK_ERR		22	/* EEE wake error counter */
 #define MDIO_PHYXS_LNSTAT	24	/* PHY XGXS lane state */
+#define MDIO_EEE_ADV		60	/* EEE advertisement */
+#define MDIO_EEE_PART_LINK	61	/* EEE link partner ability */
 
 /* Media-dependent registers. */
 #define MDIO_PMA_10GBT_SWAPPOL	130	/* 10GBASE-T pair swap & polarity */
@@ -80,6 +84,7 @@
 #define MDIO_AN_CTRL1_RESTART		BMCR_ANRESTART
 #define MDIO_AN_CTRL1_ENABLE		BMCR_ANENABLE
 #define MDIO_AN_CTRL1_XNP		0x2000	/* Enable extended next page */
+#define MDIO_PCS_CLK_STOP_ENABLE	0x400	/* Stop the clock during LPI */
 
 /* 10 Gb/s */
 #define MDIO_CTRL1_SPEED10G		(MDIO_CTRL1_SPEEDSELEXT | 0x00)
