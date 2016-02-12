@@ -899,7 +899,7 @@ index 5701bd2..32fd683 100755
  }
  
 diff --git a/minisatip.c b/minisatip.c
-index d4076ba..923e7fd 100755
+index d4076ba..8507511 100755
 --- a/minisatip.c
 +++ b/minisatip.c
 @@ -36,6 +36,7 @@
@@ -910,7 +910,7 @@ index d4076ba..923e7fd 100755
  #include "socketworks.h"
  #include "stream.h"
  #include "adapter.h"
-@@ -62,10 +63,15 @@ usage ()
+@@ -62,10 +63,16 @@ usage ()
  		-c X: bandwidth capping for the output to the network (default: unlimited)\n\
  		-b X: set the DVR buffer to X KB (default: %dKB)\n\
  		-l increases the verbosity (you can use multiple -l), logging to stdout in foreground mode or in /tmp/log when a daemon\n\
@@ -923,24 +923,26 @@ index d4076ba..923e7fd 100755
 +		-L link adapters (identical src,lo/hi,h/v), the format is M:S (master:slave)\n\
 +		-Q quattro LNB config (H/H,H/V,L/H,L/V)\n\
 +		-X AXE unicable/jess input (0-3)\n\
++		-S X: skip initial MPEG-TS packets for AXE demuxer (default 35)\n\
  		",
  		DVR_BUFFER / 1024);
  	exit (1);
-@@ -97,11 +103,11 @@ set_options (int argc, char *argv[])
+@@ -97,11 +104,12 @@ set_options (int argc, char *argv[])
  	opts.device_id = 0;
  	opts.bootid = 0;
  	opts.force_scan = 0;
 -	opts.dvr = DVR_BUFFER;
 +	opts.dvr = 14*7*DVB_FRAME;
  	opts.file_line = 0;
++	opts.axe_skippkt = 35;
  	memset(opts.playlist, sizeof(opts.playlist), 0);
  	
 -	while ((opt = getopt (argc, argv, "flr:a:t:d:w:p:shc:b:m:p:e:x:u:j:")) != -1)
-+	while ((opt = getopt (argc, argv, "flr:a:t:d:w:p:shc:b:m:p:e:x:u:j:gL:QX:")) != -1)
++	while ((opt = getopt (argc, argv, "flr:a:t:d:w:p:shc:b:m:p:e:x:u:j:gL:QX:S:")) != -1)
  	{
  		//              printf("options %d %c %s\n",opt,opt,optarg);
  		switch (opt)
-@@ -143,6 +149,12 @@ set_options (int argc, char *argv[])
+@@ -143,6 +151,12 @@ set_options (int argc, char *argv[])
  				break;
  			}
  
@@ -953,7 +955,7 @@ index d4076ba..923e7fd 100755
  			case HELP_OPT:
  			{
  				usage ();
-@@ -164,6 +176,10 @@ set_options (int argc, char *argv[])
+@@ -164,6 +178,10 @@ set_options (int argc, char *argv[])
  			case DVRBUFFER_OPT:
  			{
  				opts.dvr = atoi (optarg) * 1024;
@@ -964,7 +966,7 @@ index d4076ba..923e7fd 100755
  				break;
  			}
  
-@@ -209,6 +225,28 @@ set_options (int argc, char *argv[])
+@@ -209,6 +227,37 @@ set_options (int argc, char *argv[])
  				break;
  			}
  
@@ -990,10 +992,19 @@ index d4076ba..923e7fd 100755
 +				break;
 +			}
 +
++			case AXE_SKIP_PKT:
++			{
++				opts.axe_skippkt = atoi(optarg);
++				if (opts.axe_skippkt < 0)
++                                        opts.axe_skippkt = 0;
++				if (opts.axe_skippkt > 200)
++                                        opts.axe_skippkt = 200;
++                                break;
++			}
  		}
  	}
  	
-@@ -483,6 +521,11 @@ http_response (sockets *s, int rc, char *ah, char *desc, int cseq, int lr)
+@@ -483,6 +532,11 @@ http_response (sockets *s, int rc, char *ah, char *desc, int cseq, int lr)
  
  #define RBUF 4000
  
@@ -1005,7 +1016,7 @@ index d4076ba..923e7fd 100755
  int
  read_rtsp (sockets * s)
  {
-@@ -507,8 +550,7 @@ read_rtsp (sockets * s)
+@@ -507,8 +561,7 @@ read_rtsp (sockets * s)
  		}
  	}
  	
@@ -1015,7 +1026,7 @@ index d4076ba..923e7fd 100755
  	{
  		if( s->rlen > RBUF - 10 )
  		{
-@@ -524,6 +566,9 @@ read_rtsp (sockets * s)
+@@ -524,6 +577,9 @@ read_rtsp (sockets * s)
  		return 0;
  	}
  
@@ -1025,7 +1036,7 @@ index d4076ba..923e7fd 100755
  	rlen = s->rlen;
  	s->rlen = 0;
  
-@@ -726,8 +771,7 @@ read_http (sockets * s)
+@@ -726,8 +782,7 @@ read_http (sockets * s)
  		"%s"
  		"</device></root>";
  
@@ -1035,7 +1046,7 @@ index d4076ba..923e7fd 100755
  	{
  		if( s->rlen > RBUF - 10 )
  		{
-@@ -749,6 +793,9 @@ read_http (sockets * s)
+@@ -749,6 +804,9 @@ read_http (sockets * s)
  		return 0;
  	}
  
@@ -1045,7 +1056,7 @@ index d4076ba..923e7fd 100755
  	rlen = s->rlen;
  	s->rlen = 0;
  	
-@@ -781,6 +828,15 @@ read_http (sockets * s)
+@@ -781,6 +839,15 @@ read_http (sockets * s)
  		return 0;
  	}
  
@@ -1061,7 +1072,7 @@ index d4076ba..923e7fd 100755
  	if (strncmp (arg[1], "/icons/", 7) == 0)
  	{
  		char *ctype = NULL;
-@@ -904,6 +960,9 @@ ssdp_reply (sockets * s)
+@@ -904,6 +971,9 @@ ssdp_reply (sockets * s)
  		return 0;
  	}
  
@@ -1071,7 +1082,7 @@ index d4076ba..923e7fd 100755
  	// not my uuid
  	LOG("Received SSDP packet from %s:%d -> handle %d", inet_ntoa(s->sa.sin_addr), ntohs(s->sa.sin_port), s->sock);
  	LOGL(3, "%s", s->buf);
-@@ -987,7 +1046,13 @@ main (int argc, char *argv[])
+@@ -987,7 +1057,13 @@ main (int argc, char *argv[])
  	set_options (argc, argv);
  	if (opts.daemon)
  		becomeDaemon ();
@@ -1085,7 +1096,7 @@ index d4076ba..923e7fd 100755
  	readBootID();
  	if ((ssdp = udp_bind (NULL, 1900)) < 1)
  		FAIL ("SSDP: Could not bind on udp port 1900");
-@@ -1021,7 +1086,9 @@ main (int argc, char *argv[])
+@@ -1021,7 +1097,9 @@ main (int argc, char *argv[])
  	select_and_execute ();
  	unlink(PID_FILE);
  	free_all ();
@@ -1096,7 +1107,7 @@ index d4076ba..923e7fd 100755
  }
  
  
-@@ -1247,12 +1314,16 @@ void _log(int level, char * file, int line, const char *fmt, ...) {
+@@ -1247,12 +1325,16 @@ void _log(int level, char * file, int line, const char *fmt, ...) {
  		idx = 1;
  	else if ( idx < 0)
  		idx = 0;
@@ -1116,7 +1127,7 @@ index d4076ba..923e7fd 100755
  	both = 0;
      va_start(arg, fmt);
      len += vsnprintf(output[idx] + len, sizeof(output[0]) - len, fmt, arg);
-@@ -1271,9 +1342,9 @@ void _log(int level, char * file, int line, const char *fmt, ...) {
+@@ -1271,9 +1353,9 @@ void _log(int level, char * file, int line, const char *fmt, ...) {
  	}
  	
  	if(both){
@@ -1129,7 +1140,7 @@ index d4076ba..923e7fd 100755
  	fflush(stdout);
  }
 diff --git a/minisatip.h b/minisatip.h
-index 821e756..427f429 100755
+index 821e756..00f3618 100755
 --- a/minisatip.h
 +++ b/minisatip.h
 @@ -9,7 +9,7 @@
@@ -1137,11 +1148,11 @@ index 821e756..427f429 100755
  #define VERSION_BUILD "84"
  #define CC(a,b,c) #a b #c
 -#define VERSION CC(0.1.,VERSION_BUILD,)
-+#define VERSION CC(0.1.,VERSION_BUILD,-axe1)
++#define VERSION CC(0.1.,VERSION_BUILD,-axe2)
  
  void set_options (int argc, char *argv[]);
  
-@@ -30,6 +30,10 @@ void set_options (int argc, char *argv[]);
+@@ -30,6 +30,11 @@ void set_options (int argc, char *argv[]);
  #define ENABLE_ADAPTERS_OPT 'e'
  #define UNICABLE_OPT 'u'
  #define JESS_OPT 'j'
@@ -1149,10 +1160,11 @@ index 821e756..427f429 100755
 +#define LINK_OPT 'L'
 +#define QUATTRO_OPT 'Q'
 +#define AXE_UNICINP_OPT 'X'
++#define AXE_SKIP_PKT 'S'
  
  #define PID_FILE "/var/run/minisatip.pid"
  struct struct_opts
-@@ -39,6 +43,7 @@ struct struct_opts
+@@ -39,6 +44,7 @@ struct struct_opts
  	char *disc_host;			 //discover host
  	char mac[13];
  	unsigned int log,
@@ -1160,20 +1172,29 @@ index 821e756..427f429 100755
  		start_rtp,
  		http_port;
  	int timeout_sec;
-@@ -50,6 +55,8 @@ struct struct_opts
+@@ -50,6 +56,9 @@ struct struct_opts
  	int dvr;
  	int force_scan;
  	int file_line;
 +	int quattro;
 +	int axe_unicinp;
++	int axe_skippkt;
  	char *last_log;	
  	char playlist[200];
  };
 diff --git a/socketworks.c b/socketworks.c
-index b4891f1..1857089 100755
+index b4891f1..3167cac 100755
 --- a/socketworks.c
 +++ b/socketworks.c
-@@ -433,6 +433,17 @@ select_and_execute ()
+@@ -299,6 +299,7 @@ socket_action a, socket_action c, socket_action t)
+ 		max_sock = i + 1;
+ 	s[i].buf = NULL;
+ 	s[i].lbuf = 0;
++	s[i].skiplen = type == TYPE_DVR ? opts.axe_skippkt * 188 : 0;
+ 	s[i].close_sec = 0;
+ 	s[i].sock_id = i;
+ 	pf[i].fd = sock;
+@@ -433,6 +434,29 @@ select_and_execute ()
  					ss->rtime = c_time;
  					if(rlen>0)
  						ss->rlen += rlen;
@@ -1186,11 +1207,35 @@ index b4891f1..1857089 100755
 +						}
 +						if (rlen == 0 || (rlen < 0 || errno == -EAGAIN))
 +							rlen = 1;
++						if (ss->skiplen > 0) {
++							LOG("AXE skip: before rlen %d skiplen %d", ss->rlen, ss->skiplen);
++							if (ss->skiplen >= ss->rlen) {
++								ss->skiplen -= ss->rlen;
++								ss->rlen = 0;
++							} else {
++								memmove(ss->buf, &ss->buf[ss->skiplen], ss->rlen - ss->skiplen);
++								ss->rlen = ss->rlen - ss->skiplen;
++								ss->skiplen = 0;
++							}
++							LOG("AXE skip: after rlen %d skiplen %d", ss->rlen, ss->skiplen);
++						}
 +					}
 +#endif
  								 //force 0 at the end of the string
  					if(ss->lbuf >= ss->rlen)
  						ss->buf[ss->rlen] = 0;
+diff --git a/socketworks.h b/socketworks.h
+index 57b25b2..9c14f64 100755
+--- a/socketworks.h
++++ b/socketworks.h
+@@ -18,6 +18,7 @@ typedef struct struct_sockets
+ 	unsigned char *buf;
+ 	int lbuf;
+ 	int rlen;
++	int skiplen;
+ 	int close_sec;
+ 	int sock_id;				 // socket id
+ 	int err;
 diff --git a/stream.c b/stream.c
 index db4a46d..2036841 100755
 --- a/stream.c
