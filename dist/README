@@ -173,10 +173,13 @@ History:
   upcoming
     - updated stmmac ethernet driver from latest stlinux kernel
       - linux-sh4-2.6.32.y - _stm24_0217
+      - enabled Realtek PHY module (RTL8211E)
     - updated dropbear to 2015.71
     - updated nfsutils to 1.3.3
     - updated nano to 2.4.3
     - updated oscam to 11211
+    - minisatip accepts -S option to skip first MPEG-TS packets from demuxer
+      - the default value is 35 (to skip packets from previous tune)
 
   satip-axe-201508061051-10 - Thu Aug  6 2015
     - replaced stapi / frontend / demuxer drivers with latest from Inverto
