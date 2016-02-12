@@ -32,9 +32,9 @@ KMODULES = drivers/usb/serial/cp210x.ko \
 
 MINISATIP_COMMIT=54df9348e7bd7e6075f54f1b93ec4ad36429abe0
 
-BUSYBOX=busybox-1.23.2
+BUSYBOX=busybox-1.24.1
 
-DROPBEAR=dropbear-2015.67
+DROPBEAR=dropbear-2015.71
 DROPBEAR_SBIN_FILES=dropbear
 DROPBEAR_BIN_FILES=dbclient dropbearconvert dropbearkey scp
 
@@ -49,7 +49,7 @@ RPCBIND_VERSION=0.2.2
 RPCBIND=rpcbind-$(RPCBIND_VERSION)
 RPCBIND_SBIN_FILES=rpcbind rpcinfo
 
-NFSUTILS_VERSION=1.3.2
+NFSUTILS_VERSION=1.3.3
 NFSUTILS=nfs-utils-$(NFSUTILS_VERSION)
 NFSUTILS_SBIN_FILES=utils/showmount/showmount \
 		    utils/exportfs/exportfs \
@@ -60,15 +60,15 @@ NFSUTILS_SBIN_FILES=utils/showmount/showmount \
 		    utils/statd/statd \
 		    utils/nfsd/nfsd
 
-NANO_VERSION=2.4.1
+NANO_VERSION=2.4.3
 NANO=nano-$(NANO_VERSION)
 NANO_FILENAME=$(NANO).tar.gz
 NANO_DOWNLOAD=http://www.nano-editor.org/dist/v2.4/$(NANO_FILENAME)
 
 TVHEADEND_COMMIT=master
 
-# 10663
-OSCAM_REV=10937
+# 10663 10937
+OSCAM_REV=11211
 
 define GIT_CLONE
 	@mkdir -p apps/
