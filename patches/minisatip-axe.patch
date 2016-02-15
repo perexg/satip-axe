@@ -1,5 +1,5 @@
 diff --git a/adapter.c b/adapter.c
-index 285faea..c9fa823 100755
+index 285faea..608f323 100755
 --- a/adapter.c
 +++ b/adapter.c
 @@ -29,10 +29,15 @@
@@ -245,10 +245,11 @@ index 285faea..c9fa823 100755
  	char buf[100], *arg[20], *sep1, *sep2;
  
  	strncpy(buf, o, sizeof(buf));
-@@ -839,17 +919,46 @@ void set_unicable_adapters(char *o, int type)
+@@ -839,17 +919,47 @@ void set_unicable_adapters(char *o, int type)
  		sep2 = strchr(arg[i], '-');
  		if( !sep1 || !sep2)
  			continue;
++		o13v = 0;
 +		if(sep2[1] == '*') {
 +			o13v = 1;
 +			sep2++;
@@ -293,7 +294,7 @@ index 285faea..c9fa823 100755
  
  int delsys_match(adapter *ad, int del_sys)
  {
-@@ -866,3 +975,71 @@ int delsys_match(adapter *ad, int del_sys)
+@@ -866,3 +976,71 @@ int delsys_match(adapter *ad, int del_sys)
  	return 0;
  		
  }
