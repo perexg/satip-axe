@@ -89,12 +89,12 @@ int phyaddr = -1;
 module_param(phyaddr, int, S_IRUGO);
 MODULE_PARM_DESC(phyaddr, "Physical device address");
 
-#define DMA_TX_SIZE 256
+#define DMA_TX_SIZE 512
 static int dma_txsize = DMA_TX_SIZE;
 module_param(dma_txsize, int, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(dma_txsize, "Number of descriptors in the TX list");
 
-#define DMA_RX_SIZE 256
+#define DMA_RX_SIZE 512
 static int dma_rxsize = DMA_RX_SIZE;
 module_param(dma_rxsize, int, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(dma_rxsize, "Number of descriptors in the RX list");
@@ -2065,7 +2065,7 @@ struct stmmac_priv *stmmac_dvr_probe(struct device *device,
 
 	ndev->netdev_ops = &stmmac_netdev_ops;
 
-	ndev->features |= NETIF_F_SG | NETIF_F_HIGHDMA |
+	ndev->features |= /* NETIF_F_SG | */ NETIF_F_HIGHDMA |
 		NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM;
 	ndev->watchdog_timeo = msecs_to_jiffies(watchdog);
 #ifdef STMMAC_VLAN_TAG_USED
