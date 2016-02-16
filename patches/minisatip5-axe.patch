@@ -1,5 +1,5 @@
 diff --git a/adapter.c b/adapter.c
-index 033490a..885188a 100644
+index 033490a..4084db9 100644
 --- a/adapter.c
 +++ b/adapter.c
 @@ -1162,6 +1162,33 @@ void set_slave_adapters(char *o)
@@ -36,6 +36,65 @@ index 033490a..885188a 100644
  extern char *fe_delsys[];
  void set_adapters_delsys(char *o)
  {
+@@ -1371,42 +1398,24 @@ char *get_all_delsys(int aid, char *dest, int max_size)
+ 	return dest;
+ }
+ 
+-adapter *a_tmp;
+-
+ _symbols adapters_sym[] =
+ {
+-{ "ad_enabled", VAR_AARRAY_INT8, a, 1, MAX_ADAPTERS,
+-		(long int) &a_tmp[0].enabled - (long int) &a_tmp[0] },
+-{ "ad_type", VAR_AARRAY_INT8, a, 1, MAX_ADAPTERS, (long int) &a_tmp[0].type
+-		- (long int) &a_tmp[0] },
+-{ "ad_freq", VAR_AARRAY_INT, a, 1. / 1000,
+-MAX_ADAPTERS, (long int) &a_tmp[0].tp.freq - (long int) &a_tmp[0] },
+-{ "ad_strength", VAR_AARRAY_UINT16, a, 1,
+-MAX_ADAPTERS, (long int) &a_tmp[0].strength - (long int) &a_tmp[0] },
+-{ "ad_snr", VAR_AARRAY_UINT16, a, 1, MAX_ADAPTERS, (long int) &a_tmp[0].snr
+-		- (long int) &a_tmp[0] },
+-{ "ad_ber", VAR_AARRAY_UINT16, a, 1, MAX_ADAPTERS, (long int) &a_tmp[0].ber
+-		- (long int) &a_tmp[0] },
+-{ "ad_pol", VAR_AARRAY_INT8, a, 1, MAX_ADAPTERS, (long int) &a_tmp[0].tp.pol
+-		- (long int) &a_tmp[0] },
+-{ "ad_sr", VAR_AARRAY_INT, a, 1. / 1000, MAX_ADAPTERS,
+-		(long int) &a_tmp[0].tp.sr - (long int) &a_tmp[0] },
+-{ "ad_bw", VAR_AARRAY_INT, a, 1. / 1000, MAX_ADAPTERS,
+-		(long int) &a_tmp[0].tp.bw - (long int) &a_tmp[0] },
+-{ "ad_diseqc", VAR_AARRAY_INT, a, 1, MAX_ADAPTERS,
+-		(long int) &a_tmp[0].tp.diseqc - (long int) &a_tmp[0] },
+-{ "ad_fe", VAR_AARRAY_INT, a, 1, MAX_ADAPTERS, (long int) &a_tmp[0].fe
+-		- (long int) &a_tmp[0] },
+-{ "ad_master", VAR_AARRAY_UINT8, a, 1,
+-MAX_ADAPTERS, (long int) &a_tmp[0].master_sid - (long int) &a_tmp[0] },
+-{ "ad_sidcount", VAR_AARRAY_UINT8, a, 1,
+-MAX_ADAPTERS, (long int) &a_tmp[0].sid_cnt - (long int) &a_tmp[0] },
+-{ "ad_phyad", VAR_AARRAY_INT, a, 1, MAX_ADAPTERS, (long int) &a_tmp[0].pa
+-		- (long int) &a_tmp[0] },
+-{ "ad_phyfd", VAR_AARRAY_INT, a, 1, MAX_ADAPTERS, (long int) &a_tmp[0].fn
+-		- (long int) &a_tmp[0] },
+-{ "ad_sys", VAR_AARRAY_INT, a, 1, MAX_ADAPTERS, (long int) &a_tmp[0].tp.sys
+-		- (long int) &a_tmp[0] },
++{ "ad_enabled", VAR_AARRAY_INT8, a, 1, MAX_ADAPTERS, offsetof(adapter, enabled) },
++{ "ad_type", VAR_AARRAY_INT8, a, 1, MAX_ADAPTERS, offsetof(adapter, type) },
++{ "ad_freq", VAR_AARRAY_INT, a, 1. / 1000, MAX_ADAPTERS, offsetof(adapter, tp.freq) },
++{ "ad_strength", VAR_AARRAY_UINT16, a, 1, MAX_ADAPTERS, offsetof(adapter, strength) },
++{ "ad_snr", VAR_AARRAY_UINT16, a, 1, MAX_ADAPTERS, offsetof(adapter, snr) },
++{ "ad_ber", VAR_AARRAY_UINT16, a, 1, MAX_ADAPTERS, offsetof(adapter, ber) },
++{ "ad_pol", VAR_AARRAY_INT8, a, 1, MAX_ADAPTERS, offsetof(adapter, tp.pol) },
++{ "ad_sr", VAR_AARRAY_INT, a, 1. / 1000, MAX_ADAPTERS, offsetof(adapter, tp.sr) },
++{ "ad_bw", VAR_AARRAY_INT, a, 1. / 1000, MAX_ADAPTERS, offsetof(adapter, tp.bw) },
++{ "ad_diseqc", VAR_AARRAY_INT, a, 1, MAX_ADAPTERS, offsetof(adapter, tp.diseqc) },
++{ "ad_fe", VAR_AARRAY_INT, a, 1, MAX_ADAPTERS, offsetof(adapter, fe) },
++{ "ad_master", VAR_AARRAY_UINT8, a, 1, MAX_ADAPTERS, offsetof(adapter, master_sid) },
++{ "ad_sidcount", VAR_AARRAY_UINT8, a, 1, MAX_ADAPTERS, offsetof(adapter, sid_cnt) },
++{ "ad_phyad", VAR_AARRAY_INT, a, 1, MAX_ADAPTERS, offsetof(adapter, pa) },
++{ "ad_phyfd", VAR_AARRAY_INT, a, 1, MAX_ADAPTERS, offsetof(adapter, fn) },
++{ "ad_sys", VAR_AARRAY_INT, a, 1, MAX_ADAPTERS, offsetof(adapter, tp.sys) },
+ { "ad_allsys", VAR_FUNCTION_STRING, (void *) &get_all_delsys, 0, 0, 0 },
+ { "ad_pids", VAR_FUNCTION_STRING, (void *) &get_adapter_pids, 0, 0, 0 },
+ { "tuner_s2", VAR_INT, &tuner_s2, 1, 0, 0 },
 diff --git a/adapter.h b/adapter.h
 index e693479..aaa59a0 100644
 --- a/adapter.h
@@ -661,6 +720,154 @@ index 259b93d..57948bc 100644
  		}
  	for (; na < MAX_ADAPTERS; na++)
  		if (a[na])
+diff --git a/dvbapi.c b/dvbapi.c
+index e832773..0bccd2e 100644
+--- a/dvbapi.c
++++ b/dvbapi.c
+@@ -991,25 +991,16 @@ void dvbapi_delete_keys_for_adapter(int aid)
+ 			keys_del(i);
+ }
+ 
+-SKey *k_tmp;
+ _symbols dvbapi_sym[] =
+ {
+-{ "key_enabled", VAR_AARRAY_INT8, keys, 1, MAX_KEYS,
+-		(long int) &k_tmp[0].enabled - (long int) &k_tmp[0] },
+-{ "key_hops", VAR_AARRAY_INT8, keys, 1, MAX_KEYS, (long int) &k_tmp[0].hops
+-		- (long int) &k_tmp[0] },
+-{ "key_ecmtime", VAR_AARRAY_INT, keys, 1, MAX_KEYS, (long int) &k_tmp[0].ecmtime
+-		- (long int) &k_tmp[0] },
+-{ "key_pmt", VAR_AARRAY_INT, keys, 1, MAX_KEYS, (long int) &k_tmp[0].pmt_pid
+-		- (long int) &k_tmp[0] },
+-{ "key_cardsystem", VAR_AARRAY_PSTRING, keys, 1, MAX_KEYS,
+-		(long int) &k_tmp[0].cardsystem - (long int) &k_tmp[0] },
+-{ "key_reader", VAR_AARRAY_PSTRING, keys, 1, MAX_KEYS,
+-		(long int) &k_tmp[0].reader - (long int) &k_tmp[0] },
+-{ "key_from", VAR_AARRAY_PSTRING, keys, 1, MAX_KEYS, (long int) &k_tmp[0].from
+-		- (long int) &k_tmp[0] },
+-{ "key_protocol", VAR_AARRAY_PSTRING, keys, 1, MAX_KEYS,
+-		(long int) &k_tmp[0].protocol - (long int) &k_tmp[0] },
++{ "key_enabled", VAR_AARRAY_INT8, keys, 1, MAX_KEYS, offsetof(SKey, enabled) },
++{ "key_hops", VAR_AARRAY_INT8, keys, 1, MAX_KEYS, offsetof(SKey, hops) },
++{ "key_ecmtime", VAR_AARRAY_INT, keys, 1, MAX_KEYS, offsetof(SKey, ecmtime) },
++{ "key_pmt", VAR_AARRAY_INT, keys, 1, MAX_KEYS, offsetof(SKey, pmt_pid) },
++{ "key_cardsystem", VAR_AARRAY_PSTRING, keys, 1, MAX_KEYS, offsetof(SKey, cardsystem) },
++{ "key_reader", VAR_AARRAY_PSTRING, keys, 1, MAX_KEYS, offsetof(SKey, reader) },
++{ "key_from", VAR_AARRAY_PSTRING, keys, 1, MAX_KEYS, offsetof(SKey, from) },
++{ "key_protocol", VAR_AARRAY_PSTRING, keys, 1, MAX_KEYS, offsetof(SKey, protocol) },
+ 
+ { NULL, 0, NULL, 0, 0 } };
+ 
+diff --git a/html/status.html b/html/status.html
+index c4c91c0..5ec0d29 100644
+--- a/html/status.html
++++ b/html/status.html
+@@ -2,6 +2,33 @@
+ <html>
+ <head>
+ <meta charset="utf-8"/>
++<style>
++.tright {
++  text-align: right;
++}
++.tcenter {
++  text-align: center;
++}
++.enabled {
++  color: green;
++}
++.disabled {
++  color: red;
++}
++table, th, td {
++  border: 1px solid black;
++}
++table {
++  border-collapse: collapse;
++}
++td.header {
++  width: 100px;
++  color: red;
++}
++td.row {
++  width: 100px;
++}
++</style>
+ </head>
+ <title>Minisatip/$version$ on $http_host$</title>
+ <body onload="JavaScript:timedRefresh(5000);">
+@@ -49,37 +76,37 @@ var max_adapters = 16;
+ var max_streams = 64;
+ var pol = ["", "(V)", "(H)", "(R)", "(L)"]
+ var sys= [ "", "dvbc", "dvbcb", "dvbt", "dss", "dvbs", "dvbs2", "dvbh", "isdbt", "isdbs", "isdbc", "atsc", "atscmh", "dmbth", "cmmb", "dab", "dvbt2", "turbo", "dvbcc", "dvbc2" ]
+-var myTable= "<table border='1'><tr><td style='width: 100px; color: red;'>Tuner</td>";
+-    myTable+= "<td style='width: 100px; color: red; text-align: right;'>Status</td>";
+-    myTable+="<td style='width: 100px; color: red; text-align: right;'>Frequency</td>";
+-    myTable+="<td style='width: 100px; color: red; text-align: right;'>SR/BW</td>";
+-    myTable+="<td style='width: 100px; color: red; text-align: right;'>Signal</td>";
+-    myTable+="<td style='width: 100px; color: red; text-align: right;'>Streams</td>";
+-    myTable+="<td style='width: 100px; color: red; text-align: right;'>Streams Pids</td></tr>";
++var myTable= "<table><tr><td class='header'>Tuner</td>";
++    myTable+="<td class='header tright'>Status</td>";
++    myTable+="<td class='header tright'>Frequency</td>";
++    myTable+="<td class='header tright'>SR/BW</td>";
++    myTable+="<td class='header tright'>Signal</td>";
++    myTable+="<td class='header tright'>Streams</td>";
++    myTable+="<td class='header tright'>Streams Pids</td></tr>";
+ 
+   for (var i=0; i<max_adapters; i++) {
+ 	if(ad_type[i] == 0)
+ 		continue;
+-    myTable+="<tr><td style='width: 100px;'>" + i + "</td>";
++    myTable+="<tr><td class='row'>" + i + "</td>";
+ 	var csys = "";
+ 	if(ad_sys[i] == 0)
+ 		csys = ad_allsys[i];
+ 	else
+ 		csys = sys[ad_sys[i]];
+ 	if(ad_enabled[i] == 1)
+-		myTable+="<td style='width: 100px; text-align: right; color: green;' title='pids="+ad_pids[i]+"'>" + csys;
++		myTable+="<td class='row tright enabled' title='pids="+ad_pids[i]+"'>" + csys;
+ 	else
+-		myTable+="<td style='width: 100px; text-align: right; color: red;' >" + ad_allsys[i];
++		myTable+="<td class='row tright disabled'>" + ad_allsys[i];
+ 	if(ad_type[i] == 1){
+ 		myTable+="(" + ad_phyad[i] + "," + ad_phyfd[i] +") </td>";
+ 	}else{ 
+ 		myTable+="(" + ad_satip[i] + ")</td>";
+ 	}
+-    myTable+="<td style='width: 100px; text-align: right;' >" + ad_freq[i] + ""+pol[ad_pol[i]]+"</td>";
++    myTable+="<td class='row tright'>" + ad_freq[i] + ""+pol[ad_pol[i]]+"</td>";
+ 	if(ad_sys[i] == 0 || ad_sys[i] == 1 || ad_sys[i] == 2 || ad_sys[i] == 5 || ad_sys[i] == 6 || ad_sys[i] == 18 || ad_sys[i] == 19 )
+-		myTable+="<td style='width: 100px;text-align: right;'>" + ad_sr[i] + "</td>";
++		myTable+="<td class='row tright'>" + ad_sr[i] + "</td>";
+ 	else 
+-		myTable+="<td style='width: 100px;text-align: right;'>" + ad_bw[i]/1000 + "MHZ</td>";
++		myTable+="<td class='row tright'>" + ad_bw[i]/1000 + "MHZ</td>";
+ 
+ 	var signal = "";
+ 	if(ad_enabled[i] == 0)
+@@ -97,9 +124,9 @@ var myTable= "<table border='1'><tr><td style='width: 100px; color: red;'>Tuner<
+ 		if(ad_ber[i] > 0)
+ 			signal += " BER "+ad_ber[i];
+ 	}	
+-	myTable+="<td style='width: 100px;text-align: right;'>" + signal + " </td>";
++	myTable+="<td class='row tright'>" + signal + " </td>";
+ 
+-	myTable +="<td style='width: 100px;text-align: center;'>";
++	myTable +="<td class='row tright'>";
+ 	for(var j=0;j<max_streams;j++)
+ 		if(st_enabled[j]==1 && st_adapter[j]==i)
+ 		{
+@@ -111,7 +138,7 @@ var myTable= "<table border='1'><tr><td style='width: 100px; color: red;'>Tuner<
+ 			myTable += st_rh+"("+st_useragent[j]+")<br>";
+ 		}
+ 	
+-	myTable +="</td><td style='width: 100px;text-align: center;'>";
++	myTable +="</td><td class='row tcenter'>";
+ 
+ 	for(var j=0;j<max_streams;j++)
+ 		if(st_enabled[j]==1 && st_adapter[j]==i)
 diff --git a/minisatip.c b/minisatip.c
 index d6b26d3..6b86e4b 100644
 --- a/minisatip.c
@@ -891,10 +1098,10 @@ index d6b26d3..6b86e4b 100644
 diff --git a/minisatip.h b/minisatip.h
 old mode 100644
 new mode 100755
-index 403af34..e85e54a
+index 403af34..69c9268
 --- a/minisatip.h
 +++ b/minisatip.h
-@@ -10,7 +10,7 @@
+@@ -10,13 +10,15 @@
  
  #define VERSION_BUILD "26"
  #define CC(a,b,c) #a b #c
@@ -903,7 +1110,15 @@ index 403af34..e85e54a
  
  void set_options (int argc, char *argv[]);
  
-@@ -48,6 +48,9 @@ struct struct_opts
+ extern char pid_file[];
+ extern char app_name[], version[];
+ 
++#define offsetof(st, m) __builtin_offsetof(st, m)
++
+ #define copy32(a,i,v) { a[i] = ((v)>>24) & 0xFF;\
+ 			a[i+1] = ((v)>>16) & 0xFF;\
+ 			a[i+2] = ((v)>>8) & 0xFF;\
+@@ -48,6 +50,9 @@ struct struct_opts
  	int force_scan;
  	int clean_psi;
  	int file_line;
@@ -914,15 +1129,28 @@ index 403af34..e85e54a
  	int dvbapi_port;
  	char *dvbapi_host;
 diff --git a/satipc.c b/satipc.c
-index 4fd5972..59e0619 100644
+index 4fd5972..c96bfec 100644
 --- a/satipc.c
 +++ b/satipc.c
-@@ -916,5 +916,6 @@ void find_satip_adapter(adapter **a)
- satipc *sip_tmp;
+@@ -831,6 +831,9 @@ void find_satip_adapter(adapter **a)
+ 		return;
+ 	la = split(arg, opts.satip_servers, 50, ',');
+ 	j = 0;
++	for (i = 0; i < MAX_ADAPTERS; i++) {
++		
++	}
+ 	for (i = a_count; i < MAX_ADAPTERS; i++)
+ 		if (j < la)
+ 		{
+@@ -913,8 +916,7 @@ void find_satip_adapter(adapter **a)
+ }
+ 
+ 
+-satipc *sip_tmp;
  _symbols satipc_sym[] ={
- { "ad_satip", VAR_AARRAY_PSTRING, a, 1, MAX_ADAPTERS, (long int) &sip_tmp[0].sip
+-{ "ad_satip", VAR_AARRAY_PSTRING, a, 1, MAX_ADAPTERS, (long int) &sip_tmp[0].sip
 -		- (long int) &sip_tmp[0] }
-+		- (long int) &sip_tmp[0] },
++{ "ad_satip", VAR_AARRAY_PSTRING, satip, 1, MAX_ADAPTERS, offsetof(satipc, sip) },
 +{ NULL, 0, NULL, 0, 0 }
  };
 diff --git a/socketworks.c b/socketworks.c
@@ -981,6 +1209,32 @@ index c852e2a..9b77d7d
  	int close_sec;
  	int id;				 // socket id
  	int err;
+diff --git a/stream.c b/stream.c
+index 03fee8a..045e1f3 100644
+--- a/stream.c
++++ b/stream.c
+@@ -1293,17 +1293,12 @@ char* get_stream_pids(int s_id, char *dest, int max_size)
+ 	return dest;
+ }
+ 
+-streams *s_tmp;
+ _symbols stream_sym[] =
+ {
+-{ "st_enabled", VAR_AARRAY_INT8, st, 1, MAX_STREAMS,
+-		(long int) &s_tmp[0].enabled - (long int) &s_tmp[0] },
+-{ "st_play", VAR_AARRAY_INT, st, 1, MAX_STREAMS, (long int) &s_tmp[0].do_play
+-		- (long int) &s_tmp[0] },
+-{ "st_adapter", VAR_AARRAY_INT, st, 1, MAX_STREAMS, (long int) &s_tmp[0].adapter
+-		- (long int) &s_tmp[0] },
+-{ "st_useragent", VAR_AARRAY_STRING, st, 1, MAX_STREAMS,
+-		(long int) &s_tmp[0].useragent - (long int) &s_tmp[0] },
++{ "st_enabled", VAR_AARRAY_INT8, st, 1, MAX_STREAMS, offsetof(streams, enabled) },
++{ "st_play", VAR_AARRAY_INT, st, 1, MAX_STREAMS, offsetof(streams, do_play) },
++{ "st_adapter", VAR_AARRAY_INT, st, 1, MAX_STREAMS, offsetof(streams, adapter) },
++{ "st_useragent", VAR_AARRAY_STRING, st, 1, MAX_STREAMS, offsetof(streams, useragent) },
+ { "st_rhost", VAR_FUNCTION_STRING, (void *) &get_stream_rhost, 0, 0, 0 },
+ { "st_rport", VAR_FUNCTION_INT, (void *) &get_stream_rport, 0, 0, 0 },
+ { "st_pids", VAR_FUNCTION_STRING, (void *) &get_stream_pids, 0, 0, 0 },
 diff --git a/utils.c b/utils.c
 index eaa0317..8cb7c49 100644
 --- a/utils.c
