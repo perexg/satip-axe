@@ -900,7 +900,7 @@ index 5701bd2..32fd683 100755
  }
  
 diff --git a/minisatip.c b/minisatip.c
-index d4076ba..8507511 100755
+index d4076ba..dad15ae 100755
 --- a/minisatip.c
 +++ b/minisatip.c
 @@ -36,6 +36,7 @@
@@ -924,7 +924,7 @@ index d4076ba..8507511 100755
 +		-L link adapters (identical src,lo/hi,h/v), the format is M:S (master:slave)\n\
 +		-Q quattro LNB config (H/H,H/V,L/H,L/V)\n\
 +		-X AXE unicable/jess input (0-3)\n\
-+		-S X: skip initial MPEG-TS packets for AXE demuxer (default 35)\n\
++		-M X: skip initial MPEG-TS packets for AXE demuxer (default 35)\n\
  		",
  		DVR_BUFFER / 1024);
  	exit (1);
@@ -1141,7 +1141,7 @@ index d4076ba..8507511 100755
  	fflush(stdout);
  }
 diff --git a/minisatip.h b/minisatip.h
-index 821e756..00f3618 100755
+index 821e756..44ca0c9 100755
 --- a/minisatip.h
 +++ b/minisatip.h
 @@ -9,7 +9,7 @@
@@ -1161,7 +1161,7 @@ index 821e756..00f3618 100755
 +#define LINK_OPT 'L'
 +#define QUATTRO_OPT 'Q'
 +#define AXE_UNICINP_OPT 'X'
-+#define AXE_SKIP_PKT 'S'
++#define AXE_SKIP_PKT 'M'
  
  #define PID_FILE "/var/run/minisatip.pid"
  struct struct_opts
