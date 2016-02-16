@@ -913,6 +913,18 @@ index 403af34..e85e54a
  	char *last_log;	
  	int dvbapi_port;
  	char *dvbapi_host;
+diff --git a/satipc.c b/satipc.c
+index 4fd5972..59e0619 100644
+--- a/satipc.c
++++ b/satipc.c
+@@ -916,5 +916,6 @@ void find_satip_adapter(adapter **a)
+ satipc *sip_tmp;
+ _symbols satipc_sym[] ={
+ { "ad_satip", VAR_AARRAY_PSTRING, a, 1, MAX_ADAPTERS, (long int) &sip_tmp[0].sip
+-		- (long int) &sip_tmp[0] }
++		- (long int) &sip_tmp[0] },
++{ NULL, 0, NULL, 0, 0 }
+ };
 diff --git a/socketworks.c b/socketworks.c
 index 4c91a40..6cd617f 100644
 --- a/socketworks.c
