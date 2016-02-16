@@ -31,6 +31,7 @@ KMODULES = drivers/usb/serial/cp210x.ko \
 	   drivers/usb/serial/oti6858.ko
 
 MINISATIP_COMMIT=54df9348e7bd7e6075f54f1b93ec4ad36429abe0
+MINISATIP5_COMMIT=6569cb0c1cc790aec9c254fc99de38be5de6d549
 
 BUSYBOX=busybox-1.24.1
 
@@ -106,6 +107,7 @@ CPIO_SRCS += busybox
 CPIO_SRCS += dropbear
 CPIO_SRCS += ethtool
 CPIO_SRCS += minisatip
+CPIO_SRCS += minisatip5
 CPIO_SRCS += oscam
 CPIO_SRCS += tools/axehelper
 CPIO_SRCS += nfsutils
@@ -134,6 +136,14 @@ fs.cpio: $(CPIO_SRCS)
 	  -e "apps/minisatip/icons/lr.png:usr/share/minisatip/icons/lr.png" \
 	  -e "apps/minisatip/icons/sm.jpg:usr/share/minisatip/icons/sm.jpg" \
 	  -e "apps/minisatip/icons/sm.png:usr/share/minisatip/icons/sm.png" \
+	  -e "apps/minisatip5/minisatip:sbin/minisatip5" \
+	  -e "apps/minisatip5/html/lr.jpg:usr/share/minisatip/html/lr.jpg" \
+	  -e "apps/minisatip5/html/lr.png:usr/share/minisatip/html/lr.png" \
+	  -e "apps/minisatip5/html/sm.jpg:usr/share/minisatip/html/sm.jpg" \
+	  -e "apps/minisatip5/html/sm.png:usr/share/minisatip/html/sm.png" \
+	  -e "apps/minisatip5/html/dLAN.xml:usr/share/minisatip/html/dLAN.xml" \
+	  -e "apps/minisatip5/html/satip.xml:usr/share/minisatip/html/satip.xml" \
+	  -e "apps/minisatip5/html/status.html:usr/share/minisatip/html/status.html" \
 	  -e "apps/$(NANO)/src/nano:usr/bin/nano" \
 	  -e "apps/mtd-utils/nandwrite:usr/sbin/nandwrite2" \
 	  -e "apps/oscam-svn/Distribution/oscam-1.20-unstable_svn$(OSCAM_REV)-sh4-linux:sbin/oscamd"
@@ -275,6 +285,30 @@ minisatip: apps/minisatip/minisatip
 .PHONY: minisatip-clean
 minisatip-clean:
 	rm -rf apps/minisatip
+
+#
+# minisatip5
+#
+
+apps/minisatip5/axe.h:
+	$(call GIT_CLONE,https://github.com/catalinii/minisatip.git,minisatip5,$(MINISATIP5_COMMIT))
+	cd apps/minisatip5; patch -p1 < ../../patches/minisatip5-axe.patch
+
+apps/minisatip5/minisatip: apps/minisatip5/axe.h
+	make -C apps/minisatip5 \
+	  DVBCSA= \
+	  DVBCA= \
+	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+	  CFLAGS="-O2 -DAXE=1 -DSYS_DVBT2=16 \
+	          -DDISABLE_DVBCSA -DDISABLE_DVBCA -DDISABLE_TABLES -DDISABLE_NETCVCLIENT \
+	          -I$(CURDIR)/kernel/include"
+
+.PHONY: minisatip5
+minisatip5: apps/minisatip5/minisatip
+
+.PHONY: minisatip5-clean
+minisatip5-clean:
+	rm -rf apps/minisatip5
 
 #
 # busybox

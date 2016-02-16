@@ -2,7 +2,7 @@
 # SATIP AXE firmware configuration
 #
 
-CFGVER="10"
+CFGVER="11"
 HOSTNAME="satip-axe"
 KMODULES="drivers/usb/serial/cp210x.ko drivers/usb/serial/pl2303.ko drivers/usb/serial/ftdi_sio.ko"
 
@@ -56,6 +56,12 @@ DROPBEAR="yes"
 #
 MINISATIP="yes"
 MINISATIP_OPTS=""
+
+#
+# minisatip 0.5
+#
+#MINISATIP5="yes"
+#MINISATIP5_OPTS=""
 
 #
 # inetd (httpd,ftpd)
