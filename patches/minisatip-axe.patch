@@ -1,5 +1,5 @@
 diff --git a/adapter.c b/adapter.c
-index 285faea..608f323 100755
+index 285faea..da18c74 100755
 --- a/adapter.c
 +++ b/adapter.c
 @@ -29,10 +29,15 @@
@@ -158,7 +158,7 @@ index 285faea..608f323 100755
  	
  	if(!ad) return -400;
  	ad->last_sort = getTick ();
-@@ -419,7 +475,12 @@ int tune (int aid, int sid)
+@@ -419,7 +475,13 @@ int tune (int aid, int sid)
  		ad->tp.switch_type = ad->switch_type;
  		ad->tp.uslot = ad->uslot;
  		ad->tp.ufreq = ad->ufreq;
@@ -169,10 +169,11 @@ index 285faea..608f323 100755
 +                axe_fe_reset(ad->fe);
 +                do { drv = read(ad->dvr, buf, sizeof(buf)); } while (drv > 0);
 +#endif
++		sockets_reset(ad->sock);
  		rv = tune_it_s2 (ad->fe, &ad->tp);
  		a[aid].status = 0;
  		a[aid].status_cnt = 0;
-@@ -428,6 +489,12 @@ int tune (int aid, int sid)
+@@ -428,6 +490,12 @@ int tune (int aid, int sid)
  			close_streams_for_adapter (aid, sid);
  			update_pids (aid);
  		}
@@ -185,7 +186,7 @@ index 285faea..608f323 100755
  	}
  	else
  		LOG ("not tuning for SID %d (do_tune=%d, master_sid=%d)", sid,
-@@ -684,7 +751,11 @@ describe_adapter (int sid, int aid)
+@@ -684,7 +752,11 @@ describe_adapter (int sid, int aid)
  	memset (dad, 0, sizeof (dad));
  	x = 0;
  								 // do just max 3 signal check 1s after tune
@@ -197,7 +198,7 @@ index 285faea..608f323 100755
  	{
  		int new_gs = 1;
  		ts = getTick ();
-@@ -701,11 +772,20 @@ describe_adapter (int sid, int aid)
+@@ -701,11 +773,20 @@ describe_adapter (int sid, int aid)
  		if (ad->max_snr <= ad->snr) ad->max_snr = (ad->snr>0)?ad->snr:1;
  		LOG ("get_signal%s took %d ms for adapter %d handle %d (status: %d, ber: %d, strength:%d, snr: %d, max_strength: %d, max_snr: %d %d)",
  			new_gs?"":"_new", getTick () - ts, aid, ad->fe, ad->status, ad->ber, ad->strength, ad->snr, ad->max_strength, ad->max_snr, opts.force_scan);
@@ -218,7 +219,7 @@ index 285faea..608f323 100755
  	}
  	if(use_ad)
  	{
-@@ -715,14 +795,14 @@ describe_adapter (int sid, int aid)
+@@ -715,14 +796,14 @@ describe_adapter (int sid, int aid)
  	}
  	if (t->sys == SYS_DVBS || t->sys == SYS_DVBS2)
  		sprintf (dad, "ver=1.0;src=%d;tuner=%d,%d,%d,%d,%d,%s,%s,%s,%s,%s,%d,%s;pids=",
@@ -236,7 +237,7 @@ index 285faea..608f323 100755
  						t->c2tft, t->ds, t->plp, t->inversion);
  	for (i = 0; i < MAX_PIDS; i++)
  		if (use_ad && ad->pids[i].flags == 1)
-@@ -825,7 +905,7 @@ void enable_adapters(char *o)
+@@ -825,7 +906,7 @@ void enable_adapters(char *o)
  
  void set_unicable_adapters(char *o, int type)
  {
@@ -245,7 +246,7 @@ index 285faea..608f323 100755
  	char buf[100], *arg[20], *sep1, *sep2;
  
  	strncpy(buf, o, sizeof(buf));
-@@ -839,17 +919,47 @@ void set_unicable_adapters(char *o, int type)
+@@ -839,17 +920,47 @@ void set_unicable_adapters(char *o, int type)
  		sep2 = strchr(arg[i], '-');
  		if( !sep1 || !sep2)
  			continue;
@@ -294,7 +295,7 @@ index 285faea..608f323 100755
  
  int delsys_match(adapter *ad, int del_sys)
  {
-@@ -866,3 +976,71 @@ int delsys_match(adapter *ad, int del_sys)
+@@ -866,3 +977,71 @@ int delsys_match(adapter *ad, int del_sys)
  	return 0;
  		
  }
@@ -1184,7 +1185,7 @@ index 821e756..44ca0c9 100755
  	char playlist[200];
  };
 diff --git a/socketworks.c b/socketworks.c
-index b4891f1..3167cac 100755
+index b4891f1..995d84b 100755
 --- a/socketworks.c
 +++ b/socketworks.c
 @@ -299,6 +299,7 @@ socket_action a, socket_action c, socket_action t)
@@ -1195,7 +1196,25 @@ index b4891f1..3167cac 100755
  	s[i].close_sec = 0;
  	s[i].sock_id = i;
  	pf[i].fd = sock;
-@@ -433,6 +434,29 @@ select_and_execute ()
+@@ -339,6 +340,17 @@ sockets_del (int sock)
+ 	return 0;
+ }
+ 
++void
++sockets_reset (int sock)
++{
++	int i;
++
++	if (sock < 0 || sock > MAX_SOCKS)
++		return;
++	if (s[sock].type == TYPE_DVR)
++		s[sock].skiplen = opts.axe_skippkt * 188;
++	s[sock].rlen = 0;
++}
+ 
+ int run_loop, it = 0, c_time;
+ int bw, bwtt, bwnotify;
+@@ -433,6 +445,29 @@ select_and_execute ()
  					ss->rtime = c_time;
  					if(rlen>0)
  						ss->rlen += rlen;
@@ -1226,7 +1245,7 @@ index b4891f1..3167cac 100755
  					if(ss->lbuf >= ss->rlen)
  						ss->buf[ss->rlen] = 0;
 diff --git a/socketworks.h b/socketworks.h
-index 57b25b2..9c14f64 100755
+index 57b25b2..0d81319 100755
 --- a/socketworks.h
 +++ b/socketworks.h
 @@ -18,6 +18,7 @@ typedef struct struct_sockets
@@ -1237,6 +1256,14 @@ index 57b25b2..9c14f64 100755
  	int close_sec;
  	int sock_id;				 // socket id
  	int err;
+@@ -43,6 +44,7 @@ int get_sock_port(int fd);
+ int sockets_add (int sock, struct sockaddr_in *sa, int sid, int type,
+ socket_action a, socket_action c, socket_action t);
+ int sockets_del (int sock);
++void sockets_reset (int sock);
+ int no_action (int s);
+ int select_and_execute ();
+ int get_mac (char *mac);
 diff --git a/stream.c b/stream.c
 index db4a46d..2036841 100755
 --- a/stream.c
