@@ -1,5 +1,7 @@
 #!/bin/sh
 
+MINISATIP_PROGRAM=minisatip
+MINISATIP5_PROGRAM=minisatip5
 test -r /etc/sysconfig/config && . /etc/sysconfig/config
 
 if test "$MINISATIP" != "yes" -a "$MINISATIP5" != "yes"; then
@@ -22,12 +24,14 @@ while test ! -f /tmp/nosatip; do
   while ! test -r /tmp/satip-network; do
     nc -l 127.0.0.1:999 -e /etc/init.d/satip-network
   done
+  MINISATIP_PROGRAM=minisatip
+  MINISATIP5_PROGRAM=minisatip5
   . /etc/sysconfig/config
   if test "$MINISATIP" = "yes"; then
-    nice -5 minisatip -f -g $MINISATIP_OPTS
+    nice -5 $MINISATIP_PROGRAM -f -g $MINISATIP_OPTS
     logger -p local0.notice "minisatip exited $?, restarting"
   elif test "$MINISATIP5" = "yes"; then
-    nice -5 minisatip5 -f -g $MINISATIP5_OPTS
+    nice -5 $MINISATIP5_PROGRAM -f -g $MINISATIP5_OPTS
     logger -p local0.notice "minisatip5 exited $?, restarting"
   else
     exit 0
