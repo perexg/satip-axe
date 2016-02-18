@@ -1,8 +1,8 @@
 diff --git a/adapter.c b/adapter.c
-index 033490a..fe59cb8 100644
+index 033490a..36b3dfd 100644
 --- a/adapter.c
 +++ b/adapter.c
-@@ -49,6 +49,27 @@ extern struct struct_opts opts;
+@@ -49,6 +49,31 @@ extern struct struct_opts opts;
  int tuner_s2, tuner_t, tuner_c, tuner_t2, tuner_c2;
  void find_dvb_adapter(adapter **a);
  
@@ -10,14 +10,18 @@ index 033490a..fe59cb8 100644
 +{
 +	adapter *ad = malloc1(sizeof(adapter));
 +
++	/* diseqc setup */
++	ad->diseqc_param.fast = opts.diseqc_fast;
++	ad->diseqc_param.committed_no = opts.diseqc_committed_no;
++	ad->diseqc_param.uncommitted_no = opts.diseqc_uncommitted_no;
 +
 +	/* diseqc default timing */
-+	ad->diseqc_param.before_cmd = 15;
-+	ad->diseqc_param.after_cmd = 54;
-+	ad->diseqc_param.after_repeated_cmd = 15;
-+	ad->diseqc_param.after_switch = 15;
-+	ad->diseqc_param.after_burst = 15;
-+	ad->diseqc_param.after_tone = 0;
++	ad->diseqc_param.before_cmd = opts.diseqc_before_cmd;
++	ad->diseqc_param.after_cmd = opts.diseqc_after_cmd;
++	ad->diseqc_param.after_repeated_cmd = opts.diseqc_after_repeated_cmd;
++	ad->diseqc_param.after_switch = opts.diseqc_after_switch;
++	ad->diseqc_param.after_burst = opts.diseqc_after_burst;
++	ad->diseqc_param.after_tone = opts.diseqc_after_tone;
 +
 +	/* diseqc state control */
 +	ad->old_diseqc = -1;
@@ -30,7 +34,7 @@ index 033490a..fe59cb8 100644
  void find_adapters()
  {
  	static int init_find_adapter;
-@@ -294,6 +315,9 @@ void close_adapter(int na)
+@@ -294,6 +319,9 @@ void close_adapter(int na)
  	ad->dvr = 0;
  	ad->strength = 0;
  	ad->snr = 0;
@@ -40,7 +44,7 @@ index 033490a..fe59cb8 100644
  	mutex_unlock(&ad->mutex);
  	mutex_destroy(&ad->mutex);
  	//      if(a[na]->buf)free1(a[na]->buf);a[na]->buf=NULL;
-@@ -381,19 +405,39 @@ void dump_pids(int aid)
+@@ -381,19 +409,39 @@ void dump_pids(int aid)
  		}
  }
  
@@ -86,7 +90,7 @@ index 033490a..fe59cb8 100644
  	if (ad)
  		LOG("get free adapter %d - a[%d] => e:%d m:%d sid_cnt:%d f:%d pol=%d",
  				src - 1, i, ad->enabled, ad->master_sid, ad->sid_cnt,
-@@ -404,13 +448,14 @@ int get_free_adapter(int freq, int pol, int msys, int src)
+@@ -404,13 +452,14 @@ int get_free_adapter(int freq, int pol, int msys, int src)
  
  	if (src > 0)
  	{
@@ -104,7 +108,7 @@ index 033490a..fe59cb8 100644
  	}
  	for (i = 0; i < MAX_ADAPTERS; i++)
  	{
-@@ -419,21 +464,17 @@ int get_free_adapter(int freq, int pol, int msys, int src)
+@@ -419,21 +468,17 @@ int get_free_adapter(int freq, int pol, int msys, int src)
  				&& delsys_match(ad, msys))
  			return i;
  		if (!ad && delsys_match(a[i], msys)) // device is not initialized
@@ -133,7 +137,7 @@ index 033490a..fe59cb8 100644
  	LOG("no adapter found for f:%d pol:%d msys:%d", freq, pol, msys);
  	dump_adapters();
  	return -1;
-@@ -557,19 +598,13 @@ int tune(int aid, int sid)
+@@ -557,19 +602,13 @@ int tune(int aid, int sid)
  	ad->last_sort = getTick();
  	if (sid == ad->master_sid && ad->do_tune)
  	{
@@ -155,7 +159,7 @@ index 033490a..fe59cb8 100644
  		ad->rlen = 0;
  		if (ad->sid_cnt > 1)	 // the master changed the frequency
  		{
-@@ -1067,7 +1102,7 @@ void set_unicable_adapters(char *o, int type)
+@@ -1067,7 +1106,7 @@ void set_unicable_adapters(char *o, int type)
  			continue;
  
  		if (!a[a_id])
@@ -164,7 +168,7 @@ index 033490a..fe59cb8 100644
  		ad = a[a_id];
  
  		sep1 = strchr(arg[i], ':');
-@@ -1084,11 +1119,11 @@ void set_unicable_adapters(char *o, int type)
+@@ -1084,11 +1123,11 @@ void set_unicable_adapters(char *o, int type)
  		sep3 = strchr(sep2 + 1, '-');
  		pin = map_intd(sep3, NULL, 0);
  
@@ -181,7 +185,7 @@ index 033490a..fe59cb8 100644
  		LOGL(0, "Setting %s adapter %d slot %d freq %d",
  				type == SWITCH_UNICABLE ? "unicable" : "jess", a_id, slot, freq);
  	}
-@@ -1096,7 +1131,7 @@ void set_unicable_adapters(char *o, int type)
+@@ -1096,35 +1135,115 @@ void set_unicable_adapters(char *o, int type)
  
  void set_diseqc_adapters(char *o)
  {
@@ -190,20 +194,34 @@ index 033490a..fe59cb8 100644
  	char buf[100], *arg[20], *sep1, *sep2;
  	adapter *ad;
  	strncpy(buf, o, sizeof(buf));
-@@ -1108,7 +1143,7 @@ void set_diseqc_adapters(char *o)
- 			continue;
+ 	la = split(arg, buf, sizeof(arg), ',');
+ 	for (i = 0; i < la; i++)
+ 	{
+-		a_id = map_intd(arg[i], NULL, -1);
+-		if (a_id < 0 || a_id >= MAX_ADAPTERS)
+-			continue;
++		if (arg[i] && arg[i][0] == '*') {
++			ad = NULL;
++			a_id = -1;
++		} else {
++			a_id = map_intd(arg[i], NULL, -1);
++			if (a_id < 0 || a_id >= MAX_ADAPTERS)
++				continue;
  
- 		if (!a[a_id])
+-		if (!a[a_id])
 -			a[a_id] = malloc(sizeof(adapter));
-+			a[a_id] = adapter_alloc();
- 		ad = a[a_id];
+-		ad = a[a_id];
++			if (!a[a_id])
++				a[a_id] = adapter_alloc();
++			ad = a[a_id];
++		}
  
  		sep1 = strchr(arg[i], ':');
-@@ -1116,15 +1151,70 @@ void set_diseqc_adapters(char *o)
+ 		sep2 = strchr(arg[i], '-');
  
  		if (!sep1 || !sep2)
  			continue;
-+		if ((fast = (*sep1 == '*')) != 0)
++		if ((fast = (sep1[1] == '*')) != 0)
 +			sep1++;
  		committed_no = map_intd(sep1 + 1, NULL, -1);
  		uncommitted_no = map_intd(sep2 + 1, NULL, -1);
@@ -214,9 +232,15 @@ index 033490a..fe59cb8 100644
 -		ad->uncommitted_no = uncommitted_no;
 -		LOGL(0, "Setting diseqc adapter %d committed_no %d uncommitted_no %d",
 -				a_id, committed_no, uncommitted_no);
-+		ad->diseqc_param.fast = fast;
-+		ad->diseqc_param.committed_no = committed_no;
-+		ad->diseqc_param.uncommitted_no = uncommitted_no;
++		if (ad) {
++			ad->diseqc_param.fast = fast;
++			ad->diseqc_param.committed_no = committed_no;
++			ad->diseqc_param.uncommitted_no = uncommitted_no;
++		} else {
++			opts.diseqc_fast = fast;
++			opts.diseqc_committed_no = committed_no;
++			opts.diseqc_uncommitted_no = uncommitted_no;
++		}
 +		LOGL(0, "Setting diseqc adapter %d fast %d committed_no %d uncommitted_no %d",
 +				a_id, fast, committed_no, uncommitted_no);
 +	}
@@ -234,13 +258,18 @@ index 033490a..fe59cb8 100644
 +	la = split(arg, buf, sizeof(arg), ',');
 +	for (i = 0; i < la; i++)
 +	{
-+		a_id = map_intd(arg[i], NULL, -1);
-+		if (a_id < 0 || a_id >= MAX_ADAPTERS)
-+			continue;
++		if (arg[i] && arg[i][0] == '*') {
++			ad = NULL;
++			a_id = -1;
++		} else {
++			a_id = map_intd(arg[i], NULL, -1);
++			if (a_id < 0 || a_id >= MAX_ADAPTERS)
++				continue;
 +
-+		if (!a[a_id])
-+			a[a_id] = adapter_alloc();
-+		ad = a[a_id];
++			if (!a[a_id])
++				a[a_id] = adapter_alloc();
++			ad = a[a_id];
++		}
 +
 +		sep1 = strchr(arg[i], ':');
 +		sep2 = strchr(arg[i], '-');
@@ -261,12 +290,21 @@ index 033490a..fe59cb8 100644
 +		    after_switch < 0 || after_burst < 0 || after_tone < 0)
 +			continue;
 +
-+		ad->diseqc_param.before_cmd = before_cmd;
-+		ad->diseqc_param.after_cmd = after_cmd;
-+		ad->diseqc_param.after_repeated_cmd = after_repeated_cmd;
-+		ad->diseqc_param.after_switch = after_switch;
-+		ad->diseqc_param.after_burst = after_burst;
-+		ad->diseqc_param.after_tone = after_tone;
++		if (ad) {
++			ad->diseqc_param.before_cmd = before_cmd;
++			ad->diseqc_param.after_cmd = after_cmd;
++			ad->diseqc_param.after_repeated_cmd = after_repeated_cmd;
++			ad->diseqc_param.after_switch = after_switch;
++			ad->diseqc_param.after_burst = after_burst;
++			ad->diseqc_param.after_tone = after_tone;
++		} else {
++			opts.diseqc_before_cmd = before_cmd;
++			opts.diseqc_after_cmd = after_cmd;
++			opts.diseqc_after_repeated_cmd = after_repeated_cmd;
++			opts.diseqc_after_switch = after_switch;
++			opts.diseqc_after_burst = after_burst;
++			opts.diseqc_after_tone = after_tone;
++		}
 +		LOGL(0, "Setting diseqc timing for adapter %d before cmd %d after cmd %d "
 +		        "after repeated cmd %d after switch %d after burst %d after tone %d",
 +				a_id, before_cmd, after_cmd, after_repeated_cmd,
@@ -274,7 +312,7 @@ index 033490a..fe59cb8 100644
  	}
  }
  
-@@ -1152,16 +1242,43 @@ void set_slave_adapters(char *o)
+@@ -1152,16 +1271,43 @@ void set_slave_adapters(char *o)
  		for (j = a_id; j <= a_id2; j++)
  		{
  			if (!a[j])
@@ -320,7 +358,7 @@ index 033490a..fe59cb8 100644
  extern char *fe_delsys[];
  void set_adapters_delsys(char *o)
  {
-@@ -1186,7 +1303,7 @@ void set_adapters_delsys(char *o)
+@@ -1186,7 +1332,7 @@ void set_adapters_delsys(char *o)
  		ds = map_intd(sep + 1, fe_delsys, 0);
  
  		if (!a[a_id])
@@ -329,7 +367,7 @@ index 033490a..fe59cb8 100644
  
  		ad = a[a_id];
  		ad->sys[0] = ds;
-@@ -1371,42 +1488,24 @@ char *get_all_delsys(int aid, char *dest, int max_size)
+@@ -1371,42 +1517,24 @@ char *get_all_delsys(int aid, char *dest, int max_size)
  	return dest;
  }
  
@@ -389,7 +427,7 @@ index 033490a..fe59cb8 100644
  { "ad_pids", VAR_FUNCTION_STRING, (void *) &get_adapter_pids, 0, 0, 0 },
  { "tuner_s2", VAR_INT, &tuner_s2, 1, 0, 0 },
 diff --git a/adapter.h b/adapter.h
-index e693479..75f4de7 100644
+index e693479..b37c238 100644
 --- a/adapter.h
 +++ b/adapter.h
 @@ -6,7 +6,11 @@
@@ -433,9 +471,11 @@ index e693479..75f4de7 100644
  int set_adapter_for_stream(int i, int a);
  void close_adapter_for_stream(int sid, int aid);
  int set_adapter_parameters(int aid, int sid, transponder * tp);
-@@ -129,6 +133,7 @@ void enable_adapters(char *o);
+@@ -128,7 +132,9 @@ void sort_pids(int aid);
+ void enable_adapters(char *o);
  void set_unicable_adapters(char *o, int type);
  void set_diseqc_adapters(char *o);
++void set_diseqc_timing(char *o);
  void set_slave_adapters(char *o);
 +void set_link_adapters(char *o);
  void reset_pids_type(int aid, int clear_pat);
@@ -1480,7 +1520,7 @@ index c4c91c0..5ec0d29 100644
  	for(var j=0;j<max_streams;j++)
  		if(st_enabled[j]==1 && st_adapter[j]==i)
 diff --git a/minisatip.c b/minisatip.c
-index d6b26d3..9de7a61 100644
+index d6b26d3..b26be53 100644
 --- a/minisatip.c
 +++ b/minisatip.c
 @@ -66,6 +66,7 @@ static const struct option long_options[] =
@@ -1559,7 +1599,7 @@ index d6b26d3..9de7a61 100644
  Help\n\
  -------\n\
  \n\
-@@ -150,10 +175,14 @@ Help\n\
+@@ -150,10 +175,16 @@ Help\n\
  * -c X: bandwidth capping for the output to the network [default: unlimited]\n\
  	* eg: -c 2048  (does not allow minisatip to send more than 2048KB/s to all remote servers)\n\
  \n\
@@ -1571,14 +1611,16 @@ index d6b26d3..9de7a61 100644
 +\t* The first argument is the adapter number, second is the number of committed packets to send to a Diseqc 1.0 switch, third the number of uncommitted commands to sent to a Diseqc 1.1 switch\n\
 +\tThe higher number between the committed and uncommitted will be sent first.\n\
 +	* eg: -d 0:1-0  (which is the default for each adapter).\n\
++	- note: * as adapter means apply to all adapters\n\
 +	- note: * before committed number enables fast-switch (only voltage/tone)\n\
 +\n\
 +* -q --diseqc-timing ADAPTER1:BEFORE_CMD1-AFTER_CMD1-AFTER_REPEATED_CMD1-BEFORE_BURST1-BEFORE_TONE1-FINAL1[,...]\n\
 +\t* All timing values are in ms, default adapter values are: 15-54-15-15-15-0\n\
++	- note: * as adapter means apply to all adapters\n\
  \n\
  * -D --device-id DVC_ID: specify the device id (in case there are multiple SAT>IP servers in the network)\n \
  	* eg: -D 4 \n\
-@@ -179,13 +208,23 @@ Help\n\
+@@ -179,13 +210,23 @@ Help\n\
  * -m xx: simulate xx as local mac address, generates UUID based on mac\n\
  	* eg: -m 001122334455 \n\
  \n\
@@ -1602,7 +1644,7 @@ index d6b26d3..9de7a61 100644
  * -p url: specify playlist url using X_SATIPM3U header \n\
  	* eg: -p http://192.168.2.3:8080/playlist\n\
  	- this will add X_SATIPM3U tag into the satip description xml\n\
-@@ -195,6 +234,9 @@ Help\n\
+@@ -195,6 +236,9 @@ Help\n\
  \n\
  * -R --document-root directory: document root for the minisatip web page and images\n\
  \n\
@@ -1612,7 +1654,7 @@ index d6b26d3..9de7a61 100644
  * -s --satip-servers DELSYS:host:port - specify the remote satip host and port with delivery system DELSYS, it is possible to use multiple -s \n\
  	* DELSYS - can be one of: dvbs, dvbs2, dvbt, dvbt2, dvbc, dvbc2, isdbt, atsc, dvbcb ( - DVBC_ANNEX_B ) [default: dvbs2]\n\
  	host - the server of the satip server\n\
-@@ -204,6 +246,9 @@ Help\n\
+@@ -204,6 +248,9 @@ Help\n\
  	- specifies 1 dvbt satip server  with address 192.168.1.3:554\n\
  	- specifies 1 dvbc satip server  with address 192.168.1.4:554\n\
  \n\
@@ -1622,7 +1664,7 @@ index d6b26d3..9de7a61 100644
  * -S --slave ADAPTER1,ADAPTER2-ADAPTER4[,..] - specify slave adapters	\n\
  	* Allows specifying bonded adapters (multiple adapters connected with a splitter to the same LNB)\n\
  	Only one adapter needs to be master all others needs to have this parameter specified\n\
-@@ -237,7 +282,26 @@ Help\n\
+@@ -237,7 +284,26 @@ Help\n\
  	* eg: -y 5544 \n\
  	- changing this to a port > 1024 removes the requirement for minisatip to run as root\n\
  \n\
@@ -1650,7 +1692,7 @@ index d6b26d3..9de7a61 100644
  			app_name,
  			ADAPTER_BUFFER,
  			DVR_BUFFER, opts.no_threads ? "DISABLED" : "ENABLED");
-@@ -277,17 +341,19 @@ void set_options(int argc, char *argv[])
+@@ -277,17 +343,24 @@ void set_options(int argc, char *argv[])
  	opts.satip_setup_pids = 0;
  	opts.output_buffer = 512 * 1024;
  	opts.satip_servers[0] = 0;
@@ -1659,7 +1701,12 @@ index d6b26d3..9de7a61 100644
  	opts.xml_path = DESC_XML;
  	opts.no_threads = 0;
  	opts.th_priority = -1;
-+	
++	opts.diseqc_before_cmd = 15;
++	opts.diseqc_after_cmd = 54;
++	opts.diseqc_after_repeated_cmd = 15;
++	opts.diseqc_after_switch = 15;
++	opts.diseqc_after_burst = 15;
++	opts.diseqc_after_tone = 0;
  #ifdef __mips__
  	opts.no_threads = 1;
  #endif
@@ -1672,7 +1719,7 @@ index d6b26d3..9de7a61 100644
  			long_options, NULL)) != -1)
  	{
  		//              printf("options %d %c %s\n",opt,opt,optarg);
-@@ -359,9 +425,12 @@ void set_options(int argc, char *argv[])
+@@ -359,9 +432,12 @@ void set_options(int argc, char *argv[])
  			opts.adapter_buffer = (opts.adapter_buffer / 188) * 188;
  			if (opts.adapter_buffer < ADAPTER_BUFFER)
  				opts.adapter_buffer = ADAPTER_BUFFER;
@@ -1686,7 +1733,7 @@ index d6b26d3..9de7a61 100644
  			break;
  		}
  
-@@ -410,6 +479,12 @@ void set_options(int argc, char *argv[])
+@@ -410,6 +486,12 @@ void set_options(int argc, char *argv[])
  			break;
  		}
  
@@ -1699,7 +1746,7 @@ index d6b26d3..9de7a61 100644
  		case SLAVE_OPT:
  		{
  			set_slave_adapters(optarg);
-@@ -508,6 +583,33 @@ void set_options(int argc, char *argv[])
+@@ -508,6 +590,33 @@ void set_options(int argc, char *argv[])
  				LOGL(0, "Not a valid path for the xml file")
  			;
  			break;
@@ -1733,7 +1780,15 @@ index d6b26d3..9de7a61 100644
  		}
  
  	}
-@@ -1003,6 +1105,9 @@ int ssdp_reply(sockets * s)
+@@ -676,7 +785,6 @@ int read_rtsp(sockets * s)
+ 		if (transport)
+ 		{
+ 			int s_timeout;
+-
+ 			if (sid->timeout == 1)
+ 				sid->timeout = opts.timeout_sec;
+ 
+@@ -1003,6 +1111,9 @@ int ssdp_reply(sockets * s)
  		return 0;
  	}
  
@@ -1743,7 +1798,7 @@ index d6b26d3..9de7a61 100644
  // not my uuid
  	LOG("Received SSDP packet from %s:%d -> handle %d",
  			get_socket_rhost(s->id, ra, sizeof(ra)), get_socket_rport(s->id),
-@@ -1138,7 +1243,11 @@ int main(int argc, char *argv[])
+@@ -1138,7 +1249,11 @@ int main(int argc, char *argv[])
  
  	if (!opts.no_threads)
  		set_socket_thread(sock_signal, start_new_thread("signal"));
@@ -1758,7 +1813,7 @@ index d6b26d3..9de7a61 100644
 diff --git a/minisatip.h b/minisatip.h
 old mode 100644
 new mode 100755
-index 403af34..69c9268
+index 403af34..3cd6977
 --- a/minisatip.h
 +++ b/minisatip.h
 @@ -10,13 +10,15 @@
@@ -1788,6 +1843,22 @@ index 403af34..69c9268
  	char *last_log;	
  	int dvbapi_port;
  	char *dvbapi_host;
+@@ -62,6 +67,15 @@ struct struct_opts
+ 	char *xml_path;
+ 	char no_threads;
+ 	int th_priority;
++	int diseqc_fast;
++	int diseqc_committed_no;
++	int diseqc_uncommitted_no;
++	int diseqc_before_cmd;
++	int diseqc_after_cmd;
++	int diseqc_after_repeated_cmd;
++	int diseqc_after_switch;
++	int diseqc_after_burst;
++	int diseqc_after_tone;
+ };
+ 
+ 
 diff --git a/netceiver.c b/netceiver.c
 index e42023e..51ef642 100644
 --- a/netceiver.c
