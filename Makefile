@@ -267,6 +267,26 @@ s2i_dump: tools/syscall-dump.so
 	    root@$(SATIP_HOST):/root
 
 #
+# media_build
+#
+
+apps/media/build:
+	$(call GIT_CLONE,git://linuxtv.org/media_build.git,media,master)
+	$(call WGET,http://www.linuxtv.org/downloads/firmware/dvb-firmwares.tar.bz2,apps/media/dvb-firmwares.tar.bz2)
+	make -C apps/media download untar
+
+apps/media/v4l/dib0070.h: apps/media/build
+	make -C apps/media SRCDIR=$(CURDIR)/kernel VER=2.6.32 allyesconfig
+	make -C apps/media SRCDIR=$(CURDIR) VER=2.6.32
+
+.PHONY: media
+media: apps/media/v4l/dib0070.h
+
+.PHONY: media-clean
+media-clean:
+	rm -rf apps/media
+
+#
 # minisatip
 #
 
