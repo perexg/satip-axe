@@ -6,14 +6,17 @@ if test "$DROPBEAR" != "yes"; then
   exit 0
 fi
 
-if ! test -r /etc/dropbear/dropbear_dss_host_key; then
+if ! test -r /etc/dropbear/dropbear_rsa_host_key; then
   mkdir -p /etc/dropbear
-  if test -r /etc/sysconfig/dropbear_dss_host_key; then
-    cp /etc/sysconfig/dropbear_dss_host_key /etc/dropbear/dropbear_dss_host_key
+  if test -r /etc/sysconfig/dropbear_rsa_host_key; then
+    cp /etc/sysconfig/dropbear_rsa_host_key /etc/dropbear/dropbear_rsa_host_key
   else
-    dropbearkey -t dss -f /etc/dropbear/dropbear_dss_host_key
-    cp /etc/dropbear/dropbear_dss_host_key /etc/sysconfig/dropbear_dss_host_key
+    dropbearkey -t rsa -f /etc/dropbear/dropbear_rsa_host_key
+    cp /etc/dropbear/dropbear_rsa_host_key /etc/sysconfig/dropbear_rsa_host_key
   fi
+fi
+if test -r /etc/sysconfig/dropbear_dss_host_key; then
+  cp /etc/sysconfig/dropbear_dss_host_key /etc/dropbear/dropbear_dss_host_key
 fi
 export HOME=/root
 if test -r /etc/sysconfig/authorized_keys ; then
