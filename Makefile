@@ -66,19 +66,25 @@ NANO=nano-$(NANO_VERSION)
 NANO_FILENAME=$(NANO).tar.gz
 NANO_DOWNLOAD=http://www.nano-editor.org/dist/v2.4/$(NANO_FILENAME)
 
+PYTHON3_VERSION0=3.5
+PYTHON3_VERSION=$(PYTHON3_VERSION0).1
+PYTHON3=Python-$(PYTHON3_VERSION)
+PYTHON3_FILENAME=$(PYTHON3).tgz
+PYTHON3_DOWNLOAD=https://www.python.org/ftp/python/$(PYTHON3_VERSION)/$(PYTHON3_FILENAME)
+
 TVHEADEND_COMMIT=master
 
 # 10663 10937
 OSCAM_REV=11211
 
 define GIT_CLONE
-	@mkdir -p apps/
+	@mkdir -p apps/host
 	git clone $(1) apps/$(2)
 	cd apps/$(2) && git checkout -b axe $(3)
 endef
 
 define WGET
-	@mkdir -p apps/
+	@mkdir -p apps/host
 	wget --no-verbose --no-check-certificate -O $(2) $(1)
 endef
 
@@ -113,11 +119,13 @@ CPIO_SRCS += tools/axehelper
 CPIO_SRCS += nfsutils
 CPIO_SRCS += nano
 CPIO_SRCS += mtd-utils
+CPIO_SRCS += python3
 
 fs.cpio: $(CPIO_SRCS)
 	fakeroot tools/do_min_fs.py \
 	  -r "$(VERSION)" \
 	  -b "bash strace openssl" \
+	  -d "fs-add apps/$(PYTHON3)/dest" \
 	  $(foreach m,$(EXTRA_AXE_MODULES), -e "$(EXTRA_AXE_MODULES_DIR)/$(m):lib/modules/axe/$(m)") \
 	  -e "patches/axe_dmxts_std.ko:lib/modules/axe/axe_dmxts_std.ko" \
 	  $(foreach m,$(ORIG_FILES), -e "$(EXTRA_AXE_MODULES_DIR)/../$(m):lib/modules/axe/$(m)") \
@@ -516,6 +524,110 @@ apps/$(NANO)/nano: apps/$(NANO)/configure
 
 .PHONY: nano
 nano: apps/$(NANO)/nano
+
+#
+# python3-host
+#
+
+apps/host/$(PYTHON3)/pyconfig.h.in:
+	$(call WGET,$(PYTHON3_DOWNLOAD),apps/host/$(PYTHON3_FILENAME))
+	tar -C apps/host -xzf apps/host/$(PYTHON3_FILENAME)
+
+apps/host/$(PYTHON3)/python: apps/host/$(PYTHON3)/pyconfig.h.in
+	cd apps/host/$(PYTHON3) && \
+	./configure
+	make -C apps/host/$(PYTHON3)
+
+.PHONY: python3-host
+python3-host: apps/host/$(PYTHON3)/python
+
+#
+# python3
+#
+
+apps/$(PYTHON3)/pyconfig.h.in:
+	$(call WGET,$(PYTHON3_DOWNLOAD),apps/$(PYTHON3_FILENAME))
+	tar -C apps -xzf apps/$(PYTHON3_FILENAME)
+
+apps/$(PYTHON3)/patch.stamp: apps/$(PYTHON3)/pyconfig.h.in apps/host/$(PYTHON3)/python
+	cd apps/$(PYTHON3) && \
+	  PKG_CONFIG_PATH=$(TOOLCHAIN)/target/usr/lib/pkgconfig \
+	  PKG_CONFIG=$(TOOLPATH)/pkg-config \
+	  ARCH=sh \
+	  CPP=$(TOOLCHAIN)/bin/sh4-linux-cpp \
+	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+	  READELF=/usr/bin/readelf \
+	  PYTHON_FOR_BUILD=$(CURDIR)/apps/host/$(PYTHON3)/python \
+	  CONFIG_SITE=$(CURDIR)/patches/python3.config.site \
+	./configure \
+	  --host=sh4-linux \
+	  --build=x86_64-redhat-linux \
+	  --target=sh4-linux \
+	  --sysconfdir=/etc \
+	  --prefix=/usr \
+	  --enable-ipv6=no
+	cd apps/$(PYTHON3) && patch -b -p0 < ../../patches/python3-makefile.patch
+	cd apps/$(PYTHON3) && patch -b -p0 < ../../patches/python3-setup.patch
+	cd apps/$(PYTHON3) && patch -b -p0 < ../../patches/python3-ccompiler.patch
+	cd apps/$(PYTHON3) && patch -b -p0 < ../../patches/python3-build-ext.patch
+	touch apps/$(PYTHON3)/patch.stamp
+
+apps/$(PYTHON3)/compiled.stamp: apps/$(PYTHON3)/patch.stamp
+	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest
+	make -C apps/$(PYTHON3) \
+	  PYINCDIRS="$(CURDIR)/apps/$(PYTHON3):$(CURDIR)/apps/$(PYTHON3)/Include" \
+	  PYLIBS="." \
+	  CROSS_COMPILE=yes \
+	  ABIFLAGS="" \
+	  PYTHON_FOR_BUILD=$(CURDIR)/apps/host/$(PYTHON3)/python \
+	  PGEN=$(CURDIR)/apps/host/$(PYTHON3)/Parser/pgen \
+	  FREEZE_IMPORTLIB=$(CURDIR)/apps/host/$(PYTHON3)/Programs/_freeze_importlib \
+	  PYTHONPATH=$(CURDIR)/apps/$(PYTHON3)/Lib \
+	  PYTHON_OPTIMIZE="" \
+	  PYTHONDONTWRITEBYTECODE=1 \
+	  _PYTHON_HOST_PLATFORM=linux-sh4 \
+	  PYTHONPATH="/usr/lib/python3.5:/usr/local/lib/python3.5" \
+	  DESTDIR=$(CURDIR)/apps/$(PYTHON3)/dest \
+	  sharedmods sharedinstall libinstall bininstall
+	rm -f $(CURDIR)/apps/$(PYTHON3)/dest/usr/bin/python*-config
+	rm -f $(CURDIR)/apps/$(PYTHON3)/dest/usr/bin/2to3*
+	rm -f $(CURDIR)/apps/$(PYTHON3)/dest/usr/bin/idle*
+	$(TOOLCHAIN)/bin/sh4-linux-strip $(CURDIR)/apps/$(PYTHON3)/dest/usr/bin/python3*
+	rm -f $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/*.a
+	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/test
+	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/ctypes/test
+	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/sqlite3
+	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/turtle*
+	rm -f $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/__pycache__/turtle*
+	rm -f $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/lib-dynload/*test*
+	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/lib2to3
+	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/unittest
+	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/tkinter
+	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/idlelib
+	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/distutils
+	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/ensurepip
+	find $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/ -name "*.opt-[12].pyc" -exec rm {} \;
+	find $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/ -name "test_*" -exec rm {} \;
+	touch apps/$(PYTHON3)/compiled.stamp
+
+apps/$(PYTHON3)/python1:
+	make -C apps/$(PYTHON3) \
+	  PYINCDIRS="$(CURDIR)/apps/$(PYTHON3):$(CURDIR)/apps/$(PYTHON3)/Include" \
+	  PYLIBS="." \
+	  CROSS_COMPILE=yes \
+	  ABIFLAGS="" \
+	  PYTHON_FOR_BUILD=$(CURDIR)/apps/host/$(PYTHON3)/python \
+	  PGEN=$(CURDIR)/apps/host/$(PYTHON3)/Parser/pgen \
+	  FREEZE_IMPORTLIB=$(CURDIR)/apps/host/$(PYTHON3)/Programs/_freeze_importlib \
+	  PYTHONPATH=$(CURDIR)/apps/$(PYTHON3)/Lib \
+	  PYTHON_OPTIMIZE="" \
+	  PYTHONDONTWRITEBYTECODE=1 \
+	  _PYTHON_HOST_PLATFORM=linux-sh4 \
+	  DESTDIR=$(CURDIR)/apps/$(PYTHON3)/dest \
+	  sharedmods
+
+.PHONY: python3
+python3: apps/$(PYTHON3)/compiled.stamp
 
 #
 # tvheadend

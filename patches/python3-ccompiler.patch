@@ -1,0 +1,21 @@
+--- Lib/distutils/ccompiler.py.orig	2016-02-23 18:05:38.709628967 +0100
++++ Lib/distutils/ccompiler.py	2016-02-23 18:06:05.155956953 +0100
+@@ -329,6 +329,8 @@
+         else:
+             raise TypeError(
+                   "'include_dirs' (if supplied) must be a list of strings")
++        if 'PYINCDIRS' in os.environ:
++            incdirs = os.environ['PYINCDIRS'].split(':')
+ 
+         if extra is None:
+             extra = []
+@@ -456,6 +458,9 @@
+             raise TypeError("'runtime_library_dirs' (if supplied) "
+                             "must be a list of strings")
+ 
++        if 'PYLIBS' in os.environ:
++            library_dirs = os.environ['PYLIBS'].split(':')
++
+         return (libraries, library_dirs, runtime_library_dirs)
+ 
+     def _need_link(self, objects, output_file):

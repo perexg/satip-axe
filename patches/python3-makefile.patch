@@ -1,0 +1,52 @@
+--- Makefile.orig	2016-02-23 19:36:13.488682264 +0100
++++ Makefile	2016-02-23 19:49:55.755131424 +0100
+@@ -610,7 +610,7 @@
+ 	    *) quiet="";; \
+ 	esac; \
+ 	$(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' \
+-		_TCLTK_INCLUDES='$(TCLTK_INCLUDES)' _TCLTK_LIBS='$(TCLTK_LIBS)' \
++		_TCLTK_INCLUDES='$(TCLTK_INCLUDES)' _TCLTK_LIBS='$(TCLTK_LIBS)' EXT_SUFFIX='$(EXT_SUFFIX)' \
+ 		$(PYTHON_FOR_BUILD) $(srcdir)/setup.py $$quiet build
+ 
+ # Build static library
+@@ -720,17 +720,19 @@
+ ############################################################################
+ # Importlib
+ 
++FREEZE_IMPORTLIB ?= ./Programs/_freeze_importlib
++
+ Programs/_freeze_importlib.o: Programs/_freeze_importlib.c Makefile
+ 
+ Programs/_freeze_importlib: Programs/_freeze_importlib.o $(LIBRARY_OBJS_OMIT_FROZEN)
+ 	$(LINKCC) $(PY_LDFLAGS) -o $@ Programs/_freeze_importlib.o $(LIBRARY_OBJS_OMIT_FROZEN) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
+ 
+ Python/importlib_external.h: $(srcdir)/Lib/importlib/_bootstrap_external.py Programs/_freeze_importlib
+-	./Programs/_freeze_importlib \
++	$(FREEZE_IMPORTLIB) \
+ 		$(srcdir)/Lib/importlib/_bootstrap_external.py Python/importlib_external.h
+ 
+ Python/importlib.h: $(srcdir)/Lib/importlib/_bootstrap.py Programs/_freeze_importlib
+-	./Programs/_freeze_importlib \
++	$(FREEZE_IMPORTLIB) \
+ 		$(srcdir)/Lib/importlib/_bootstrap.py Python/importlib.h
+ 
+ 
+@@ -797,9 +799,6 @@
+ $(GRAMMAR_C): $(GRAMMAR_H)
+ 		touch $(GRAMMAR_C)
+ 
+-$(PGEN): $(PGENOBJS)
+-		$(CC) $(OPT) $(PY_LDFLAGS) $(PGENOBJS) $(LIBS) -o $(PGEN)
+-
+ Parser/grammar.o:	$(srcdir)/Parser/grammar.c \
+ 				$(srcdir)/Include/token.h \
+ 				$(srcdir)/Include/grammar.h
+@@ -1606,7 +1605,7 @@
+ 	rm -rf $(COVERAGE_REPORT)
+ 
+ clobber: clean profile-removal
+-	-rm -f $(BUILDPYTHON) $(PGEN) $(LIBRARY) $(LDLIBRARY) $(DLLLIBRARY) \
++	-rm -f $(BUILDPYTHON) $(LIBRARY) $(LDLIBRARY) $(DLLLIBRARY) \
+ 		tags TAGS \
+ 		config.cache config.log pyconfig.h Modules/config.c
+ 	-rm -rf build platform

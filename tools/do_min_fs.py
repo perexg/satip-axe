@@ -358,14 +358,16 @@ def get_menu_opt(argv):
     try:
 #      opts = ''
 #      args = ''
-       opts , args = getopt.gnu_getopt(argv, 'hb:e:t:i:r:',
-           ['--init_type', '--binary=', '--extra', '--target_prefix=', '--version', '--help'])
+       opts , args = getopt.gnu_getopt(argv, 'hb:e:d:t:i:r:',
+           ['--init_type', '--binary=', '--extra', '--extradir',
+            '--target_prefix=', '--version', '--help'])
     except getopt.GetoptError:
            usage()
     target_prefix = ''
     console = ''
     binary_list=[]
     extra_list=[]
+    extradir_list=[]
     version = ''
     for o, v  in opts:
        if o == '-b' or o == '--binary':
@@ -374,10 +376,15 @@ def get_menu_opt(argv):
             if i != '':
                binary_list.append(i)
        elif o == '-e' or o == '--extra':
-          v = v.split(' ')  # take out all blank spaces and replace the v string with  binary_list
+          v = v.split(' ')
           for i in v:
             if i != '':
                extra_list.append(i)
+       elif o == '-d' or o == '--extradir':
+          v = v.split(' ')
+          for i in v:
+            if i != '':
+               extradir_list.append(i)
        elif o == '-t' or o == '--target_prefix':
             target_prefix = v
        elif o == '-i' or o == '--init_type':
@@ -391,6 +398,7 @@ def get_menu_opt(argv):
     params.append(console)
     params.append(target_prefix)
     params.append(extra_list)
+    params.append(extradir_list)
     params.append(version)
     return params
 
@@ -509,7 +517,8 @@ user_param = ['', '', '']
 user_param = get_menu_opt(sys.argv[1:])
 bin_list = user_param[0]  # command list to find
 extra_list = user_param[3]
-version = user_param[4]
+extradir_list = user_param[4]
+version = user_param[5]
 
 if user_param[1] != '':
    boot_type = user_param[1] # default busybox
@@ -574,7 +583,8 @@ print '     ' + 30*'='  + '\n'
 
 gen_fs(library_list, boot_type)
 run_cmd('rm -v fs/etc/inittabBB fs/etc/init.d/rcSBB')
-run_cmd('cp -av fs-add/* fs')
+for d in extradir_list:
+  run_cmd('cp -av ' + d + '/* fs')
 f = open("fs/etc/motd")
 b = f.read(1024*1024)
 f.close()
