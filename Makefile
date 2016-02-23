@@ -9,7 +9,7 @@ TOOLCHAIN_KERNEL=$(CURDIR)/toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4
 HOST_ARCH=$(shell uname -m)
 
 EXTRA_AXE_MODULES_DIR=firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32BITS
-EXTRA_AXE_MODULES=axe_dmx.ko axe_dmxts.ko axe_fe.ko axe_fp.ko axe_i2c.ko \
+EXTRA_AXE_MODULES=axe_dmx.ko axe_dmxts.ko axe_fp.ko axe_i2c.ko \
                   stapi_core_stripped.ko stapi_ioctl_stripped.ko stsys_ioctl.ko
 
 EXTRA_AXE_LIBS_DIR=firmware/initramfs/usr/local/lib
@@ -128,6 +128,7 @@ fs.cpio: $(CPIO_SRCS)
 	  -d "fs-add apps/$(PYTHON3)/dest" \
 	  $(foreach m,$(EXTRA_AXE_MODULES), -e "$(EXTRA_AXE_MODULES_DIR)/$(m):lib/modules/axe/$(m)") \
 	  -e "patches/axe_dmxts_std.ko:lib/modules/axe/axe_dmxts_std.ko" \
+	  -e "patches/axe_fe_156.ko:lib/modules/axe/axe_fe.ko" \
 	  $(foreach m,$(ORIG_FILES), -e "$(EXTRA_AXE_MODULES_DIR)/../$(m):lib/modules/axe/$(m)") \
 	  $(foreach m,$(EXTRA_AXE_LIBS), -e "$(EXTRA_AXE_LIBS_DIR)/$(m):lib/$(m)") \
 	  -e "tools/i2c_mangle.ko:lib/modules/axe/i2c_mangle.ko" \
