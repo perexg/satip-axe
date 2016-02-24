@@ -575,7 +575,8 @@ apps/$(PYTHON3)/patch.stamp: apps/$(PYTHON3)/pyconfig.h.in apps/host/$(PYTHON3)/
 
 apps/$(PYTHON3)/compiled.stamp: apps/$(PYTHON3)/patch.stamp
 	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest
-	make -C apps/$(PYTHON3) \
+	PYTHONPATH="/usr/lib/python3.5:/usr/local/lib/python3.5" \
+        make -C apps/$(PYTHON3) \
 	  PYINCDIRS="$(CURDIR)/apps/$(PYTHON3):$(CURDIR)/apps/$(PYTHON3)/Include" \
 	  PYLIBS="." \
 	  CROSS_COMPILE=yes \
@@ -587,7 +588,6 @@ apps/$(PYTHON3)/compiled.stamp: apps/$(PYTHON3)/patch.stamp
 	  PYTHON_OPTIMIZE="" \
 	  PYTHONDONTWRITEBYTECODE=1 \
 	  _PYTHON_HOST_PLATFORM=linux-sh4 \
-	  PYTHONPATH="/usr/lib/python3.5:/usr/local/lib/python3.5" \
 	  DESTDIR=$(CURDIR)/apps/$(PYTHON3)/dest \
 	  sharedmods sharedinstall libinstall bininstall
 	rm -f $(CURDIR)/apps/$(PYTHON3)/dest/usr/bin/python*-config
@@ -601,6 +601,7 @@ apps/$(PYTHON3)/compiled.stamp: apps/$(PYTHON3)/patch.stamp
 	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/turtle*
 	rm -f $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/__pycache__/turtle*
 	rm -f $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/lib-dynload/*test*
+	rm -f $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/lib-dynload/*audio*
 	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/lib2to3
 	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/unittest
 	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/tkinter
@@ -610,22 +611,6 @@ apps/$(PYTHON3)/compiled.stamp: apps/$(PYTHON3)/patch.stamp
 	find $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/ -name "*.opt-[12].pyc" -exec rm {} \;
 	find $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/ -name "test_*" -exec rm {} \;
 	touch apps/$(PYTHON3)/compiled.stamp
-
-apps/$(PYTHON3)/python1:
-	make -C apps/$(PYTHON3) \
-	  PYINCDIRS="$(CURDIR)/apps/$(PYTHON3):$(CURDIR)/apps/$(PYTHON3)/Include" \
-	  PYLIBS="." \
-	  CROSS_COMPILE=yes \
-	  ABIFLAGS="" \
-	  PYTHON_FOR_BUILD=$(CURDIR)/apps/host/$(PYTHON3)/python \
-	  PGEN=$(CURDIR)/apps/host/$(PYTHON3)/Parser/pgen \
-	  FREEZE_IMPORTLIB=$(CURDIR)/apps/host/$(PYTHON3)/Programs/_freeze_importlib \
-	  PYTHONPATH=$(CURDIR)/apps/$(PYTHON3)/Lib \
-	  PYTHON_OPTIMIZE="" \
-	  PYTHONDONTWRITEBYTECODE=1 \
-	  _PYTHON_HOST_PLATFORM=linux-sh4 \
-	  DESTDIR=$(CURDIR)/apps/$(PYTHON3)/dest \
-	  sharedmods
 
 .PHONY: python3
 python3: apps/$(PYTHON3)/compiled.stamp
