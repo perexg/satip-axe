@@ -31,7 +31,7 @@ KMODULES = drivers/usb/serial/cp210x.ko \
 	   drivers/usb/serial/oti6858.ko
 
 MINISATIP_COMMIT=54df9348e7bd7e6075f54f1b93ec4ad36429abe0
-MINISATIP5_COMMIT=6569cb0c1cc790aec9c254fc99de38be5de6d549
+MINISATIP5_COMMIT=c1a31b3a677fa4af3cbb10f9c95d07c040e787ed
 
 BUSYBOX=busybox-1.24.1
 
@@ -608,6 +608,7 @@ apps/$(PYTHON3)/compiled.stamp: apps/$(PYTHON3)/patch.stamp
 	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/idlelib
 	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/distutils
 	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/ensurepip
+	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/curses
 	find $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/ -name "*.opt-[12].pyc" -exec rm {} \;
 	find $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/ -name "test_*" -exec rm {} \;
 	touch apps/$(PYTHON3)/compiled.stamp
