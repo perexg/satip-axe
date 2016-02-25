@@ -69,6 +69,7 @@ NANO_DOWNLOAD=http://www.nano-editor.org/dist/v2.4/$(NANO_FILENAME)
 PYTHON3_VERSION0=3.5
 PYTHON3_VERSION=$(PYTHON3_VERSION0).1
 PYTHON3=Python-$(PYTHON3_VERSION)
+PYTHON3_PACKAGE_NAME=$(PYTHON3)-1
 PYTHON3_FILENAME=$(PYTHON3).tgz
 PYTHON3_DOWNLOAD=https://www.python.org/ftp/python/$(PYTHON3_VERSION)/$(PYTHON3_FILENAME)
 
@@ -86,6 +87,11 @@ endef
 define WGET
 	@mkdir -p apps/host
 	wget --no-verbose --no-check-certificate -O $(2) $(1)
+endef
+
+define PACKAGE
+	-mkdir -p out/packages
+	tar cvj -C $(1) -f out/packages/$(2).tar.bz2 $(3)
 endef
 
 #
@@ -119,13 +125,12 @@ CPIO_SRCS += tools/axehelper
 CPIO_SRCS += nfsutils
 CPIO_SRCS += nano
 CPIO_SRCS += mtd-utils
-CPIO_SRCS += python3
 
 fs.cpio: $(CPIO_SRCS)
 	fakeroot tools/do_min_fs.py \
 	  -r "$(VERSION)" \
 	  -b "bash strace openssl" \
-	  -d "fs-add apps/$(PYTHON3)/dest" \
+	  -d "fs-add" \
 	  $(foreach m,$(EXTRA_AXE_MODULES), -e "$(EXTRA_AXE_MODULES_DIR)/$(m):lib/modules/axe/$(m)") \
 	  -e "patches/axe_dmxts_std.ko:lib/modules/axe/axe_dmxts_std.ko" \
 	  -e "patches/axe_fe_156.ko:lib/modules/axe/axe_fe.ko" \
@@ -571,11 +576,12 @@ apps/$(PYTHON3)/patch.stamp: apps/$(PYTHON3)/pyconfig.h.in apps/host/$(PYTHON3)/
 	cd apps/$(PYTHON3) && patch -b -p0 < ../../patches/python3-setup.patch
 	cd apps/$(PYTHON3) && patch -b -p0 < ../../patches/python3-ccompiler.patch
 	cd apps/$(PYTHON3) && patch -b -p0 < ../../patches/python3-build-ext.patch
+	cd apps/$(PYTHON3) && patch -b -p0 < ../../patches/python3-getpath.patch
 	touch apps/$(PYTHON3)/patch.stamp
 
 apps/$(PYTHON3)/compiled.stamp: apps/$(PYTHON3)/patch.stamp
 	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest
-	PYTHONPATH="/usr/lib/python3.5:/usr/local/lib/python3.5" \
+	PYTHONPATH=$(CURDIR)/apps/$(PYTHON3)/Lib \
         make -C apps/$(PYTHON3) \
 	  PYINCDIRS="$(CURDIR)/apps/$(PYTHON3):$(CURDIR)/apps/$(PYTHON3)/Include" \
 	  PYLIBS="." \
@@ -590,27 +596,28 @@ apps/$(PYTHON3)/compiled.stamp: apps/$(PYTHON3)/patch.stamp
 	  _PYTHON_HOST_PLATFORM=linux-sh4 \
 	  DESTDIR=$(CURDIR)/apps/$(PYTHON3)/dest \
 	  sharedmods sharedinstall libinstall bininstall
-	rm -f $(CURDIR)/apps/$(PYTHON3)/dest/usr/bin/python*-config
-	rm -f $(CURDIR)/apps/$(PYTHON3)/dest/usr/bin/2to3*
-	rm -f $(CURDIR)/apps/$(PYTHON3)/dest/usr/bin/idle*
-	$(TOOLCHAIN)/bin/sh4-linux-strip $(CURDIR)/apps/$(PYTHON3)/dest/usr/bin/python3*
-	rm -f $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/*.a
-	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/test
-	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/ctypes/test
-	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/sqlite3
-	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/turtle*
-	rm -f $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/__pycache__/turtle*
-	rm -f $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/lib-dynload/*test*
-	rm -f $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/lib-dynload/*audio*
-	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/lib2to3
-	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/unittest
-	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/tkinter
-	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/idlelib
-	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/distutils
-	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/ensurepip
-	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/python3*/curses
+	rm -f apps/$(PYTHON3)/dest/usr/bin/python*-config
+	rm -f apps/$(PYTHON3)/dest/usr/bin/2to3*
+	rm -f apps/$(PYTHON3)/dest/usr/bin/idle*
+	$(TOOLCHAIN)/bin/sh4-linux-strip apps/$(PYTHON3)/dest/usr/bin/python3*
+	rm -f apps/$(PYTHON3)/dest/usr/lib/*.a
+	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/test
+	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/ctypes/test
+	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/sqlite3
+	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/turtle*
+	rm -f apps/$(PYTHON3)/dest/usr/lib/python3*/__pycache__/turtle*
+	rm -f apps/$(PYTHON3)/dest/usr/lib/python3*/lib-dynload/*test*
+	rm -f apps/$(PYTHON3)/dest/usr/lib/python3*/lib-dynload/*audio*
+	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/lib2to3
+	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/unittest
+	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/tkinter
+	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/idlelib
+	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/distutils
+	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/ensurepip
+	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/curses
 	find $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/ -name "*.opt-[12].pyc" -exec rm {} \;
 	find $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/ -name "test_*" -exec rm {} \;
+	$(call PACKAGE,apps/$(PYTHON3)/dest,$(PYTHON3_PACKAGE_NAME),usr)
 	touch apps/$(PYTHON3)/compiled.stamp
 
 .PHONY: python3
