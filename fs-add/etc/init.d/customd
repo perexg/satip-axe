@@ -2,10 +2,6 @@
 
 test -r /etc/sysconfig/config && . /etc/sysconfig/config
 
-if test "$CUSTOMD" != "yes"; then
-  exit 0
-fi
-
 if test -x "${CUSTOMD}" ; then
   . "${CUSTOMD}"
 fi

@@ -145,6 +145,35 @@ fi
 ifconfig eth0 txqueuelen 2000 up
 route add -net 224.0.0.0 netmask 240.0.0.0 dev eth0
 
+# unpack extra packages
+for package in /mnt/data/satip-axe/packages/*.tar.gz; do
+  if test -r "$package"; then
+    logger -p local0.notice "Unpacking package $package"
+    tar xz -C / -f "$package"
+  fi
+done
+for package in /mnt/data/satip-axe/packages/*.tar.bz2; do
+  if test -r "$package"; then
+    logger -p local0.notice "Unpacking package $package"
+    tar xj -C / -f "$package"
+  fi
+done
+
+# run extra services
+inithup=
+for prg in /etc/init.extra/*; do
+  if test -x "$prg"; then
+    if test -z "$inithup"; then
+      echo "# Added by /etc/init.d/rcS - init.extra" >> /etc/inittab
+    fi
+    echo "::respawn:${prg}" >> /etc/inittab
+    inithup=1
+  fi
+done
+if test -n "$inithup"; then
+  kill -SIGHUP 1
+fi
+
 # local boot
 if test -x /etc/sysconfig/localboot ; then
   /etc/sysconfig/localboot

@@ -91,7 +91,7 @@ endef
 
 define PACKAGE
 	-mkdir -p out/packages
-	tar cvj -C $(1) -f out/packages/$(2).tar.bz2 $(3)
+	tar cvz -C $(1) -f out/packages/$(2).tar.gz $(3)
 endef
 
 #
