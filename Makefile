@@ -73,6 +73,8 @@ PYTHON3_PACKAGE_NAME=$(PYTHON3)-1
 PYTHON3_FILENAME=$(PYTHON3).tgz
 PYTHON3_DOWNLOAD=https://www.python.org/ftp/python/$(PYTHON3_VERSION)/$(PYTHON3_FILENAME)
 
+MULTICAST_RTP_PACKAGE_NAME=multicast-rtp-1
+
 TVHEADEND_COMMIT=master
 
 # 10663 10937
@@ -622,6 +624,20 @@ apps/$(PYTHON3)/compiled.stamp: apps/$(PYTHON3)/patch.stamp
 
 .PHONY: python3
 python3: apps/$(PYTHON3)/compiled.stamp
+
+#
+# multicast-rtp
+#
+
+apps/multicast-rtp/ok.stamp: tools/multicast-rtp
+	mkdir -p apps/multicast-rtp/sbin apps/multicast-rtp/etc/init.extra
+	cp tools/multicast-rtp apps/multicast-rtp/sbin
+	ln -sf ../../sbin/multicast-rtp apps/multicast-rtp/etc/init.extra/multicast-rtp
+	$(call PACKAGE,apps/multicast-rtp,$(MULTICAST_RTP_PACKAGE_NAME),etc sbin)
+	touch apps/multicast-rtp/ok.stamp
+
+.PHONY: multicast-rtp
+multicast-rtp: apps/multicast-rtp/ok.stamp
 
 #
 # tvheadend
