@@ -12,6 +12,7 @@ Standard DiseqC timing and setup
 
 ### Example: '-q "\*:5-15-0-5-5-0" -d "\*:\*1-0"'
 
+Note: It can be used only with minisatip5 (v0.5+).
 
 Power
 -----
@@ -48,7 +49,7 @@ diseqc (AA), voltage and tone setup is executed, so you may eventually
 connect a multiswitch or quad LNB (it makes sense only with
 the -Z option).
 
-The -Z option can eventually reduce the used input to 2 filtering the
+The -Z option can eventually reduce the used input to 2 - filtering the
 loband (inputs 2,3) or hiband (inputs 0,1) only. For example, 23.5E
 satellite positions have useable transponders only in hiband. So, it is
 enough to connect coaxial cable only to input 0 and 1 and use other
@@ -63,7 +64,7 @@ loband/hiband inputs).
     box input 2 ----+---- diseqc AA = 28.2E (SAT>IP src=2)
                     +---- diseqc AB = 19.2E (SAT>IP src=3)
                     +---- diseqc BA = 16E   (SAT>IP src=4)
-                    \---- diseqc BB = 13E   (SAT<IP src=5)
+                    \---- diseqc BB = 13E   (SAT>IP src=5)
     box input 3 ----+---- diseqc AA = 0.8W  (SAT>IP src=2)
                     \---- diseqc AB = 9E    (SAT>IP src=3)
 
