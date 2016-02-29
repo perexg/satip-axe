@@ -1,9 +1,13 @@
+SATIP-AXE firmware binary files
+===============================
+
 This directory contains USB and flash firmware for
   * Inverto IDL-400s
   * Grundig GSS.BOX
   * Telestar Digibit R1
 
 Update:
+-------
 
   - check differences in /etc/config.default against /etc/sysconfig/config
     - example: diff -u /etc/config.default /etc/sysconfig/config
@@ -19,6 +23,7 @@ Update:
         file satip-axe-201504211434-8.fw exists, it is preferred
 
 Installation:
+-------------
 
   - set DHCP in the original firmware (not 100% required, but several
     users reported that without this change the network might not work)
@@ -35,6 +40,7 @@ Installation:
     is not in the box, the original firmware will be booted
 
 Installation to internal flash:
+-------------------------------
 
   - WARNING! The original firmware will be deactivated!
   - the original firmware can be turned on using idl4k.recovery (see bellow)
@@ -47,6 +53,7 @@ Installation to internal flash:
     the original firmware, but uboot is reconfigured
 
 Customization:
+--------------
 
   - configuration file is in /etc/sysconfig/config
   - put localtime file (glibc) to /etc/sysconfig/localtime
@@ -62,20 +69,24 @@ Customization:
     add -w argument to the ftpd daemon
 
 httpd:
+------
 
   - /media tree is exported
 
 ftpd:
+-----
 
   - /media tree is exported, use root/satip as login
 
 nfsd:
+-----
 
   - only v3 protocol is supported
   - to list connected clients 'showmount'
   - to list exports 'exportfs'
 
 Minisatip config:
+-----------------
 
   - you may add extra parameters to MINISATIP_OPTS= in /etc/sysconfig/config
   - WARNING: use -d with unique numbers if you have _multiple_ SAT>IP servers on net
@@ -91,6 +102,7 @@ Minisatip config:
                MINISATIP_OPTS="-L 0:2,1:3"
 
 OSCAM config:
+-------------
 
   - in /etc/sysconfig/oscam directory
   - login/password is oscam/satip, http webui available at http://<boxip>:8888
@@ -98,10 +110,12 @@ OSCAM config:
   - or use customized serial device names (see /etc/sysconfig/config)
 
 Misc:
+-----
 
   - full tuner reset - "axe-debug reset"
 
 Recovery from the wrong configuration:
+--------------------------------------
 
   - it works with firmware build 10 and later
   - for flashed firmware:
@@ -115,6 +129,7 @@ Recovery from the wrong configuration:
   - the old configuration file is moved to /etc/sysconfig/config.old
 
 Recovery of the original firmware:
+----------------------------------
 
   - copy idl4k.recovery file as idl4k.scr file to the root directory on the USB stick
   - plug the USB stick to the upper USB port in box
@@ -122,6 +137,7 @@ Recovery of the original firmware:
   - box is accessible through http (web browser) - original firmware
 
 Notes:
+------
 
   - there is 128M SPI flash memory in the device
   - 128k for u-boot (probably)
@@ -131,6 +147,7 @@ Notes:
   - data block is named data-nand0 - uses rest of flash
 
 Disclaimer:
+-----------
 
 The SATIP AXE firmware is supplied "AS IS" without any warranties and
 support.
@@ -145,6 +162,7 @@ warranty that such software will be suitable for the specified use
 without further testing or modification.
 
 Bugs:
+-----
 
   - the Inverto driver do not initialize properly sometimes
     (minisatip is not started); if minisatip does not work,
@@ -169,6 +187,7 @@ Bugs:
   - reboot command cannot be used (uboot usb init fails, hw init fails)
 
 History:
+--------
 
   upcoming - https://github.com/perexg/satip-axe/issues/45
     - updated stmmac ethernet driver from latest stlinux kernel
