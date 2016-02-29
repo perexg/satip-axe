@@ -189,85 +189,85 @@ Bugs:
 History:
 --------
 
-  upcoming - https://github.com/perexg/satip-axe/issues/45
-    - updated stmmac ethernet driver from latest stlinux kernel
-      - linux-sh4-2.6.32.y - _stm24_0217
-      - enabled Realtek PHY module (RTL8211E)
-      - disable scatter-gather, increase ring descriptors (from 256 to 512)
-    - updated dropbear to 2015.71
-      - changed from dss host key to rsa host key (for latest openssl)
-    - updated nfsutils to 1.3.3
-    - updated nano to 2.4.3
-    - updated oscam to 11211
-    - updated axe_dmxts.ko kernel module from idl4k-1.24.0.156
-    - minisatip accepts -M option to skip first MPEG-TS packets from demuxer
-      - the default value is 35 (to skip packets from previous tune)
-    - minisatip can handle multiple unicable groups (-U t1,t2,t3,t4 option)
-    - added second minisatip binary (minisatip5 - based on 0.5.26 version)
-      - add new lines to /etc/sysconfig/config from /etc/config.default
+upcoming - https://github.com/perexg/satip-axe/issues/45
+  - updated stmmac ethernet driver from latest stlinux kernel
+    - linux-sh4-2.6.32.y - _stm24_0217
+    - enabled Realtek PHY module (RTL8211E)
+    - disable scatter-gather, increase ring descriptors (from 256 to 512)
+  - updated dropbear to 2015.71
+    - changed from dss host key to rsa host key (for latest openssl)
+  - updated nfsutils to 1.3.3
+  - updated nano to 2.4.3
+  - updated oscam to 11211
+  - updated axe_dmxts.ko kernel module from idl4k-1.24.0.156
+  - minisatip accepts -M option to skip first MPEG-TS packets from demuxer
+    - the default value is 35 (to skip packets from previous tune)
+  - minisatip can handle multiple unicable groups (-U t1,t2,t3,t4 option)
+  - added second minisatip binary (minisatip5 - based on 0.5.26 version)
+    - add new lines to /etc/sysconfig/config from /etc/config.default
 
-  satip-axe-201508061051-10 - Thu Aug  6 2015
-    - replaced stapi / frontend / demuxer drivers with latest from Inverto
-    - updated kernel USB stack, fixed ftdi_sio kernel oops (mouse readers)
-    - updated minisatip to new demuxts (reduce CPU usage)
-    - fixed -b option for minisatip
-    - updated oscamd to 10937
-    - fixed /etc/mdev.conf to mount USB sticks without partitions
-    - added idl4k.cfgreset script to reset wrong config
+satip-axe-201508061051-10 - Thu Aug  6 2015
+  - replaced stapi / frontend / demuxer drivers with latest from Inverto
+  - updated kernel USB stack, fixed ftdi_sio kernel oops (mouse readers)
+  - updated minisatip to new demuxts (reduce CPU usage)
+  - fixed -b option for minisatip
+  - updated oscamd to 10937
+  - fixed /etc/mdev.conf to mount USB sticks without partitions
+  - added idl4k.cfgreset script to reset wrong config
 
-  satip-axe-201505242057-9 - Sun May 24 2015
-    - added http://boxip:8080/axe-status.txt status page (shell parseable)
-    - fixed ntpd start
-    - added crond start / configuration
-    - added customd start (custom daemon/service/setup - script) from init
-    - added nano text editor
-    - updated oscam to 10663
-    - added upgrade-fw script for the internal flash upgrade without an USB stick
-    - added /etc/sysconfig/profile support
+satip-axe-201505242057-9 - Sun May 24 2015
+  - added http://boxip:8080/axe-status.txt status page (shell parseable)
+  - fixed ntpd start
+  - added crond start / configuration
+  - added customd start (custom daemon/service/setup - script) from init
+  - added nano text editor
+  - updated oscam to 10663
+  - added upgrade-fw script for the internal flash upgrade without an USB stick
+  - added /etc/sysconfig/profile support
 
-  satip-axe-201504211434-8 - Tue Apr 21 2015
-    - faster boot (approx. 25 seconds from flash)
-    - tuners - configurable gain (0-16dB) - STV6210_BAMP in config
-    - enabled inetd/httpd/ftpd/nfsd by default
-    - added nfsd v3 support
-    - added ethtool
-    - extended debug tools for I2C bus (axe-debug, axehelper)
+satip-axe-201504211434-8 - Tue Apr 21 2015
+  - faster boot (approx. 25 seconds from flash)
+  - tuners - configurable gain (0-16dB) - STV6210_BAMP in config
+  - enabled inetd/httpd/ftpd/nfsd by default
+  - added nfsd v3 support
+  - added ethtool
+  - extended debug tools for I2C bus (axe-debug, axehelper)
 
-  satip-axe-201504142137-7 - Tue Apr 14 2015
-    - minisatip
-      - allow configurable DVR read buffer (-b option)
-      - decrease default DVR read buffer to 14 UDP packets (18424 bytes)
-      - allow 13V only for unicable/jess (* before freq)
-      - tuner LED fixes
-    - AXE modules
-      - remove the load hell from STLinux, move everything to /etc/init.d/rcS
-      - another workarounds for the correct tuner initialization
+satip-axe-201504142137-7 - Tue Apr 14 2015
+  - minisatip
+    - allow configurable DVR read buffer (-b option)
+    - decrease default DVR read buffer to 14 UDP packets (18424 bytes)
+    - allow 13V only for unicable/jess (* before freq)
+    - tuner LED fixes
+  - AXE modules
+    - remove the load hell from STLinux, move everything to /etc/init.d/rcS
+    - another workarounds for the correct tuner initialization
 
-  satip-axe-201504101512-6 - Fri Apr 10 2015
-    - extended minisatip (quattro LNB, master/slave, unicable on other input)
-    - another shuffling in the AXE modules load procedure
+satip-axe-201504101512-6 - Fri Apr 10 2015
+  - extended minisatip (quattro LNB, master/slave, unicable on other input)
+  - another shuffling in the AXE modules load procedure
 
-  satip-axe-201504092035-5 - Thu Apr  9 2015
-    - fixed minisatip & dhcp issue - minisatip is started with good IP
-    - changed load order of AXE modules and AXE hw initialization
+satip-axe-201504092035-5 - Thu Apr  9 2015
+  - fixed minisatip & dhcp issue - minisatip is started with good IP
+  - changed load order of AXE modules and AXE hw initialization
 
-  satip-axe-201504082030-4 : Wed Apr  8 2015
-    - upgraded busybox to v1.23.2
-    - added ntpd configuration (network time daemon)
-    - changed dropbear default PATH to "/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin"
-    - added /dev/sd* devices hotplug (mounted to /media tree using labels)
-    - added kernel modules for USB serial converters (most Phoenix readers)
-    - added /dev/ttyUSB* devices hotplug (persistent names like /dev/ttyUSB2-1:1.0)
-    - added oscam r10619
-    - allow customization of hostname (/etc/sysconfig/config)
-    - minisatip fixes (signal levels, cleanups)
+satip-axe-201504082030-4 : Wed Apr  8 2015
+  - upgraded busybox to v1.23.2
+  - added ntpd configuration (network time daemon)
+  - changed dropbear default PATH to "/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin"
+  - added /dev/sd* devices hotplug (mounted to /media tree using labels)
+  - added kernel modules for USB serial converters (most Phoenix readers)
+  - added /dev/ttyUSB* devices hotplug (persistent names like /dev/ttyUSB2-1:1.0)
+  - added oscam r10619
+  - allow customization of hostname (/etc/sysconfig/config)
+  - minisatip fixes (signal levels, cleanups)
 
-  satip-axe-201504061852-3 : Mon Apr  6 2015
-    - minisatip fixes (unicable-jess, corrected input selection - coax inputs)
+satip-axe-201504061852-3 : Mon Apr  6 2015
+  - minisatip fixes (unicable-jess, corrected input selection - coax inputs)
 
-  satip-axe-201504061852-2 : Mon Apr  6 2015
-    - minisatip fixes (unicable, multiple tuners, h/v and lo/hi setup)
-    - load axe modules in rcSBB
+satip-axe-201504061852-2 : Mon Apr  6 2015
+  - minisatip fixes (unicable, multiple tuners, h/v and lo/hi setup)
+  - load axe modules in rcSBB
 
-  satip-axe-201503311856-1 : Tue Mar 31 2015
-    - initial firmware release
+satip-axe-201503311856-1 : Tue Mar 31 2015
+  - initial firmware release
