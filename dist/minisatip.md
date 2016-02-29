@@ -10,7 +10,7 @@ the physical F-type connector on the box have numering 1-4.
 Standard DiseqC timing and setup
 --------------------------------
 
-### Example: '-q " * :5-15-0-5-5-0" -d " * : * 1-0"'
+### Example: '-q "\*:5-15-0-5-5-0" -d "\*:\*1-0"'
 
 
 Power
