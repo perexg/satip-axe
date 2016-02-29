@@ -31,7 +31,7 @@ KMODULES = drivers/usb/serial/cp210x.ko \
 	   drivers/usb/serial/oti6858.ko
 
 MINISATIP_COMMIT=54df9348e7bd7e6075f54f1b93ec4ad36429abe0
-MINISATIP5_COMMIT=c1a31b3a677fa4af3cbb10f9c95d07c040e787ed
+MINISATIP5_COMMIT=ddd4796b2c759292f6db1d1be84bbeb5bd57ed03
 
 BUSYBOX=busybox-1.24.1
 
@@ -148,18 +148,9 @@ fs.cpio: $(CPIO_SRCS)
 	  $(foreach f,$(RPCBIND_SBIN_FILES), -e "apps/$(RPCBIND)/$(f):usr/sbin/$(f)") \
 	  $(foreach f,$(NFSUTILS_SBIN_FILES), -e "apps/$(NFSUTILS)/$(f):usr/sbin/$(notdir $(f))") \
 	  -e "apps/minisatip/minisatip:sbin/minisatip" \
-	  -e "apps/minisatip/icons/lr.jpg:usr/share/minisatip/icons/lr.jpg" \
-	  -e "apps/minisatip/icons/lr.png:usr/share/minisatip/icons/lr.png" \
-	  -e "apps/minisatip/icons/sm.jpg:usr/share/minisatip/icons/sm.jpg" \
-	  -e "apps/minisatip/icons/sm.png:usr/share/minisatip/icons/sm.png" \
+	  $(foreach f,$(notdir $(wildcard apps/minisatip/icons/*)), -e "apps/minisatip/icons/$f:usr/share/minisatip/icons/$f") \
 	  -e "apps/minisatip5/minisatip:sbin/minisatip5" \
-	  -e "apps/minisatip5/html/lr.jpg:usr/share/minisatip/html/lr.jpg" \
-	  -e "apps/minisatip5/html/lr.png:usr/share/minisatip/html/lr.png" \
-	  -e "apps/minisatip5/html/sm.jpg:usr/share/minisatip/html/sm.jpg" \
-	  -e "apps/minisatip5/html/sm.png:usr/share/minisatip/html/sm.png" \
-	  -e "apps/minisatip5/html/dLAN.xml:usr/share/minisatip/html/dLAN.xml" \
-	  -e "apps/minisatip5/html/satip.xml:usr/share/minisatip/html/satip.xml" \
-	  -e "apps/minisatip5/html/status.html:usr/share/minisatip/html/status.html" \
+	  $(foreach f,$(notdir $(wildcard apps/minisatip5/html/*)), -e "apps/minisatip5/html/$f:usr/share/minisatip/html/$f") \
 	  -e "apps/$(NANO)/src/nano:usr/bin/nano" \
 	  -e "apps/mtd-utils/nandwrite:usr/sbin/nandwrite2" \
 	  -e "apps/oscam-svn/Distribution/oscam-1.20-unstable_svn$(OSCAM_REV)-sh4-linux:sbin/oscamd"
@@ -306,7 +297,8 @@ media-clean:
 # minisatip
 #
 
-apps/minisatip/axe.h:
+apps/minisatip/axe.h: patches/minisatip-axe.patch
+	rm -rf apps/minisatip
 	$(call GIT_CLONE,https://github.com/catalinii/minisatip.git,minisatip,$(MINISATIP_COMMIT))
 	cd apps/minisatip; patch -p1 < ../../patches/minisatip-axe.patch
 
@@ -326,7 +318,8 @@ minisatip-clean:
 # minisatip5
 #
 
-apps/minisatip5/axe.h:
+apps/minisatip5/axe.h: patches/minisatip5-axe.patch
+	rm -rf apps/minisatip5
 	$(call GIT_CLONE,https://github.com/catalinii/minisatip.git,minisatip5,$(MINISATIP5_COMMIT))
 	cd apps/minisatip5; patch -p1 < ../../patches/minisatip5-axe.patch
 
@@ -671,3 +664,6 @@ clean: kernel-mrproper
 	rm -rf firmware/initramfs
 	rm -rf toolchain/4.5.3-99
 	rm -rf tools/syscall-dump.o* tools/syscall-dump.s*
+
+testx:
+	echo $(foreach f,$(notdir $(wildcard apps/minisatip5/html/*)), "'$f'")

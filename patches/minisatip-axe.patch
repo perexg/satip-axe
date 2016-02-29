@@ -1,5 +1,5 @@
 diff --git a/adapter.c b/adapter.c
-index 285faea..0b59730 100755
+index 285faea..6168975 100755
 --- a/adapter.c
 +++ b/adapter.c
 @@ -29,10 +29,15 @@
@@ -49,7 +49,26 @@ index 285faea..0b59730 100755
  	}
  	for (na; na < MAX_ADAPTERS; na++)
  		a[na].pa = a[na].fn = -1;
-@@ -122,9 +143,23 @@ init_hw ()
+@@ -69,6 +90,7 @@ find_adapters ()
+ // avoid adapter close unless all the adapters can be closed
+ int adapter_timeout(sockets *s)
+ {
++#ifndef AXE
+ 	int do_close = 1, i, max_close = 0;
+ 	int rtime = getTick();
+ 	for (i = 0; i < MAX_ADAPTERS; i++)
+@@ -84,6 +106,10 @@ int adapter_timeout(sockets *s)
+ 		s->rtime = max_close;
+ 	
+ 	return do_close;	
++#else
++	LOG("Requested adapter %d close", s->sid);
++	return 1;
++#endif
+ }
+ 
+ int
+@@ -122,9 +148,23 @@ init_hw ()
  			find_adapters ();
  		LOG ("trying to open [%d] adapter %d and frontend %d", i, a[i].pa,
  			a[i].fn);
@@ -74,7 +93,7 @@ index 285faea..0b59730 100755
  		a[i].dvr = open (buf, O_RDONLY | O_NONBLOCK);
  		if (a[i].fe < 0 || a[i].dvr < 0)
  		{
-@@ -139,22 +174,24 @@ init_hw ()
+@@ -139,22 +179,24 @@ init_hw ()
  
  		a[i].enabled = 1;
  		if (!a[i].buf)
@@ -102,7 +121,7 @@ index 285faea..0b59730 100755
  		init_dvb_parameters (&a[i].tp);
  		mark_pids_deleted (i, -1, NULL);
  		update_pids (i);
-@@ -165,8 +202,8 @@ init_hw ()
+@@ -165,8 +207,8 @@ init_hw ()
  		a[i].sock =
  			sockets_add (a[i].dvr, NULL, i, TYPE_DVR, (socket_action) read_dmx,
  			(socket_action) close_adapter_for_socket, (socket_action ) adapter_timeout);
@@ -113,7 +132,7 @@ index 285faea..0b59730 100755
  		sockets_timeout (a[i].sock, 60000);
  		LOG ("done opening adapter %i fe_sys %d", i, a[i].tp.sys);
  
-@@ -179,7 +216,6 @@ init_hw ()
+@@ -179,7 +221,6 @@ init_hw ()
  	return num_adapters;
  }
  
@@ -121,7 +140,7 @@ index 285faea..0b59730 100755
  void
  close_adapter (int na)
  {
-@@ -194,8 +230,41 @@ close_adapter (int na)
+@@ -194,8 +235,44 @@ close_adapter (int na)
  	mark_pids_deleted (na, -1, NULL);
  	update_pids (na);
  	//      if(a[na].dmx>0)close(a[na].dmx);
@@ -133,24 +152,27 @@ index 285faea..0b59730 100755
 +			axe_fe_reset(a[na].fe2);
 +		for (i = j = 0; i < 4; i++) {
 +			a[i].axe_used &= ~(1 << na);
-+			if (a[i].axe_used || a[i].sid_cnt > 0) j++;
++			if (a[i].axe_used || a[i].fe > 0) j++;
 +		}
 +		if (j > 0 && opts.axe_power > 1)
 +			goto nostandby;
 +		for (i = 0; i < 4; i++) {
++			if (opts.axe_power < 2 && i != na && j)
++				continue;
 +			if (a[i].axe_used != 0 || a[i].sid_cnt > 0) {
 +				LOG("AXE standby: adapter %d busy (cnt=%d/used=%04x/fe=%d), keeping",
 +				    i, a[i].sid_cnt, a[i].axe_used, a[i].fe);
 +				continue;
 +			}
-+			if (a[i].fe2 <= 0 || a[i].axe_feused == 0)
++			if (a[i].fe2 < 0)
 +				continue;
 +			LOG("AXE standby: adapter %d", i);
 +			axe_fe_standby(a[i].fe2, -1);
 +			axe_set_tuner_led(i + 1, 0);
 +			ioctl(a[i].fe2, FE_SET_VOLTAGE, SEC_VOLTAGE_OFF);
 +			close(a[i].fe2);
-+			a[i].fe2 = a[i].axe_feused = 0;
++			a[i].fe2 = -1;
++			a[i].axe_feused = 0;
 +			a[i].tp.old_diseqc = a[i].tp.old_pol = a[i].tp.old_hiband = -1;
 +		}
 +	}
@@ -163,18 +185,30 @@ index 285faea..0b59730 100755
  	if (a[na].sock >= 0)
  		sockets_del (a[na].sock);
  	a[na].fe = 0;
-@@ -366,8 +435,8 @@ close_adapter_for_stream (int sid, int aid)
+@@ -343,6 +420,7 @@ set_adapter_for_stream (int sid, int aid)
+ 	if (a[aid].master_sid == -1)
+ 		a[aid].master_sid = sid;
+ 	a[aid].sid_cnt++;
++	sockets_set_poll(a[aid].sock, 1);
+ 	LOG ("set adapter %d for stream %d m:%d s:%d", aid, sid, a[aid].master_sid, a[aid].sid_cnt);
+ 	return 0;
+ }
+@@ -366,8 +444,12 @@ close_adapter_for_stream (int sid, int aid)
  								 // delete the attached PIDs as well
  	mark_pids_deleted (aid, sid, NULL);
  	update_pids (aid);
 -//	if (a[aid].sid_cnt == 0) 
 -//		close_adapter (aid);
-+	if (a[aid].sid_cnt == 0)
-+		close_adapter (aid);
++	if (a[aid].sid_cnt == 0) {
++#ifdef AXE
++		axe_set_tuner_led(aid + 1, 0);
++#endif
++		sockets_set_poll(a[aid].sock, 0);
++	}
  }
  
  
-@@ -410,7 +479,11 @@ update_pids (int aid)
+@@ -410,7 +492,11 @@ update_pids (int aid)
  int tune (int aid, int sid)
  {
  	adapter *ad = get_adapter(aid);
@@ -187,7 +221,7 @@ index 285faea..0b59730 100755
  	
  	if(!ad) return -400;
  	ad->last_sort = getTick ();
-@@ -419,7 +492,13 @@ int tune (int aid, int sid)
+@@ -419,7 +505,13 @@ int tune (int aid, int sid)
  		ad->tp.switch_type = ad->switch_type;
  		ad->tp.uslot = ad->uslot;
  		ad->tp.ufreq = ad->ufreq;
@@ -202,7 +236,7 @@ index 285faea..0b59730 100755
  		rv = tune_it_s2 (ad->fe, &ad->tp);
  		a[aid].status = 0;
  		a[aid].status_cnt = 0;
-@@ -428,6 +507,12 @@ int tune (int aid, int sid)
+@@ -428,6 +520,12 @@ int tune (int aid, int sid)
  			close_streams_for_adapter (aid, sid);
  			update_pids (aid);
  		}
@@ -215,7 +249,7 @@ index 285faea..0b59730 100755
  	}
  	else
  		LOG ("not tuning for SID %d (do_tune=%d, master_sid=%d)", sid,
-@@ -684,7 +769,11 @@ describe_adapter (int sid, int aid)
+@@ -684,7 +782,11 @@ describe_adapter (int sid, int aid)
  	memset (dad, 0, sizeof (dad));
  	x = 0;
  								 // do just max 3 signal check 1s after tune
@@ -227,7 +261,7 @@ index 285faea..0b59730 100755
  	{
  		int new_gs = 1;
  		ts = getTick ();
-@@ -701,11 +790,20 @@ describe_adapter (int sid, int aid)
+@@ -701,11 +803,20 @@ describe_adapter (int sid, int aid)
  		if (ad->max_snr <= ad->snr) ad->max_snr = (ad->snr>0)?ad->snr:1;
  		LOG ("get_signal%s took %d ms for adapter %d handle %d (status: %d, ber: %d, strength:%d, snr: %d, max_strength: %d, max_snr: %d %d)",
  			new_gs?"":"_new", getTick () - ts, aid, ad->fe, ad->status, ad->ber, ad->strength, ad->snr, ad->max_strength, ad->max_snr, opts.force_scan);
@@ -248,7 +282,7 @@ index 285faea..0b59730 100755
  	}
  	if(use_ad)
  	{
-@@ -715,14 +813,14 @@ describe_adapter (int sid, int aid)
+@@ -715,14 +826,14 @@ describe_adapter (int sid, int aid)
  	}
  	if (t->sys == SYS_DVBS || t->sys == SYS_DVBS2)
  		sprintf (dad, "ver=1.0;src=%d;tuner=%d,%d,%d,%d,%d,%s,%s,%s,%s,%s,%d,%s;pids=",
@@ -266,7 +300,7 @@ index 285faea..0b59730 100755
  						t->c2tft, t->ds, t->plp, t->inversion);
  	for (i = 0; i < MAX_PIDS; i++)
  		if (use_ad && ad->pids[i].flags == 1)
-@@ -825,7 +923,7 @@ void enable_adapters(char *o)
+@@ -825,7 +936,7 @@ void enable_adapters(char *o)
  
  void set_unicable_adapters(char *o, int type)
  {
@@ -275,7 +309,7 @@ index 285faea..0b59730 100755
  	char buf[100], *arg[20], *sep1, *sep2;
  
  	strncpy(buf, o, sizeof(buf));
-@@ -839,17 +937,67 @@ void set_unicable_adapters(char *o, int type)
+@@ -839,17 +950,67 @@ void set_unicable_adapters(char *o, int type)
  		sep2 = strchr(arg[i], '-');
  		if( !sep1 || !sep2)
  			continue;
@@ -344,7 +378,7 @@ index 285faea..0b59730 100755
  
  int delsys_match(adapter *ad, int del_sys)
  {
-@@ -866,3 +1014,71 @@ int delsys_match(adapter *ad, int del_sys)
+@@ -866,3 +1027,71 @@ int delsys_match(adapter *ad, int del_sys)
  	return 0;
  		
  }
@@ -605,7 +639,9 @@ index 0000000..cfc1927
 +
 +#endif
 diff --git a/dvb.c b/dvb.c
-index 5701bd2..79cac82 100755
+old mode 100755
+new mode 100644
+index 5701bd2..d352f8a
 --- a/dvb.c
 +++ b/dvb.c
 @@ -41,6 +41,10 @@
@@ -619,14 +655,14 @@ index 5701bd2..79cac82 100755
  
  extern struct struct_opts opts;
  
-@@ -215,6 +219,31 @@ msleep (uint32_t msec)
+@@ -215,6 +219,46 @@ msleep (uint32_t msec)
  		;
  }
  
 +#ifdef AXE
-+void axe_wakeup(int voltage)
++void axe_wakeup(int fe_fd, int voltage)
 +{
-+	int i;
++	int i, mask;
 +	adapter *a;
 +	if (opts.axe_power < 2)
 +		return;
@@ -638,7 +674,22 @@ index 5701bd2..79cac82 100755
 +			return;
 +	}
 +	LOG("AXE wakeup");
-+	for (i = 0; i < 4; i++) {
++	for (i = mask = 0; i < 4; i++) {
++		/* lowband enabled */
++		if (opts.quattro && opts.quattro_hiband == 1 && i < 2) {
++			mask = 3;
++			continue;
++		}
++		/* hiband enabled */
++		if (opts.quattro && opts.quattro_hiband == 2 && i >= 2) {
++			mask = 3<<2;
++			continue;
++		}
++		mask |= 1<<i;
++	}
++	for (i = 0; i < 4 && mask; i++) {
++		if (((1 << i) & mask) == 0)
++			continue;
 +		a = get_adapter(i);
 +		if (a == NULL || a->force_disable)
 +			continue;
@@ -651,17 +702,17 @@ index 5701bd2..79cac82 100755
  int send_diseqc(int fd, int pos, int pol, int hiband)
  {
  	struct dvb_diseqc_master_cmd cmd = {
-@@ -229,6 +258,9 @@ int send_diseqc(int fd, int pos, int pol, int hiband)
+@@ -229,6 +273,9 @@ int send_diseqc(int fd, int pos, int pol, int hiband)
  	
  	if (ioctl(fd, FE_SET_TONE, SEC_TONE_OFF) == -1)
  		LOG("send_diseqc: FE_SET_TONE failed for fd %d: %s", fd, strerror(errno));
 +#ifdef AXE
-+	axe_wakeup(pol ? SEC_VOLTAGE_18 : SEC_VOLTAGE_13);
++	axe_wakeup(fd, pol ? SEC_VOLTAGE_18 : SEC_VOLTAGE_13);
 +#endif
  	if (ioctl(fd, FE_SET_VOLTAGE, pol ? SEC_VOLTAGE_18 : SEC_VOLTAGE_13) == -1)
  		LOG("send_diseqc: FE_SET_VOLTAGE failed for fd %d: %s", fd, strerror(errno));
  
-@@ -252,8 +284,12 @@ int send_unicable(int fd, int freq, int pos, int pol, int hiband, int slot, int
+@@ -252,8 +299,12 @@ int send_unicable(int fd, int freq, int pos, int pol, int hiband, int slot, int
  	struct dvb_diseqc_master_cmd cmd = {
  		{0xe0, 0x11, 0x5a, 0x00, 0x00}, 5
  	};
@@ -675,12 +726,12 @@ index 5701bd2..79cac82 100755
  	t = (freq + ufreq + 2) / 4 - 350;
  
  	cmd.msg[3] = ((t & 0x0300) >> 8) | 
-@@ -262,12 +298,15 @@ int send_unicable(int fd, int freq, int pos, int pol, int hiband, int slot, int
+@@ -262,12 +313,15 @@ int send_unicable(int fd, int freq, int pos, int pol, int hiband, int slot, int
  
  	LOGL(3, "send_unicable fd %d, freq %d, ufreq %d, pos = %d, pol = %d, hiband = %d, slot %d, diseqc => %02x %02x %02x %02x %02x",
                    fd, freq, ufreq, pos, pol, hiband, slot, cmd.msg[0], cmd.msg[1], cmd.msg[2], cmd.msg[3], cmd.msg[4]);
 +#ifdef AXE
-+	axe_wakeup(SEC_VOLTAGE_13);
++	axe_wakeup(fd, SEC_VOLTAGE_13);
 +#endif
  	if (ioctl(fd, FE_SET_VOLTAGE, SEC_VOLTAGE_13) == -1)
  		LOG("send_unicable: pre voltage  SEC_VOLTAGE_13 failed for fd %d: %s", fd, strerror(errno));
@@ -692,7 +743,7 @@ index 5701bd2..79cac82 100755
  		LOG("send_unicable: FE_SET_VOLTAGE failed for fd %d: %s", fd, strerror(errno));	
  	msleep(15);
  	if (ioctl(fd, FE_DISEQC_SEND_MASTER_CMD, &cmd) == -1)
-@@ -286,6 +325,7 @@ int send_jess(int fd, int freq, int pos, int pol, int hiband, int slot, int ufre
+@@ -286,6 +340,7 @@ int send_jess(int fd, int freq, int pos, int pol, int hiband, int slot, int ufre
  	};
  //	int t = (freq / 1000) - 100;
  	int t = freq - 100;
@@ -700,12 +751,12 @@ index 5701bd2..79cac82 100755
  
  	cmd.msg[1] = slot << 3;
  	cmd.msg[1] |= ((t << 8) & 0x07);
-@@ -295,12 +335,15 @@ int send_jess(int fd, int freq, int pos, int pol, int hiband, int slot, int ufre
+@@ -295,12 +350,15 @@ int send_jess(int fd, int freq, int pos, int pol, int hiband, int slot, int ufre
  	LOGL(3, "send_jess fd %d, freq %d, ufreq %d, pos = %d, pol = %d, hiband = %d, slot %d, diseqc => %02x %02x %02x %02x %02x",
                    fd, freq, ufreq, pos, pol, hiband, slot, cmd.msg[0], cmd.msg[1], cmd.msg[2], cmd.msg[3], cmd.msg[4]);
  
 +#ifdef AXE
-+	axe_wakeup(SEC_VOLTAGE_13);
++	axe_wakeup(fd, SEC_VOLTAGE_13);
 +#endif
  	if (ioctl(fd, FE_SET_VOLTAGE, SEC_VOLTAGE_13) == -1)
  		LOG("send_jess: pre voltage  SEC_VOLTAGE_13 failed for fd %d: %s", fd, strerror(errno));
@@ -717,7 +768,7 @@ index 5701bd2..79cac82 100755
  		LOG("send_jess: FE_SET_VOLTAGE failed for fd %d: %s", fd, strerror(errno));
  	msleep(15);
  	if (ioctl(fd, FE_DISEQC_SEND_MASTER_CMD, &cmd) == -1)
-@@ -312,6 +355,23 @@ int send_jess(int fd, int freq, int pos, int pol, int hiband, int slot, int ufre
+@@ -312,6 +370,23 @@ int send_jess(int fd, int freq, int pos, int pol, int hiband, int slot, int ufre
  	return ufreq * 1000;	
  }
  
@@ -727,11 +778,11 @@ index 5701bd2..79cac82 100755
 +  if (diseqc <= 0)
 +    *equattro = 0;
 +  /* lowband allowed - control the hiband inputs independently for positions src=2+ */
-+  else if (opts.quattro_hiband == 1 && input < 2)
-+    *equattro = diseqc - 1;
++  else if (opts.quattro && opts.quattro_hiband == 1 && input < 2)
++    *equattro = diseqc;
 +  /* hiband allowed - control the lowband inputs independently for positions src=2+ */
-+  else if (opts.quattro_hiband == 2 && input >= 2 && input < 4)
-+    *equattro = diseqc - 1;
++  else if (opts.quattro && opts.quattro_hiband == 2 && input >= 2 && input < 4)
++    *equattro = diseqc;
 +  else
 +    *equattro = 0;
 +  return *equattro;
@@ -741,7 +792,7 @@ index 5701bd2..79cac82 100755
  int setup_switch (int frontend_fd, transponder *tp)
  {
  	int i;
-@@ -320,7 +380,7 @@ int setup_switch (int frontend_fd, transponder *tp)
+@@ -320,7 +395,7 @@ int setup_switch (int frontend_fd, transponder *tp)
  	int diseqc = (tp->diseqc > 0)? tp->diseqc - 1: 0;
  	int freq = tp->freq;
  	int pol = (tp->pol - 1) & 1;
@@ -750,7 +801,7 @@ index 5701bd2..79cac82 100755
  	if (freq < SLOF)
  	{
  		freq = (freq - LOF1);
-@@ -330,12 +390,113 @@ int setup_switch (int frontend_fd, transponder *tp)
+@@ -330,12 +405,112 @@ int setup_switch (int frontend_fd, transponder *tp)
  		hiband = 1;
  	}
  	
@@ -807,8 +858,7 @@ index 5701bd2..79cac82 100755
 +				}
 +				goto axe;
 +			}
-+		}
-+		if (ad && opts.quattro) {
++		} else if (ad && opts.quattro) {
 +			if (opts.quattro_hiband == 1 && hiband) {
 +				LOG("axe_fe: hiband is not allowed for quattro config (adapter %d)", input);
 +				return 0;
@@ -864,7 +914,7 @@ index 5701bd2..79cac82 100755
  	}else
  	{
  		if(tp->old_pol != pol || tp->old_hiband != hiband || tp->old_diseqc != diseqc)
-@@ -343,6 +504,16 @@ int setup_switch (int frontend_fd, transponder *tp)
+@@ -343,6 +518,16 @@ int setup_switch (int frontend_fd, transponder *tp)
  		else 
  			LOGL(3, "Skip sending diseqc commands since the switch position doesn't need to be changed: pol %d, hiband %d, switch position %d", pol, hiband, diseqc);
  	}
@@ -881,7 +931,7 @@ index 5701bd2..79cac82 100755
  	
  	tp->old_pol = pol;
  	tp->old_hiband = hiband;
-@@ -383,8 +554,10 @@ tune_it_s2 (int fd_frontend, transponder * tp)
+@@ -383,8 +568,10 @@ tune_it_s2 (int fd_frontend, transponder * tp)
  		{.cmd = DTV_INVERSION,.u.data = 0},
  		{.cmd = DTV_SYMBOL_RATE,.u.data = 0},
  		{.cmd = DTV_INNER_FEC,.u.data = 0},
@@ -892,7 +942,7 @@ index 5701bd2..79cac82 100755
  		{.cmd = DTV_TUNE},
  	};
  	static struct dtv_properties dvbs2_cmdseq =
-@@ -462,11 +635,15 @@ tune_it_s2 (int fd_frontend, transponder * tp)
+@@ -462,11 +649,15 @@ tune_it_s2 (int fd_frontend, transponder * tp)
  				tp->mtype = QPSK;
  			bpol = getTick();
  			if_freq = setup_switch (fd_frontend, tp);
@@ -908,7 +958,7 @@ index 5701bd2..79cac82 100755
  			p->props[INVERSION].u.data = tp->inversion;
  			p->props[SYMBOL_RATE].u.data = tp->sr;
  			p->props[FEC_INNER].u.data = tp->fec;
-@@ -475,7 +652,12 @@ tune_it_s2 (int fd_frontend, transponder * tp)
+@@ -475,7 +666,12 @@ tune_it_s2 (int fd_frontend, transponder * tp)
  			LOG("tuning to %d(%d) pol: %s (%d) sr:%d fec:%s delsys:%s mod:%s rolloff:%s pilot:%s, ts clear=%d, ts pol=%d",
  				tp->freq, p->props[FREQUENCY].u.data, get_pol(tp->pol), tp->pol, p->props[SYMBOL_RATE].u.data, fe_fec[p->props[FEC_INNER].u.data],
  				fe_delsys[p->props[DELSYS].u.data], fe_modulation[p->props[MODULATION].u.data],
@@ -922,7 +972,7 @@ index 5701bd2..79cac82 100755
  				
  			break;
  
-@@ -560,6 +742,20 @@ set_pid (int hw, int ad, uint16_t i_pid)
+@@ -560,6 +756,20 @@ set_pid (int hw, int ad, uint16_t i_pid)
  	char buf[100];
  	int fd;
  
@@ -943,7 +993,7 @@ index 5701bd2..79cac82 100755
  	if ( i_pid > 8192 )
  		LOG_AND_RETURN(-1, "pid %d > 8192 for /dev/dvb/adapter%d/demux%d", i_pid, hw, ad);
  		
-@@ -585,6 +781,7 @@ set_pid (int hw, int ad, uint16_t i_pid)
+@@ -585,6 +795,7 @@ set_pid (int hw, int ad, uint16_t i_pid)
  	}
  
  	LOG ("setting filter on PID %d for fd %d", i_pid, fd);
@@ -951,7 +1001,7 @@ index 5701bd2..79cac82 100755
  
  	return fd;
  }
-@@ -592,6 +789,17 @@ set_pid (int hw, int ad, uint16_t i_pid)
+@@ -592,6 +803,17 @@ set_pid (int hw, int ad, uint16_t i_pid)
  
  int del_filters (int fd, int pid)
  {
@@ -969,7 +1019,7 @@ index 5701bd2..79cac82 100755
  	if (fd < 0)
  		LOG_AND_RETURN(0, "DMX_STOP on an invalid handle %d, pid %d", fd, pid);
  	if (ioctl (fd, DMX_STOP) < 0)
-@@ -599,6 +807,7 @@ int del_filters (int fd, int pid)
+@@ -599,6 +821,7 @@ int del_filters (int fd, int pid)
  			else
  			LOG ("clearing filters on PID %d FD %d", pid, fd);
  	close (fd);
@@ -977,7 +1027,7 @@ index 5701bd2..79cac82 100755
  	return 0;
  }
  
-@@ -606,6 +815,15 @@ int del_filters (int fd, int pid)
+@@ -606,6 +829,15 @@ int del_filters (int fd, int pid)
  fe_delivery_system_t
  dvb_delsys (int aid, int fd, fe_delivery_system_t *sys)
  {
@@ -993,7 +1043,7 @@ index 5701bd2..79cac82 100755
  	int i, res, rv = 0;
  	struct dvb_frontend_info fe_info;
  
-@@ -703,6 +921,7 @@ dvb_delsys (int aid, int fd, fe_delivery_system_t *sys)
+@@ -703,6 +935,7 @@ dvb_delsys (int aid, int fd, fe_delivery_system_t *sys)
  
  	LOG ("returning default from dvb_delsys => %s (count %d)", fe_delsys[rv] , nsys);
  	return (fe_delivery_system_t) rv;
@@ -1300,7 +1350,7 @@ index 821e756..2794f49 100755
  	char playlist[200];
  };
 diff --git a/socketworks.c b/socketworks.c
-index b4891f1..1a275b7 100755
+index b4891f1..4697f03 100755
 --- a/socketworks.c
 +++ b/socketworks.c
 @@ -299,6 +299,7 @@ socket_action a, socket_action c, socket_action t)
@@ -1311,10 +1361,18 @@ index b4891f1..1a275b7 100755
  	s[i].close_sec = 0;
  	s[i].sock_id = i;
  	pf[i].fd = sock;
-@@ -339,6 +340,17 @@ sockets_del (int sock)
+@@ -339,6 +340,25 @@ sockets_del (int sock)
  	return 0;
  }
  
++void
++sockets_set_poll (int sock, int enable)
++{
++  if (sock < 0 || sock > MAX_SOCKS)
++    return;
++  pf[sock].events = enable ? (POLLIN | POLLPRI) : 0;
++}
++
 +void
 +sockets_reset (int sock)
 +{
@@ -1329,7 +1387,23 @@ index b4891f1..1a275b7 100755
  
  int run_loop, it = 0, c_time;
  int bw, bwtt, bwnotify;
-@@ -433,6 +445,29 @@ select_and_execute ()
+@@ -348,7 +368,6 @@ uint32_t nsecs, reads;
+ int
+ select_and_execute ()
+ {
+-	fd_set io;
+ 	struct timeval tv;
+ 	socklen_t slen;
+ 	int i,
+@@ -362,7 +381,6 @@ select_and_execute ()
+ 	lt = getTick ();
+ 	while (run_loop)
+ 	{
+-		FD_ZERO (&io);
+ 		i = -1;
+ 		//    LOG("start select");
+ 		if ((rv = poll (pf, max_sock, 200)) < 0)
+@@ -433,6 +451,29 @@ select_and_execute ()
  					ss->rtime = c_time;
  					if(rlen>0)
  						ss->rlen += rlen;
@@ -1359,8 +1433,34 @@ index b4891f1..1a275b7 100755
  								 //force 0 at the end of the string
  					if(ss->lbuf >= ss->rlen)
  						ss->buf[ss->rlen] = 0;
+@@ -510,8 +551,6 @@ select_and_execute ()
+ 				&& ((s[i].close_sec > 0 && lt - s[i].rtime > s[i].close_sec)
+ 				|| (s[i].close_sec == 1)))
+ 			{
+-				int do_close = 0;
+-
+ 				//                                              LOG("Timeout idle connection %d index %d",s[i].sock,i);
+ 				if (s[i].timeout && s[i].timeout (&s[i]))
+ 					sockets_del (i);
+@@ -619,12 +658,13 @@ char *
+ get_current_timestamp_log (void)
+ {
+ 	static char date_str[200];
++	struct timeval tv;
+ 	time_t date;
+ 	struct tm *t;
+-	time (&date);
+-	t = localtime (&date);
++	if (gettimeofday(&tv, NULL)) return "01/01 00:00:20";
++	t = localtime (&tv.tv_sec);
+ 	if(!t) return "01/01 00:00:20";
+-	snprintf (date_str, sizeof (date_str), "%02d/%02d %02d:%02d:%02d.%03d",t->tm_mday, t->tm_mon + 1, t->tm_hour, t->tm_min, t->tm_sec, getTick());
++	snprintf (date_str, sizeof (date_str), "%02d/%02d %02d:%02d:%02d.%03d",t->tm_mday, t->tm_mon + 1, t->tm_hour, t->tm_min, t->tm_sec, (int)(tv.tv_usec / 1000));
+ 	return date_str;
+ }
+ 
 diff --git a/socketworks.h b/socketworks.h
-index 57b25b2..0d81319 100755
+index 57b25b2..226c689 100755
 --- a/socketworks.h
 +++ b/socketworks.h
 @@ -18,6 +18,7 @@ typedef struct struct_sockets
@@ -1371,18 +1471,28 @@ index 57b25b2..0d81319 100755
  	int close_sec;
  	int sock_id;				 // socket id
  	int err;
-@@ -43,6 +44,7 @@ int get_sock_port(int fd);
+@@ -43,6 +44,8 @@ int get_sock_port(int fd);
  int sockets_add (int sock, struct sockaddr_in *sa, int sid, int type,
  socket_action a, socket_action c, socket_action t);
  int sockets_del (int sock);
++void sockets_set_poll (int sock, int enable);
 +void sockets_reset (int sock);
  int no_action (int s);
  int select_and_execute ();
  int get_mac (char *mac);
 diff --git a/stream.c b/stream.c
-index db4a46d..2036841 100755
+index db4a46d..8cdd239 100755
 --- a/stream.c
 +++ b/stream.c
+@@ -54,7 +54,7 @@ getTick ()
+ {								 //ms
+ 	struct timespec ts;
+ 
+-	clock_gettime (CLOCK_REALTIME, &ts);
++	clock_gettime (CLOCK_MONOTONIC, &ts);
+ 	theTick = ts.tv_nsec / 1000000;
+ 	theTick += ts.tv_sec * 1000;
+ 	ntime = ts.tv_sec * 1000000 + ts.tv_nsec;
 @@ -320,6 +320,7 @@ int decode_transport (sockets * s, char *arg, char *default_rtp, int start_rtp)
  	if(sid->type == 0)
  	{
