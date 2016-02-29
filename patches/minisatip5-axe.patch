@@ -1,5 +1,5 @@
 diff --git a/adapter.c b/adapter.c
-index cd5d8f5..2bb026c 100644
+index cd5d8f5..8c1fd9c 100644
 --- a/adapter.c
 +++ b/adapter.c
 @@ -117,6 +117,7 @@ int adapter_timeout(sockets *s)
@@ -26,7 +26,26 @@ index cd5d8f5..2bb026c 100644
  		ad->rlen = 0;
  		if (ad->sid_cnt > 1)	 // the master changed the frequency
  		{
-@@ -1304,6 +1307,53 @@ void set_slave_adapters(char *o)
+@@ -935,6 +938,18 @@ get_adapter1(int aid, char *file, int line)
+ 	return a[aid];
+ }
+ 
++adapter *
++get_adapter21(int aid, char *file, int line)
++{
++	if (aid < 0 || aid >= MAX_ADAPTERS || !a[aid] || disabled[aid])
++	{
++		LOG("%s:%d: get_adapter2 returns NULL for adapter_id %d", file, line,
++				aid);
++		return NULL;
++	}
++	return a[aid];
++}
++
+ char* get_stream_pids(int s_id, char *dest, int max_size);
+ char *
+ describe_adapter(int sid, int aid, char *dad, int ld)
+@@ -1304,6 +1319,53 @@ void set_slave_adapters(char *o)
  
  	}
  }
@@ -81,7 +100,7 @@ index cd5d8f5..2bb026c 100644
  void set_adapters_delsys(char *o)
  {
 diff --git a/adapter.h b/adapter.h
-index 39d4d5f..c4eb45f 100644
+index 39d4d5f..0cd4d8e 100644
 --- a/adapter.h
 +++ b/adapter.h
 @@ -6,7 +6,11 @@
@@ -115,7 +134,15 @@ index 39d4d5f..c4eb45f 100644
  	int old_diseqc;
  	int old_hiband;
  	int old_pol;
-@@ -131,6 +138,8 @@ void set_diseqc_adapters(char *o);
+@@ -122,6 +129,7 @@ int update_pids(int aid);
+ int tune(int aid, int sid);
+ SPid *find_pid(int aid, int p);
+ adapter * get_adapter1(int aid, char *file, int line);
++adapter * get_adapter21(int aid, char *file, int line);
+ char *describe_adapter(int sid, int aid, char *dad, int ld);
+ void dump_pids(int aid);
+ void sort_pids(int aid);
+@@ -131,6 +139,8 @@ void set_diseqc_adapters(char *o);
  void set_diseqc_timing(char *o);
  void set_slave_adapters(char *o);
  void set_adapter_dmxsource(char *o);
@@ -124,6 +151,14 @@ index 39d4d5f..c4eb45f 100644
  void reset_pids_type(int aid, int clear_pat);
  void reset_ecm_type_for_key(int aid, int key);
  int delsys_match(adapter *ad, int del_sys);
+@@ -143,6 +153,7 @@ void set_adapters_delsys(char *o);
+ int signal_thread(sockets *s);
+ 
+ #define get_adapter(a) get_adapter1(a, __FILE__, __LINE__)
++#define get_adapter2(a) get_adapter21(a, __FILE__, __LINE__)
+ #define get_adapter_nw(aid) ((aid >= 0 && aid < MAX_ADAPTERS && a[aid] && a[aid]->enabled)?a[aid]:NULL)
+ 
+ #define adapter_lock(a) adapter_lock1(__FILE__,__LINE__,a)
 diff --git a/axe.h b/axe.h
 new file mode 100644
 index 0000000..d8b06bc
@@ -280,7 +315,7 @@ index 0000000..d8b06bc
 +
 +#endif
 diff --git a/dvb.c b/dvb.c
-index 74124fc..bcfc684 100644
+index 74124fc..5e7acc6 100644
 --- a/dvb.c
 +++ b/dvb.c
 @@ -42,6 +42,11 @@
@@ -462,7 +497,7 @@ index 74124fc..bcfc684 100644
 +		if (!opts.quattro || extra_quattro(input, diseqc, &equattro)) {
 +			if (equattro > 0)
 +				diseqc = equattro - 1;
-+			adm = get_adapter(ad->slave ? ad->slave - 1 : ad->pa);
++			adm = get_adapter2(ad->slave ? ad->slave - 1 : ad->pa);
 +			if (adm == NULL) {
 +				LOG("axe_fe: unknown master adapter %d", input);
 +				return 0;
@@ -506,7 +541,7 @@ index 74124fc..bcfc684 100644
 +				return 0;
 +			}
 +			input = ((hiband ^ 1) << 1) | (pol ^ 1);
-+			adm = get_adapter(input);
++			adm = get_adapter2(input);
 +			if (adm == NULL) {
 +				LOG("axe_fe: unknown master adapter %d", input);
 +				return 0;
@@ -525,7 +560,7 @@ index 74124fc..bcfc684 100644
 +	} else {
 +		aid = ad->id & 3;
 +		input = opts.axe_unicinp[aid];
-+		ad = get_adapter(input);
++		ad = get_adapter2(input);
 +		if (ad == NULL) {
 +			LOGL(3, "axe setup: unable to find adapter %d", input);
 +			return 0;
