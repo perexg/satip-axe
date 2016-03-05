@@ -7,6 +7,11 @@ CHECKSTR="Linux-2.6.32.42_stm24_0208-idl4k"
 GITHUB1="https://github.com/perexg/satip-axe/tree/master/dist"
 GITHUB2="https://github.com/perexg/satip-axe/blob/master/dist/$FILE?raw=true"
 
+if test "$PWD" != "/root" -a "$PWD" != "/"; then
+  echo "Run this utility from / or /root directory"
+  exit 1
+fi
+
 if test "$FILE" = "-h" -o "$FILE" = "--help"; then
   echo "Usage: $0 FIRMWARE"
   exit 1
