@@ -52,6 +52,15 @@ Installation to internal flash:
   - the firmware is written to another internal flash area than
     the original firmware, but uboot is reconfigured
 
+Extra packages:
+---------------
+
+  - the packages are unpacked at boot from /mnt/data/satip-axe/packages
+  - only gzip (.tar.gz) and bzip2 (.tar.bz2) packages are supported
+    - note bzip2 is slow!
+  - there is 'fetch-package' script which will list all packages on github
+    and download one package (use name of package as first argument)
+
 Customization:
 --------------
 
@@ -190,22 +199,27 @@ Bugs:
 History:
 --------
 
-upcoming - https://github.com/perexg/satip-axe/issues/45
+satip-axe-201603051934-11 - Sat Mar  5 2016
   - updated stmmac ethernet driver from latest stlinux kernel
     - linux-sh4-2.6.32.y - _stm24_0217
     - enabled Realtek PHY module (RTL8211E)
     - disable scatter-gather, increase ring descriptors (from 256 to 512)
+  - updated axe_fe.ko kernel module (fix for tuners 3 & 4 from Inverto)
+  - updated axe_dmxts.ko kernel module from idl4k-1.24.0.156
   - updated dropbear to 2015.71
     - changed from dss host key to rsa host key (for latest openssl)
   - updated nfsutils to 1.3.3
   - updated nano to 2.4.3
   - updated oscam to 11211
-  - updated axe_dmxts.ko kernel module from idl4k-1.24.0.156
   - minisatip accepts -M option to skip first MPEG-TS packets from demuxer
     - the default value is 35 (to skip packets from previous tune)
-  - minisatip can handle multiple unicable groups (-U t1,t2,t3,t4 option)
-  - added second minisatip binary (minisatip5 - based on 0.5.26 version)
+  - minisatip can handle multiple unicable groups (-Z option)
+  - minisatip improved/fixed LNB standby/power handling (-P option)
+  - added second minisatip binary (minisatip5 - based on 0.5.30 version)
     - add new lines to /etc/sysconfig/config from /etc/config.default
+  - added support for extra packages (put them to /mnt/data/satip-axe/packages)
+    - added Python-3.5.1-1.tar.gz package (required for multicast-rtp)
+    - added multicast-rtp-1.tar.gz package (see /sbin/multicast-rtp for help)
 
 satip-axe-201508061051-10 - Thu Aug  6 2015
   - replaced stapi / frontend / demuxer drivers with latest from Inverto
