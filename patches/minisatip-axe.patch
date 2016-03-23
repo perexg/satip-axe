@@ -669,7 +669,7 @@ index 0000000..cfc1927
 diff --git a/dvb.c b/dvb.c
 old mode 100755
 new mode 100644
-index 5701bd2..60efc28
+index 5701bd2..58d8f1a
 --- a/dvb.c
 +++ b/dvb.c
 @@ -41,6 +41,10 @@
@@ -1024,7 +1024,7 @@ index 5701bd2..60efc28
 +
 +	if (axe_dmxts_add_pid(a->dvr, i_pid) < 0)
 +	{
-+		LOG ("failed setting filter on %d (%s)", i_pid, strerror (errno));
++		LOG ("failed setting filter on PID %d (%s) for ADAPTER %d", i_pid, strerror (errno), hw);
 +		return -1;
 +	}
 +	LOG ("setting filter on PID %d for ADAPTER %d", i_pid, a->pa);

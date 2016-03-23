@@ -28,6 +28,48 @@ before the power is turned off. Depending on the coaxial wiring and
 used reception components, the independent input power down might
 affect the signal quality during the power down phase.
 
+Free inputs
+-----------
+
+This mode is most powerful but requires a client which known
+the limitations like tvheadend. In this mode all sources (src=)
+defined by the SAT>IP specification are absolute (shared for
+all tuners). So any tuner can use any position but with
+physical restrictions.
+
+### Example: '-A 0:0:0,0:1:0,1:0:1,1:1:1,2:2:0,3:2:1'
+
+The first number defines the SAT>IP source minus one (0-max).
+The second number defines the physical input (0-3). The third
+number defines the diseqc position (0-31). You may configure
+the diseqc more through -q and -d options. The adapter number
+is like input number for them.
+
+Back to the example, the input configuration is like this:
+
+- input 0
+  - src=1: diseqc position 0 - 23.5E (configuration 0:0:0)
+  - src=2: diseqc position 1 - 1W    (configuration 1:0:1)
+- input 1
+  - src=1: diseqc position 0 - 23.5E (configuration 0:1:0)
+  - src=2: diseqc position 1 - 1W    (configuration 1:1:1)
+- input 2:
+  - src=3: diseqc position 0 - 28.2E (configuration 2:2:0)
+  - src=4: diseqc position 1 - 19.2E (configuration 3:2:1)
+
+So, four satellite positions, for 23.5E and 1W, there are
+2 shared inputs, for rest, only one input is available.
+
+TVheadend can define network limits and network groups.
+In this case, we have 2 groups of inputs (23.5E/1W) and
+(28.2E/19.2E) and limits 2 for 23.5E/1W and 1 for rest.
+
+Tvheadend should be configured like this (for all tuners):
+
+- assign S23.5E to position 1, network limit 2, network group 1
+- assign 1W     to position 2, network limit 2, network group 1
+- assign 28.2E  to position 3, network limit 1, network group 2
+- assign 19.2E  to position 4, network limit 1, network group 2
 
 Linked inputs
 -------------

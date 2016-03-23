@@ -31,7 +31,7 @@ KMODULES = drivers/usb/serial/cp210x.ko \
 	   drivers/usb/serial/oti6858.ko
 
 MINISATIP_COMMIT=54df9348e7bd7e6075f54f1b93ec4ad36429abe0
-MINISATIP5_COMMIT=ddd4796b2c759292f6db1d1be84bbeb5bd57ed03
+MINISATIP5_COMMIT=b53758b1b1b91ffc31597c319a706f350784400a
 
 BUSYBOX=busybox-1.24.1
 
@@ -324,12 +324,18 @@ apps/minisatip5/axe.h: patches/minisatip5-axe.patch
 	cd apps/minisatip5; patch -p1 < ../../patches/minisatip5-axe.patch
 
 apps/minisatip5/minisatip: apps/minisatip5/axe.h
+	cd apps/minisatip5 && ./configure \
+		--disable-dvbca \
+		--disable-dvbcsa \
+		--disable-dvbaes \
+		--disable-netceiver
 	make -C apps/minisatip5 \
 	  DVBCSA= \
 	  DVBCA= \
 	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
 	  CFLAGS="-O2 -DAXE=1 -DSYS_DVBT2=16 \
-	          -DDISABLE_DVBCSA -DDISABLE_DVBCA -DDISABLE_TABLES -DDISABLE_NETCVCLIENT \
+	          -DDISABLE_DVBAPI -DDISABLE_DVBCSA -DDISABLE_DVBCA \
+	          -DDISABLE_TABLES -DDISABLE_NETCVCLIENT \
 	          -I$(CURDIR)/kernel/include"
 
 .PHONY: minisatip5
@@ -338,6 +344,27 @@ minisatip5: apps/minisatip5/minisatip
 .PHONY: minisatip5-clean
 minisatip5-clean:
 	rm -rf apps/minisatip5
+
+#
+# minisatip package
+#
+
+dist/packages/minisatip-$(VERSION).tar.gz: minisatip minisatip5
+	rm -rf fs/usr/share/minisatip
+	mkdir -p fs/usr/share/minisatip/icons/ fs/usr/share/minisatip/html/
+	install -m 755 apps/minisatip/minisatip fs/sbin/minisatip
+	install -m 644 apps/minisatip/icons/* fs/usr/share/minisatip/icons/
+	install -m 755 apps/minisatip5/minisatip fs/sbin/minisatip5
+	install -m 644 apps/minisatip5/html/* fs/usr/share/minisatip/html/
+	tar cvz -C fs -f dist/packages/minisatip-$(VERSION).tar.gz \
+		sbin/minisatip \
+		sbin/minisatip5 \
+		usr/share/minisatip/icons \
+		usr/share/minisatip/html
+	ls -la dist/packages/minisatip*
+
+.PHONY: minisatip-package
+minisatip-package: dist/packages/minisatip-$(VERSION).tar.gz
 
 #
 # busybox

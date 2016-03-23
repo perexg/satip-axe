@@ -1,8 +1,8 @@
 diff --git a/adapter.c b/adapter.c
-index cd5d8f5..7af67d4 100644
+index 2ab5270..adf3c60 100644
 --- a/adapter.c
 +++ b/adapter.c
-@@ -117,6 +117,7 @@ int adapter_timeout(sockets *s)
+@@ -118,6 +118,7 @@ int adapter_timeout(sockets *s)
  		return 0;
  	}
  
@@ -10,7 +10,7 @@ index cd5d8f5..7af67d4 100644
  	if (opts.no_threads)
  	{
  		for (i = 0; i < MAX_ADAPTERS; i++)
-@@ -133,6 +134,7 @@ int adapter_timeout(sockets *s)
+@@ -134,6 +135,7 @@ int adapter_timeout(sockets *s)
  			s->sid, do_close, max_close);
  	if (!do_close)
  		s->rtime = max_close;
@@ -18,15 +18,55 @@ index cd5d8f5..7af67d4 100644
  
  	return do_close;
  }
-@@ -322,6 +324,7 @@ void close_adapter(int na)
- 	ad->ca_mask = 0;
- 	ad->fe = 0;
- 	ad->dvr = 0;
-+	ad->sock = -1;
+@@ -326,9 +328,12 @@ void close_adapter(int na)
+ 	ad->sock = -1;
  	ad->strength = 0;
  	ad->snr = 0;
++#ifndef AXE
  	ad->old_diseqc = -1;
-@@ -617,6 +620,7 @@ int tune(int aid, int sid)
+ 	ad->old_hiband = -1;
+ 	ad->old_pol = -1;
++#endif
++	mutex_unlock(&ad->mutex);
+ 	mutex_destroy(&ad->mutex);
+ 	//      if(a[na]->buf)free1(a[na]->buf);a[na]->buf=NULL;
+ 	LOG("done closing adapter %d", na);
+@@ -543,6 +548,19 @@ int set_adapter_for_stream(int sid, int aid)
+ 	return 0;
+ }
+ 
++#ifdef AXE
++static void free_axe_input(adapter *ad)
++{
++	int aid;
++	adapter *ad2;
++
++	for (aid = 0; aid < 4; aid++) {
++		ad2 = get_adapter2(aid);
++		ad2->axe_used &= ~(1 << ad->id);
++	}
++}
++#endif
++
+ void close_adapter_for_stream(int sid, int aid)
+ {
+ 	adapter *ad;
+@@ -561,9 +579,12 @@ void close_adapter_for_stream(int sid, int aid)
+ 	LOG("closed adapter %d for stream %d m:%d s:%d", aid, sid, ad->master_sid,
+ 			ad->sid_cnt);
+ 	// delete the attached PIDs as well
+-	if (ad->sid_cnt == 0)
++	if (ad->sid_cnt == 0) {
+ 		mark_pids_deleted(aid, -1, NULL);
+-	else
++#ifdef AXE
++		free_axe_input(ad);
++#endif
++	} else
+ 		mark_pids_deleted(aid, sid, NULL);
+ 	update_pids(aid);
+ //	if (a[aid]->sid_cnt == 0) 
+@@ -659,6 +680,7 @@ int tune(int aid, int sid)
  		ad->status = -1;
  		ad->status_cnt = 0;
  		set_socket_pos(ad->sock, 0);	// flush the existing buffer
@@ -34,7 +74,7 @@ index cd5d8f5..7af67d4 100644
  		ad->rlen = 0;
  		if (ad->sid_cnt > 1)	 // the master changed the frequency
  		{
-@@ -935,6 +939,18 @@ get_adapter1(int aid, char *file, int line)
+@@ -977,6 +999,18 @@ get_adapter1(int aid, char *file, int line)
  	return a[aid];
  }
  
@@ -53,7 +93,7 @@ index cd5d8f5..7af67d4 100644
  char* get_stream_pids(int s_id, char *dest, int max_size);
  char *
  describe_adapter(int sid, int aid, char *dad, int ld)
-@@ -1304,6 +1320,53 @@ void set_slave_adapters(char *o)
+@@ -1346,6 +1380,93 @@ void set_slave_adapters(char *o)
  
  	}
  }
@@ -76,11 +116,51 @@ index cd5d8f5..7af67d4 100644
 +			continue;
 +		b_id=map_intd(sep1 + 1, NULL, -1);
 +		if (b_id < 0 || b_id >= MAX_ADAPTERS)
-+			continue;;
-+		if (a_id == b_id || a[a_id]->slave)
 +			continue;
-+		a[a_id]->slave = a_id + 1;
-+		LOG("Setting adapter %d as master for adapter %d", a_id, b_id);
++		if (a_id == b_id || (a[a_id] && a[a_id]->slave))
++			continue;
++		if (!a[b_id])
++			a[b_id] = adapter_alloc();
++		a[b_id]->slave = a_id + 1;
++		LOGL(0, "Setting adapter %d as master for adapter %d", a_id, b_id);
++	}
++}
++
++extern int absolute_switch;
++extern int absolute_table[32][4];
++
++void set_absolute_src(char *o)
++{
++	int i, la, src, inp, pos;
++	char buf[100], *arg[20], *inps, *poss;
++
++	strncpy(buf, o, sizeof(buf)-1);
++	buf[sizeof(buf)-1] = '\0';
++	la = split(arg, buf, sizeof(arg), ',');
++	for (i=0; i<la; i++)
++	{
++		inps = strchr(arg[i], ':');
++		if (!inps)
++			continue;
++		inps++;
++		poss = strchr(inps, ':');
++		if (!poss)
++			continue;
++		poss++;
++
++		src = map_intd(arg[i], NULL, -1);
++		inp = map_intd(inps, NULL, -1);
++		pos = map_intd(poss, NULL, -1);
++		
++		if (src < 0 || src > 31)
++			continue;
++		if (inp < 0 || inp > 3)
++			continue;
++		if (pos < 0 || pos >= 15)
++			continue;
++		LOGL(0, "Setting source %d (src=%d) to input %d position %d", src, src + 1, inp, pos);
++		absolute_table[src][inp] = pos + 1;
++		absolute_switch = 1;
 +	}
 +}
 +
@@ -100,7 +180,7 @@ index cd5d8f5..7af67d4 100644
 +				input = input2;
 +		}
 +		opts.axe_unicinp[i] = input;
-+		LOG("Setting input %d for unicable adapter %d", input, i);
++		LOGL(0, "Setting input %d for unicable adapter %d", input, i);
 +	}
 +}
 +
@@ -108,7 +188,7 @@ index cd5d8f5..7af67d4 100644
  void set_adapters_delsys(char *o)
  {
 diff --git a/adapter.h b/adapter.h
-index 39d4d5f..2d19b7d 100644
+index 72f61c8..07268ba 100644
 --- a/adapter.h
 +++ b/adapter.h
 @@ -6,7 +6,11 @@
@@ -132,7 +212,7 @@ index 39d4d5f..2d19b7d 100644
  	int pa, fn;
  	// physical adapter, physical frontend number
  	fe_delivery_system_t sys[MAX_DELSYS];
-@@ -85,6 +89,8 @@ typedef struct struct_adapter
+@@ -86,6 +90,8 @@ typedef struct struct_adapter
  	uint16_t strength, snr, max_strength, max_snr;
  	uint32_t pid_err, dec_err; // detect pids received but not part of any stream, decrypt errors
  	diseqc diseqc_param;
@@ -141,7 +221,7 @@ index 39d4d5f..2d19b7d 100644
  	int old_diseqc;
  	int old_hiband;
  	int old_pol;
-@@ -122,6 +128,7 @@ int update_pids(int aid);
+@@ -123,6 +129,7 @@ int update_pids(int aid);
  int tune(int aid, int sid);
  SPid *find_pid(int aid, int p);
  adapter * get_adapter1(int aid, char *file, int line);
@@ -149,16 +229,17 @@ index 39d4d5f..2d19b7d 100644
  char *describe_adapter(int sid, int aid, char *dad, int ld);
  void dump_pids(int aid);
  void sort_pids(int aid);
-@@ -131,6 +138,8 @@ void set_diseqc_adapters(char *o);
+@@ -132,6 +139,9 @@ void set_diseqc_adapters(char *o);
  void set_diseqc_timing(char *o);
  void set_slave_adapters(char *o);
  void set_adapter_dmxsource(char *o);
 +void set_link_adapters(char *o);
++void set_absolute_src(char *o);
 +void set_unicable_input(char *o);
  void reset_pids_type(int aid, int clear_pat);
  void reset_ecm_type_for_key(int aid, int key);
  int delsys_match(adapter *ad, int del_sys);
-@@ -143,6 +152,7 @@ void set_adapters_delsys(char *o);
+@@ -145,6 +155,7 @@ void set_adapters_delsys(char *o);
  int signal_thread(sockets *s);
  
  #define get_adapter(a) get_adapter1(a, __FILE__, __LINE__)
@@ -322,7 +403,7 @@ index 0000000..d8b06bc
 +
 +#endif
 diff --git a/dvb.c b/dvb.c
-index 74124fc..8282a06 100644
+index f7f8b0f..fbcd22e 100644
 --- a/dvb.c
 +++ b/dvb.c
 @@ -42,6 +42,11 @@
@@ -379,8 +460,8 @@ index 74124fc..8282a06 100644
  	if (ioctl(ad->dvr, DMX_SET_BUFFER_SIZE, opts.dvr_buffer) < 0)
  		LOG("couldn't set DVR buffer size error %d: %s", errno, strerror(errno))
  	else
-@@ -367,7 +387,7 @@ int dvb_open_device(adapter *ad)
- 		LOG("Set DMX_SET_SOURCE for adapter %d to %d", ad->id, ad->dmx_source);
+@@ -369,7 +389,7 @@ int dvb_open_device(adapter *ad)
+ 					ad->dmx_source);
  
  	}
 -
@@ -388,7 +469,7 @@ index 74124fc..8282a06 100644
  	return 0;
  }
  
-@@ -393,6 +413,46 @@ void diseqc_cmd(int fd, int times, char *str, struct dvb_diseqc_master_cmd *cmd,
+@@ -395,6 +415,46 @@ void diseqc_cmd(int fd, int times, char *str, struct dvb_diseqc_master_cmd *cmd,
  
  }
  
@@ -435,7 +516,7 @@ index 74124fc..8282a06 100644
  int send_diseqc(int fd, int pos, int pos_change, int pol, int hiband, diseqc *d)
  {
  	int committed_no = d->committed_no;
-@@ -428,6 +488,9 @@ int send_diseqc(int fd, int pos, int pos_change, int pol, int hiband, diseqc *d)
+@@ -430,6 +490,9 @@ int send_diseqc(int fd, int pos, int pos_change, int pol, int hiband, diseqc *d)
  	LOGL(3, "send_diseqc fd %d, pos = %d (c %d u %d), pol = %d, hiband = %d",
  			fd, pos, posc, posu, pol, hiband);
  
@@ -445,7 +526,7 @@ index 74124fc..8282a06 100644
  	if (ioctl(fd, FE_SET_TONE, SEC_TONE_OFF) == -1)
  		LOG("send_diseqc: FE_SET_TONE failed for fd %d: %s", fd,
  				strerror(errno));
-@@ -490,6 +553,9 @@ int send_unicable(int fd, int freq, int pos, int pol, int hiband, diseqc *d)
+@@ -492,6 +555,9 @@ int send_unicable(int fd, int freq, int pos, int pol, int hiband, diseqc *d)
  			"send_unicable fd %d, freq %d, ufreq %d, pos = %d, pol = %d, hiband = %d, slot %d, diseqc => %02x %02x %02x %02x %02x",
  			fd, freq, d->ufreq, pos, pol, hiband, d->uslot, cmd.msg[0],
  			cmd.msg[1], cmd.msg[2], cmd.msg[3], cmd.msg[4]);
@@ -455,7 +536,7 @@ index 74124fc..8282a06 100644
  	if (ioctl(fd, FE_SET_VOLTAGE, SEC_VOLTAGE_13) == -1)
  		LOG("send_unicable: pre voltage  SEC_VOLTAGE_13 failed for fd %d: %s",
  				fd, strerror(errno));
-@@ -537,6 +603,9 @@ int send_jess(int fd, int freq, int pos, int pol, int hiband, diseqc *d)
+@@ -539,6 +605,9 @@ int send_jess(int fd, int freq, int pos, int pol, int hiband, diseqc *d)
  			fd, freq, d->ufreq, pos, pol, hiband, d->uslot, cmd.msg[0],
  			cmd.msg[1], cmd.msg[2], cmd.msg[3], cmd.msg[4]);
  
@@ -465,7 +546,7 @@ index 74124fc..8282a06 100644
  	if (ioctl(fd, FE_SET_VOLTAGE, SEC_VOLTAGE_13) == -1)
  		LOG("send_jess: pre voltage  SEC_VOLTAGE_13 failed for fd %d: %s", fd,
  				strerror(errno));
-@@ -559,6 +628,39 @@ int send_jess(int fd, int freq, int pos, int pol, int hiband, diseqc *d)
+@@ -561,6 +630,55 @@ int send_jess(int fd, int freq, int pos, int pol, int hiband, diseqc *d)
  	return d->ufreq * 1000;
  }
  
@@ -500,18 +581,34 @@ index 74124fc..8282a06 100644
 +  }
 +  return ad;
 +}
++
++int tune_check(adapter *ad, int pol, int hiband, int diseqc)
++{
++  LOGL(3, "axe: tune check for adapter %d, pol %d/%d, hiband %d/%d, diseqc %d/%d",
++       ad->id, ad->old_pol, pol, ad->old_hiband, hiband, ad->old_diseqc, diseqc);
++  if (ad->old_pol != pol)
++    return 0;
++  if (ad->old_hiband != hiband)
++    return 0;
++  if (ad->old_diseqc != diseqc)
++    return 0;
++  return 1;
++}
++
++int absolute_switch;
++int absolute_table[32][4];
 +#endif
 +
  int setup_switch(int frontend_fd, adapter *ad, transponder *tp)
  {
  	int hiband = 0;
-@@ -582,15 +684,107 @@ int setup_switch(int frontend_fd, adapter *ad, transponder *tp)
+@@ -584,15 +702,145 @@ int setup_switch(int frontend_fd, adapter *ad, transponder *tp)
  		hiband = 1;
  	}
  
 +#ifdef AXE
 +	adapter *ad2, *adm;
-+	int input = 0, aid, equattro = 0;
++	int input = 0, src, aid, pos = 0, equattro = 0, master = -1;
 +
 +	if (tp->diseqc_param.switch_type != SWITCH_UNICABLE &&
 +	    tp->diseqc_param.switch_type != SWITCH_JESS) {
@@ -519,31 +616,68 @@ index 74124fc..8282a06 100644
 +		if (!opts.quattro || extra_quattro(input, diseqc, &equattro)) {
 +			if (equattro > 0)
 +				diseqc = equattro - 1;
-+			adm = use_adapter(ad->slave ? ad->slave - 1 : ad->pa);
-+			if (adm == NULL) {
-+				LOG("axe_fe: unknown master adapter %d", input);
-+				return 0;
-+			}
-+			if (adm->old_pol >= 0) {
++			if (absolute_switch && diseqc >= 0 && diseqc < 32) {
++				/* reuse input */
 +				for (aid = 0; aid < 4; aid++) {
-+					ad2 = get_adapter(aid);
-+					if (!ad2 || ad == ad2) continue;
-+					if (ad2->slave && ad2->slave - 1 != adm->pa) continue;
-+					if (!ad2->slave && ad2 != adm) continue;
-+					if (ad2->sid_cnt > 0) break;
++					pos = absolute_table[diseqc][aid];
++					if (pos <= 0) continue;
++					pos--;
++					ad2 = get_adapter2(aid);
++					if (!ad2) continue;
++					if (ad2->fe2 <= 0) continue;
++					if ((ad2->axe_used & ~(1 << ad->id)) == 0) continue;
++					if (!tune_check(ad2, pol, hiband, pos)) continue;
++					break;
 +				}
-+				if (adm != ad && aid < 4 &&
-+				    (adm->old_pol != pol ||
-+				     adm->old_hiband != hiband ||
-+				     adm->old_diseqc != diseqc))
++				/* find free input */
++				if (aid >= 4) {
++					for (aid = 0; aid < 4; aid++) {
++						pos = absolute_table[diseqc][aid];
++						if (pos <= 0) continue;
++						pos--;
++						ad2 = get_adapter2(aid);
++						if (!ad2) continue;
++						LOGL(3, "axe: checking %d used 0x%x in %d", ad->id, ad2->axe_used, ad2->id);
++						if (ad2->axe_used & ~(1 << ad->id)) continue;
++						break;
++					}
++				}
++				if (aid >= 4) {
++					LOGL(0, "unable to find input for diseqc %d (absolute switch), adapter %d", diseqc, input);
 +					return 0;
++				}
++				diseqc = pos;
++				master = aid;
++				adm = use_adapter(master);
++				if (adm == NULL) {
++					LOG("axe_fe: unknown master adapter for input %d", input);
++					return 0;
++				}
++			} else {
++				master = ad->slave ? ad->slave - 1 : ad->pa;
++				adm = use_adapter(master);
++				if (adm == NULL) {
++					LOG("axe_fe: unknown master adapter for input %d", input);
++					return 0;
++				}
++				if (adm->old_pol >= 0) {
++					for (aid = 0; aid < 4; aid++) {
++						ad2 = get_adapter2(aid);
++						if (!ad2 || ad2->fe2 <= 0 || ad == ad2) continue;
++						if (ad2->slave && ad2->slave - 1 != adm->pa) continue;
++						if (!ad2->slave && ad2 != adm) continue;
++						if (ad2->sid_cnt > 0) break;
++					}
++					if (adm != ad && aid < 4 && !tune_check(adm, pol, hiband, diseqc)) {
++						LOGL(0, "unable to use slave adapter %d (master %d)", input, adm->pa);
++						return 0;
++					}
++				}
 +			}
-+			adm->axe_used |= (1 << input);
-+			if (ad->slave) {
-+				input = ad->slave - 1;
-+				if(adm->old_pol != pol ||
-+				   adm->old_hiband != hiband ||
-+				   adm->old_diseqc != diseqc) {
++			adm->axe_used |= (1 << ad->id);
++			if (master >= 0) {
++				input = master;
++				if (!tune_check(adm, pol, hiband, diseqc)) {
 +					send_diseqc(adm->fe2, diseqc, adm->old_diseqc != diseqc,
 +						    pol, hiband, &tp->diseqc_param);
 +					adm->old_pol = pol;
@@ -567,12 +701,13 @@ index 74124fc..8282a06 100644
 +				LOG("axe_fe: unknown master adapter %d", input);
 +				return 0;
 +			}
-+			if(adm->old_pol != pol || adm->old_hiband != hiband) {
++			adm->old_diseqc = diseqc = 0;
++			if(!tune_check(adm, pol, hiband, 0)) {
 +				send_diseqc(adm->fe2, 0, 0, pol, hiband,
 +				            &tp->diseqc_param);
 +				adm->old_pol = pol;
 +				adm->old_hiband = hiband;
-+				adm->old_diseqc = diseqc = 0;
++				adm->old_diseqc = 0;
 +			}
 +			adm->axe_used |= (1 << ad->id);
 +			goto axe;
@@ -617,13 +752,19 @@ index 74124fc..8282a06 100644
  	}
  	else if (tp->diseqc_param.switch_type == SWITCH_SLAVE)
  	{
-@@ -609,6 +803,17 @@ int setup_switch(int frontend_fd, adapter *ad, transponder *tp)
- 					diseqc);
- 	}
+@@ -615,6 +863,23 @@ int setup_switch(int frontend_fd, adapter *ad, transponder *tp)
+ 	ad->old_hiband = hiband;
+ 	ad->old_diseqc = diseqc;
  
 +#ifdef AXE
 +axe:
-+	LOGL(3, "axe_fe: reset for fd %d adapter %d input %d", frontend_fd, ad ? ad->pa : -1, input);
++	for (aid = 0; aid < 4; aid++) {
++		ad2 = get_adapter2(aid);
++		if (ad2)
++			LOGL(3, "axe_fe: used[%d] = 0x%x, pol=%d, hiband=%d, diseqc=%d",
++			     aid, ad2->axe_used, ad2->old_pol, ad2->old_hiband, ad2->old_diseqc);
++	}
++	LOGL(3, "axe_fe: reset for fd %d adapter %d input %d diseqc %d", frontend_fd, ad ? ad->pa : -1, input, diseqc);
 +	if (axe_fe_reset(frontend_fd) < 0)
 +		LOG("axe_fe: RESET failed for fd %d: %s", frontend_fd, strerror(errno));
 +	if (axe_fe_input(frontend_fd, input))
@@ -632,10 +773,10 @@ index 74124fc..8282a06 100644
 +		return freq;
 +#endif
 +
- 	ad->old_pol = pol;
- 	ad->old_hiband = hiband;
- 	ad->old_diseqc = diseqc;
-@@ -644,6 +849,14 @@ int dvb_tune(int aid, transponder * tp)
+ 	return freq;
+ }
+ 
+@@ -647,6 +912,14 @@ int dvb_tune(int aid, transponder * tp)
  	memset(p_cmd, 0, sizeof(p_cmd));
  	bclear = getTick();
  
@@ -650,7 +791,7 @@ index 74124fc..8282a06 100644
  	if ((ioctl(fd_frontend, FE_SET_PROPERTY, &cmdseq_clear)) == -1)
  	{
  		LOG("FE_SET_PROPERTY DTV_CLEAR failed for fd %d: %s", fd_frontend,
-@@ -663,8 +876,10 @@ int dvb_tune(int aid, transponder * tp)
+@@ -666,8 +939,10 @@ int dvb_tune(int aid, transponder * tp)
  
  		ADD_PROP(DTV_SYMBOL_RATE, tp->sr)
  		ADD_PROP(DTV_INNER_FEC, tp->fec)
@@ -661,8 +802,8 @@ index 74124fc..8282a06 100644
  #if DVBAPIVERSION >= 0x0502
  		ADD_PROP(DTV_STREAM_ID, tp->plp)
  #endif
-@@ -673,7 +888,12 @@ int dvb_tune(int aid, transponder * tp)
- 				"tuning to %d(%d) pol: %s (%d) sr:%d fec:%s delsys:%s mod:%s rolloff:%s pilot:%s, ts clear=%d, ts pol=%d",
+@@ -676,7 +951,12 @@ int dvb_tune(int aid, transponder * tp)
+ 				"tuning to %d(%d) pol: %s (%d) sr:%d fec:%s delsys:%s mod:%s rolloff:%s pilot:%s, ts clear=%jd, ts pol=%jd",
  				tp->freq, freq, get_pol(tp->pol), tp->pol, tp->sr,
  				fe_fec[tp->fec], fe_delsys[tp->sys], fe_modulation[tp->mtype],
 -				fe_rolloff[tp->ro], fe_pilot[tp->plts], bclear, bpol)
@@ -675,7 +816,7 @@ index 74124fc..8282a06 100644
  		break;
  
  	case SYS_DVBT:
-@@ -774,29 +994,46 @@ int dvb_tune(int aid, transponder * tp)
+@@ -777,29 +1057,46 @@ int dvb_tune(int aid, transponder * tp)
  		if (ioctl(fd_frontend, FE_SET_PROPERTY, &p) == -1)
  		{
  			LOG("dvb_tune: set property failed %d %s", errno, strerror(errno));
@@ -727,7 +868,7 @@ index 74124fc..8282a06 100644
  		return -1;
  	}
  
-@@ -822,10 +1059,22 @@ int dvb_set_pid(adapter *a, uint16_t i_pid)
+@@ -825,10 +1122,22 @@ int dvb_set_pid(adapter *a, uint16_t i_pid)
  	LOG("setting filter on PID %d for fd %d", i_pid, fd);
  
  	return fd;
@@ -750,7 +891,7 @@ index 74124fc..8282a06 100644
  	if (fd < 0)
  		LOG_AND_RETURN(0, "DMX_STOP on an invalid handle %d, pid %d", fd, pid);
  	if (ioctl(fd, DMX_STOP, NULL) < 0)
-@@ -834,10 +1083,20 @@ int dvb_del_filters(int fd, int pid)
+@@ -837,10 +1146,20 @@ int dvb_del_filters(int fd, int pid)
  		LOG("clearing filter on PID %d FD %d", pid, fd);
  	close(fd);
  	return 0;
@@ -771,7 +912,7 @@ index 74124fc..8282a06 100644
  	int i, res, rv = 0;
  	struct dvb_frontend_info fe_info;
  
-@@ -926,6 +1185,7 @@ fe_delivery_system_t dvb_delsys(int aid, int fd, fe_delivery_system_t *sys)
+@@ -929,6 +1248,7 @@ fe_delivery_system_t dvb_delsys(int aid, int fd, fe_delivery_system_t *sys)
  				fe_delsys[sys[i]], sys[i]);
  
  	return (fe_delivery_system_t) rv;
@@ -779,30 +920,30 @@ index 74124fc..8282a06 100644
  
  }
  
-@@ -1037,6 +1297,7 @@ void dvb_get_signal(adapter *ad)
- 		ad->max_strength = (ad->strength > 0) ? ad->strength : 1;
- 	if (ad->max_snr <= ad->snr)
- 		ad->max_snr = (ad->snr > 0) ? ad->snr : 1;
+@@ -1041,6 +1361,7 @@ void dvb_get_signal(adapter *ad)
+ 		ad->max_strength = (strength > 0) ? strength : 1;
+ 	if (ad->max_snr <= snr)
+ 		ad->max_snr = (snr > 0) ? snr : 1;
 +#ifndef AXE
- 	if (ad->snr > 4096)
+ 	if (snr > 4096)
  		new_gs = 0;
  	if (new_gs)
-@@ -1049,6 +1310,14 @@ void dvb_get_signal(adapter *ad)
- 		ad->strength = ad->strength >> 8;
- 		ad->snr = ad->snr >> 8;
+@@ -1053,6 +1374,14 @@ void dvb_get_signal(adapter *ad)
+ 		strength = strength >> 8;
+ 		snr = snr >> 8;
  	}
 +#else
-+	ad->strength = ad->strength * 240 / 24000;
-+	if (ad->strength > 240)
-+		ad->strength = 240;
-+	ad->snr = ad->snr * 15 / 54000;
-+	if (ad->snr > 15)
-+		ad->snr = 15;
++	strength = strength * 240 / 24000;
++	if (strength > 240)
++		strength = 240;
++	snr = snr * 15 / 54000;
++	if (snr > 15)
++		snr = 15;
 +#endif
- }
- 
- void dvb_commit(adapter *a)
-@@ -1056,12 +1325,51 @@ void dvb_commit(adapter *a)
+ 	// keep the assignment at the end for the signal thread to get the right values as no locking is done on the adapter
+ 	ad->snr = snr;
+ 	ad->strength = strength;
+@@ -1065,12 +1394,51 @@ void dvb_commit(adapter *a)
  	return;
  }
  
@@ -856,7 +997,7 @@ index 74124fc..8282a06 100644
  }
  
  void find_dvb_adapter(adapter **a)
-@@ -1072,9 +1380,21 @@ void find_dvb_adapter(adapter **a)
+@@ -1081,9 +1449,21 @@ void find_dvb_adapter(adapter **a)
  	int i = 0, j = 0;
  	adapter *ad;
  
@@ -878,7 +1019,7 @@ index 74124fc..8282a06 100644
  			sprintf(buf, "/dev/dvb/adapter%d/frontend%d", i, j);
  			fd = open(buf, O_RDONLY | O_NONBLOCK);
  			if (fd < 0)
-@@ -1082,7 +1402,8 @@ void find_dvb_adapter(adapter **a)
+@@ -1091,7 +1471,8 @@ void find_dvb_adapter(adapter **a)
  				sprintf(buf, "/dev/dvb/adapter%d/ca%d", i, j);
  				fd = open(buf, O_RDONLY | O_NONBLOCK);
  			}
@@ -888,7 +1029,7 @@ index 74124fc..8282a06 100644
  			if (fd >= 0)
  			{
  //				if (is_adapter_disabled(na))
-@@ -1113,6 +1434,14 @@ void find_dvb_adapter(adapter **a)
+@@ -1122,6 +1503,14 @@ void find_dvb_adapter(adapter **a)
  				if (na == MAX_ADAPTERS)
  					return;
  			}
@@ -903,61 +1044,17 @@ index 74124fc..8282a06 100644
  		}
  	for (; na < MAX_ADAPTERS; na++)
  		if (a[na])
-diff --git a/html/status.html b/html/status.html
-index 15dc0fa..01fe57f 100644
---- a/html/status.html
-+++ b/html/status.html
-@@ -16,6 +16,10 @@
- 		font-family: Tahoma, Geneva, sans-serif;
- 		font-size: 1em;
- 	}
-+	.level {
-+		display: inline;
-+		white-space: nowrap;
-+	}
- /*
- 	.enabled {
- 		color: green;
-@@ -33,12 +37,8 @@
- 
- <!--<body onload="JavaScript:timedRefresh(5000);">-->
- <body>
--This page will refresh every 5 seconds.<br />
- 
- <script type="text/javascript">
--//function timedRefresh(timeoutPeriod) {
--//	// setTimeout("location.reload(true);", timeoutPeriod);
--//};
- 
- var ad_type		= [$ad_type0$, $ad_type1$, $ad_type2$, $ad_type3$, $ad_type4$, $ad_type5$, $ad_type6$, $ad_type7$, $ad_type8$, $ad_type9$, $ad_type10$, $ad_type11$, $ad_type12$, $ad_type13$, $ad_type14$, $ad_type15$ ];
- var ad_enabled	= [$ad_enabled0$, $ad_enabled1$, $ad_enabled2$, $ad_enabled3$, $ad_enabled4$, $ad_enabled5$, $ad_enabled6$, $ad_enabled7$, $ad_enabled8$, $ad_enabled9$, $ad_enabled10$, $ad_enabled11$, $ad_enabled12$, $ad_enabled13$, $ad_enabled14$, $ad_enabled15$ ];
-@@ -134,13 +134,10 @@ for (var i = 0; i < max_adapters; i++) {
- 		signal = "<small>OFFLINE</small>";
- 	} else {
- 		var s1 = parseInt(ad_strength[i] / 2.55);
--		signal = "LEV <div class='pBar' data-from='"+ s1 + "' data-to='" + s1 + "'></div><br />";
-+		signal = "<div class='level'>LEV <div class='pBar' data-from='"+ s1 + "' data-to='" + s1 + "'></div></div><br />";
- 
--		if (ad_type[i] == 1) 
--			var s2 = parseInt(ad_snr[i] / 2.55);
--		else
--			var s2 = parseInt(ad_snr[i] / 0.15);
--		signal += "SNR <div class='pBar' data-from='"+ s2 + "' data-to='" + s2 + "'></div><br />";
-+		var s2 = parseInt(ad_snr[i] / 0.15);
-+		signal += "<div class='level'>SNR <div class='pBar' data-from='"+ s2 + "' data-to='" + s2 + "'></div></div><br />";
- 
- 		if (ad_ber[i] > 0)
- 			signal += "<small><b style='color:red;'>BER " + ad_ber[i] + "</b></small>";
 diff --git a/minisatip.c b/minisatip.c
-index 1a5dbb5..3c6477c 100644
+index 6402f64..0994fc6 100644
 --- a/minisatip.c
 +++ b/minisatip.c
-@@ -88,6 +88,13 @@ static const struct option long_options[] =
+@@ -88,6 +88,14 @@ static const struct option long_options[] =
  		{ "xml", required_argument, NULL, 'X' },
  		{ "help", no_argument, NULL, 'h' },
  		{ "version", no_argument, NULL, 'V' },
 +#ifdef AXE
-+		{ "link_adapters", required_argument, NULL, 'L' },
++		{ "link-adapters", required_argument, NULL, 'L' },
++		{ "free-inputs", required_argument, NULL, 'A' },
 +		{ "quattro", no_argument, NULL, 'Q' },
 +		{ "quattro-hiband", required_argument, NULL, 'Z' },
 +		{ "axe-uinput", required_argument, NULL, 'U' },
@@ -966,7 +1063,7 @@ index 1a5dbb5..3c6477c 100644
  		{ 0, 0, 0, 0 } };
  
  #define RRTP_OPT 'r'
-@@ -121,12 +128,22 @@ static const struct option long_options[] =
+@@ -121,6 +129,14 @@ static const struct option long_options[] =
  #define XML_OPT 'X'
  #define THREADS_OPT 'T'
  #define DMXSOURCE_OPT '9'
@@ -976,41 +1073,45 @@ index 1a5dbb5..3c6477c 100644
 +#define AXE_UNICINP_OPT 'U'
 +#define AXE_SKIP_PKT 'M'
 +#define AXE_POWER 'P'
++#define ABSOLUTE_SRC 'A'
 +
  
- void print_version(int use_log)
+ char *built_info[] =
  {
+@@ -171,8 +187,11 @@ void print_version(int use_log)
  	char buf[200];
--	sprintf(buf, "%s version %s, compiled with s2api version: %04X", app_name,
--			version, LOGDVBAPIVERSION);
-+	sprintf(buf, "%s version %s, compiled with s2api version: %04X"
+ 	int i, len = 0;
+ 	memset(buf, 0, sizeof(buf));
+-	len += sprintf(buf, "%s version %s, compiled with s2api version: %04X",
+-			app_name, version, LOGDVBAPIVERSION);
++	len += sprintf(buf, "%s version %s, compiled with s2api version: %04X"
 +#ifdef AXE
 +		     " (AXE)"
 +#endif
-+			, app_name, version, LOGDVBAPIVERSION);
++	               , app_name, version, LOGDVBAPIVERSION);
  	if (!use_log)
  		puts(buf);
  	else
-@@ -137,7 +154,7 @@ void usage()
+@@ -185,7 +204,7 @@ void usage()
  {
  	print_version(0);
  	printf(
 -			"\n\t./%s [-[fgltz]] [-a x:y:z] [-b X:Y] [-c X] [-d A:C-U ] [-D device_id] [-e X-Y,Z] [-i prio] \n\
 +			"\n\t./%s [-[fgltzQ]] [-a x:y:z] [-b X:Y] [-c X] [-d A:C-U ] [-D device_id] [-e X-Y,Z] [-i prio] \n\
  	\t[-[uj] A1:S1-F1[-PIN]] [-m mac]"
- #ifndef DISABLE_DVBCSA
- 				      "[-o oscam_host:dvbapi_port] "
-@@ -148,7 +165,8 @@ void usage()
- 			    "[-s [DELSYS:]host[:port] "
+ #ifndef DISABLE_DVBAPI
+ 					"[-o oscam_host:dvbapi_port] "
+@@ -196,7 +215,8 @@ void usage()
+ 			"[-s [DELSYS:]host[:port] "
  #endif
- 						     "[-u A1:S1-F1[-PIN]] [-w http_server[:port]] \n\
+ 			"[-u A1:S1-F1[-PIN]] [-w http_server[:port]] \n\
 -	\t[-x http_port] [-X xml_path] [-y rtsp_port] \n\n\
 +	\t[-x http_port] [-X xml_path] [-y rtsp_port] [-L M1:S1[,M2:S2]] [-U unicable_adapter] \n\
-+	\t[-M mpegts_packets]\n\n\
++	\t[-M mpegts_packets] [-A SRC1:INP1:DISEQC1[,SRC2:INP2:DISEQC2]]\n\n\
  Help\n\
  -------\n\
  \n\
-@@ -274,7 +292,30 @@ Help\n\
+@@ -322,7 +342,38 @@ Help\n\
  	* eg: -y 5544 \n\
  	- changing this to a port > 1024 removes the requirement for minisatip to run as root\n\
  \n\
@@ -1021,6 +1122,14 @@ index 1a5dbb5..3c6477c 100644
 +* -L --link-adapters mapping_string: link adapters (identical src,lo/hi,h/v)\n\
 +\t* The format is: M1:S1[,M2:S2] - master:slave\n\
 +	* eg: 0:1,0:2,0:3 \n\
++\n\
++* -A --free-inputs mapping_string: absolute source mapping for free input mode\n\
++\t* The format is: SRC1:INP1:DISEQC1[,SRC2:INP2:DISEQC2]\n\
++	* SRC: source number (src argument for SAT>IP minus 1 - 0-15)\n\
++	* INP: coaxial input (0-3)\n\
++	* DISEQC: diseqc position (0-15)\n\
++	* eg: 13E,19.2E on inputs 0&1 and 23.5E,28.2E on inputs 2&3:\n\
++		-A 0:0:0,0:1:0,1:0:0,1:1:1,2:2:0,2:3:0,3:2:1,3:2:2\n\
 +\n\
 +* -P --power num: power to all inputs (0 = only active inputs, 1 = all inputs)\n\
 +\n\
@@ -1042,7 +1151,7 @@ index 1a5dbb5..3c6477c 100644
  			app_name,
  			ADAPTER_BUFFER,
  			DVR_BUFFER, opts.no_threads ? "DISABLED" : "ENABLED");
-@@ -314,7 +355,7 @@ void set_options(int argc, char *argv[])
+@@ -362,7 +413,7 @@ void set_options(int argc, char *argv[])
  	opts.satip_setup_pids = 0;
  	opts.output_buffer = 512 * 1024;
  	opts.satip_servers[0] = 0;
@@ -1051,8 +1160,8 @@ index 1a5dbb5..3c6477c 100644
  	opts.xml_path = DESC_XML;
  	opts.no_threads = 0;
  	opts.th_priority = -1;
-@@ -328,10 +369,11 @@ void set_options(int argc, char *argv[])
- #ifdef __mips__
+@@ -376,10 +427,11 @@ void set_options(int argc, char *argv[])
+ #ifdef NO_BACKTRACE
  	opts.no_threads = 1;
  #endif
 +	opts.axe_skippkt = 35;
@@ -1060,11 +1169,11 @@ index 1a5dbb5..3c6477c 100644
  
  	while ((opt = getopt_long(argc, argv,
 -			"flr:a:td:w:p:s:n:hc:b:m:p:e:x:u:j:o:gy:i:q:D:VR:S:TX:Y:",
-+			"flr:a:td:w:p:s:n:hc:b:m:p:e:x:u:j:o:gy:i:q:D:VR:S:TX:Y:L:QZ:U:M:P:",
++			"flr:a:td:w:p:s:n:hc:b:m:p:e:x:u:j:o:gy:i:q:D:VR:S:TX:Y:L:QZ:U:M:P:A:",
  			long_options, NULL)) != -1)
  	{
  		//              printf("options %d %c %s\n",opt,opt,optarg);
-@@ -403,9 +445,12 @@ void set_options(int argc, char *argv[])
+@@ -451,9 +503,12 @@ void set_options(int argc, char *argv[])
  			opts.adapter_buffer = (opts.adapter_buffer / 188) * 188;
  			if (opts.adapter_buffer < ADAPTER_BUFFER)
  				opts.adapter_buffer = ADAPTER_BUFFER;
@@ -1078,7 +1187,7 @@ index 1a5dbb5..3c6477c 100644
  			break;
  		}
  
-@@ -564,6 +609,35 @@ void set_options(int argc, char *argv[])
+@@ -612,6 +667,39 @@ void set_options(int argc, char *argv[])
  				LOGL(0, "Not a valid path for the xml file")
  			;
  			break;
@@ -1086,6 +1195,10 @@ index 1a5dbb5..3c6477c 100644
 +		case LINK_OPT:
 +			set_link_adapters(optarg);
 +                        break;
++
++		case ABSOLUTE_SRC:
++			set_absolute_src(optarg);
++			break;
 +
 +		case QUATTRO_OPT:
 +			opts.quattro = 1;
@@ -1114,7 +1227,7 @@ index 1a5dbb5..3c6477c 100644
  		}
  
  	}
-@@ -1059,6 +1133,9 @@ int ssdp_reply(sockets * s)
+@@ -1108,6 +1196,9 @@ int ssdp_reply(sockets * s)
  		return 0;
  	}
  
@@ -1124,7 +1237,7 @@ index 1a5dbb5..3c6477c 100644
  // not my uuid
  	LOG("Received SSDP packet from %s:%d -> handle %d",
  			get_socket_rhost(s->id, ra, sizeof(ra)), get_socket_rport(s->id),
-@@ -1194,7 +1271,11 @@ int main(int argc, char *argv[])
+@@ -1243,7 +1334,11 @@ int main(int argc, char *argv[])
  
  	if (!opts.no_threads)
  		set_socket_thread(sock_signal, start_new_thread("signal"));
@@ -1139,19 +1252,19 @@ index 1a5dbb5..3c6477c 100644
 diff --git a/minisatip.h b/minisatip.h
 old mode 100644
 new mode 100755
-index 4fa7629..1a45259
+index acd445f..56091b3
 --- a/minisatip.h
 +++ b/minisatip.h
 @@ -10,7 +10,7 @@
  
- #define VERSION_BUILD "30"
+ #define VERSION_BUILD "42"
  #define CC(a,b,c) #a b #c
 -#define VERSION CC(0.5.,VERSION_BUILD,)
 +#define VERSION CC(0.5.,VERSION_BUILD,-axe101)
  
  void set_options (int argc, char *argv[]);
  
-@@ -50,6 +50,11 @@ struct struct_opts
+@@ -53,6 +53,11 @@ struct struct_opts
  	int force_scan;
  	int clean_psi;
  	int file_line;
@@ -1164,18 +1277,18 @@ index 4fa7629..1a45259
  	int dvbapi_port;
  	char *dvbapi_host;
 diff --git a/socketworks.c b/socketworks.c
-index 14974ec..77f4087 100644
+index 5452fea..080a905 100644
 --- a/socketworks.c
 +++ b/socketworks.c
-@@ -432,6 +432,7 @@ int sockets_add(int sock, struct sockaddr_in *sa, int sid, int type,
- 		max_sock = i + 1;
+@@ -435,6 +435,7 @@ int sockets_add(int sock, struct sockaddr_in *sa, int sid, int type,
  	ss->buf = NULL;
  	ss->lbuf = 0;
+ 	ss->timeout_ms = 0;
 +	ss->skiplen = type == TYPE_DVR ? opts.axe_skippkt * 188 : 0;
- 	ss->close_sec = 0;
  	ss->id = i;
  	ss->read = (read_action) sockets_read;
-@@ -625,6 +626,29 @@ void *select_and_execute(void *arg)
+ 	ss->lock = NULL;
+@@ -631,6 +632,29 @@ void *select_and_execute(void *arg)
  						ss->rlen += rlen;
  					else
  						ss->rlen = 0;
@@ -1205,7 +1318,7 @@ index 14974ec..77f4087 100644
  					//force 0 at the end of the string
  					if (ss->lbuf >= ss->rlen)
  						ss->buf[ss->rlen] = 0;
-@@ -936,6 +960,14 @@ void set_socket_pos(int sock, int pos)
+@@ -945,6 +969,14 @@ void set_socket_pos(int sock, int pos)
  	ss->rlen = pos;
  }
  
@@ -1223,17 +1336,17 @@ index 14974ec..77f4087 100644
 diff --git a/socketworks.h b/socketworks.h
 old mode 100644
 new mode 100755
-index c852e2a..aa4157c
+index 0782477..723821a
 --- a/socketworks.h
 +++ b/socketworks.h
-@@ -23,6 +23,7 @@ typedef struct struct_sockets {
- 	unsigned char *buf;
+@@ -24,6 +24,7 @@ typedef struct struct_sockets {
  	int lbuf;
  	int rlen;
+ 	int timeout_ms;
 +	int skiplen;
- 	int close_sec;
  	int id;				 // socket id
  	int err;
+ 	int flags; // 1 - buf is allocated dynamically
 @@ -72,6 +73,7 @@ void set_socket_send_buffer(int sock, int len);
  void set_socket_receive_buffer(int sock, int len);
  sockets *get_sockets(int i);
@@ -1242,33 +1355,11 @@ index c852e2a..aa4157c
  char *get_socket_rhost(int s_id, char *dest, int ld);
  int get_socket_rport(int s_id);
  void set_sock_lock(int i, SMutex *m);
-diff --git a/stream.c b/stream.c
-index 1aad15a..bec6787 100644
---- a/stream.c
-+++ b/stream.c
-@@ -53,7 +53,7 @@ unsigned init_tick, theTick;
- uint32_t getTick()
- {								 //ms
- 	struct timespec ts;
--	clock_gettime(CLOCK_REALTIME, &ts);
-+	clock_gettime(CLOCK_MONOTONIC, &ts);
- 	theTick = ts.tv_nsec / 1000000;
- 	theTick += ts.tv_sec * 1000;
- 	if (init_tick == 0)
-@@ -65,7 +65,7 @@ uint64_t getTickUs()
- {
- 	uint64_t utime;
- 	struct timespec ts;
--	clock_gettime(CLOCK_REALTIME, &ts);
-+	clock_gettime(CLOCK_MONOTONIC, &ts);
- 	utime = ((uint64_t) ts.tv_sec) * 1000000 + ts.tv_nsec / 1000;
- 	return utime;
- 
 diff --git a/utils.c b/utils.c
-index 7f36963..c22e292 100644
+index 434fe0c..7fd464e 100644
 --- a/utils.c
 +++ b/utils.c
-@@ -36,6 +36,8 @@
+@@ -37,6 +37,8 @@
  #include <sys/socket.h>
  #include <sys/ioctl.h>
  #include <sys/stat.h>
@@ -1277,16 +1368,16 @@ index 7f36963..c22e292 100644
  #include <net/if.h>
  #include <fcntl.h>
  #include <ctype.h>
-@@ -1145,6 +1147,7 @@ pthread_t start_new_thread(char *name)
+@@ -1073,6 +1075,7 @@ pthread_t start_new_thread(char *name)
  
  void set_thread_prio(pthread_t tid, int prio)
  {
 +#if 0
  	int rv;
  	struct sched_param param;
- 	memset( &param, 0, sizeof(struct sched_param) );
-@@ -1152,6 +1155,12 @@ void set_thread_prio(pthread_t tid, int prio)
- 	if ( (rv = pthread_setschedparam( pthread_self(), SCHED_RR, &param )) )
+ 	memset(&param, 0, sizeof(struct sched_param));
+@@ -1080,6 +1083,12 @@ void set_thread_prio(pthread_t tid, int prio)
+ 	if ((rv = pthread_setschedparam(pthread_self(), SCHED_RR, &param)))
  		LOG("pthread_setschedparam failed with error %d", rv);
  	return;
 +#else
@@ -1297,4 +1388,4 @@ index 7f36963..c22e292 100644
 +#endif
  }
  
- 
+ struct struct_array
