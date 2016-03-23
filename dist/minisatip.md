@@ -31,11 +31,11 @@ affect the signal quality during the power down phase.
 Free inputs
 -----------
 
-This mode is most powerful but requires a client which known
-the limitations like tvheadend. In this mode all sources (src=)
-defined by the SAT>IP specification are absolute (shared for
-all tuners). So any tuner can use any position but with
-physical restrictions.
+This mode available from build 12 is most powerful but requires
+a client which known the limitations like tvheadend. In this mode
+all sources (src=) defined by the SAT>IP specification are
+absolute (shared for all tuners). So any tuner can use any position
+but with physical restrictions.
 
 ### Example: '-A 0:0:0,0:1:0,1:0:1,1:1:1,2:2:0,3:2:1'
 
@@ -60,7 +60,7 @@ Back to the example, the input configuration is like this:
 So, four satellite positions, for 23.5E and 1W, there are
 2 shared inputs, for rest, only one input is available.
 
-TVheadend can define network limits and network groups.
+Tvheadend can define network limits and network groups.
 In this case, we have 2 groups of inputs (23.5E/1W) and
 (28.2E/19.2E) and limits 2 for 23.5E/1W and 1 for rest.
 
