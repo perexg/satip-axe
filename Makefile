@@ -31,7 +31,7 @@ KMODULES = drivers/usb/serial/cp210x.ko \
 	   drivers/usb/serial/oti6858.ko
 
 MINISATIP_COMMIT=54df9348e7bd7e6075f54f1b93ec4ad36429abe0
-MINISATIP5_COMMIT=b53758b1b1b91ffc31597c319a706f350784400a
+MINISATIP5_COMMIT=92bf0d8ec06192d2beded67cdfed5aef537b8d19
 
 BUSYBOX=busybox-1.24.1
 
