@@ -32,12 +32,12 @@ Free inputs
 -----------
 
 This mode available from build 12 is most powerful but requires
-a client which known the limitations like tvheadend. In this mode
+a client which knowns the limitations like tvheadend. In this mode
 all sources (src=) defined by the SAT>IP specification are
 absolute (shared for all tuners). So any tuner can use any position
 but with physical restrictions.
 
-### Example: '-A 0:0:0,0:1:0,1:0:1,1:1:1,2:2:0,3:2:1'
+### Example: '-A 0:0:0,0:1:0,1:0:1,1:1:1,2:2:0,3:2:1,4:3:0'
 
 The first number defines the SAT>IP source minus one (0-max).
 The second number defines the physical input (0-3). The third
@@ -56,13 +56,15 @@ Back to the example, the input configuration is like this:
 - input 2:
   - src=3: diseqc position 0 - 28.2E (configuration 2:2:0)
   - src=4: diseqc position 1 - 19.2E (configuration 3:2:1)
+- input 4:
+  - src=5: diseqc position 0 - 13E   (configuration 4:3:0)
 
-So, four satellite positions, for 23.5E and 1W, there are
+So, five satellite positions, for 23.5E and 1W, there are
 2 shared inputs, for rest, only one input is available.
 
 Tvheadend can define network limits and network groups.
-In this case, we have 2 groups of inputs (23.5E/1W) and
-(28.2E/19.2E) and limits 2 for 23.5E/1W and 1 for rest.
+In this case, we have 3 groups of inputs (23.5E/1W),
+(28.2E/19.2E), (13E) and limits 2 for 23.5E/1W and 1 for rest.
 
 Tvheadend should be configured like this (for all tuners):
 
@@ -70,6 +72,7 @@ Tvheadend should be configured like this (for all tuners):
 - assign 1W     to position 2, network limit 2, network group 1
 - assign 28.2E  to position 3, network limit 1, network group 2
 - assign 19.2E  to position 4, network limit 1, network group 2
+- assign 13E    to position 5, network limit 1, network group 3
 
 Linked inputs
 -------------
