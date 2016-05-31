@@ -202,7 +202,7 @@ out/satip-axe-$(VERSION).fw: kernel/arch/sh/boot/uImage.gz
 # kernel
 #
 
-kernel/.config: toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4/bin/sh4-linux-gcc-4.5.3
+kernel/.config: patches/kernel.config toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4/bin/sh4-linux-gcc-4.5.3
 	cp patches/kernel.config ./kernel/arch/sh/configs/idl4k_defconfig
 	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- idl4k_defconfig
 
