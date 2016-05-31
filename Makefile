@@ -78,7 +78,7 @@ MULTICAST_RTP_PACKAGE_NAME=multicast-rtp-1
 TVHEADEND_COMMIT=master
 
 # 10663 10937
-OSCAM_REV=11211
+OSCAM_REV=11234
 
 define GIT_CLONE
 	@mkdir -p apps/host
