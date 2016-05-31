@@ -199,6 +199,16 @@ Bugs:
 History:
 --------
 
+satip-axe-201605311610-12 - Tue May 31 2016
+  - enabled 802.1q in kernel (VLAN)
+  - fixed jess (Unicable II) support in both minisatip/minisatip5 binaries
+  - minisatip5
+    - added Packets / CC Errors / Coax Cable columns to status table
+    - added -A (free inputs) option
+    - disable thread mode by default (use -T to toggle)
+    - fixed -L option
+  - updated oscam to 11234
+
 satip-axe-201603051934-11 - Sat Mar  5 2016
   - updated stmmac ethernet driver from latest stlinux kernel
     - linux-sh4-2.6.32.y - _stm24_0217
