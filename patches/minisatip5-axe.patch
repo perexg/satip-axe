@@ -1,44 +1,5 @@
-diff --git a/.gitignore b/.gitignore
-index f652e62..8e8a5b9 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -1,2 +1,5 @@
- /minisatip
- *.o
-+config.log
-+config.status
-+Makefile
-diff --git a/README.md b/README.md
-index f0993bc..2c2923a 100644
---- a/README.md
-+++ b/README.md
-@@ -25,15 +25,7 @@ https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=7UWQ7FXSABUH8&item
- Usage:
- -------
- 
--minisatip version 0.5.39, compiled with s2api version: 050A
--[19/03 11:23:51.663 main]: Built with dvbcsa
--[19/03 11:23:51.663 main]: Built with dvbapi
--[19/03 11:23:51.663 main]: Built with AES (OpenSSL)
--[19/03 11:23:51.663 main]: Built with tables processing
--[19/03 11:23:51.663 main]: Built with satip client
--[19/03 11:23:51.663 main]: Built with linux dvb client
--[19/03 11:23:51.663 main]: Built with backtrace
--[19/03 11:23:51.663 main]: Built with netceiver
-+minisatip version 0.5.44, compiled with s2api version: 050A
- 
- 	./minisatip [-[fgltz]] [-a x:y:z] [-b X:Y] [-c X] [-d A:C-U ] [-D device_id] [-e X-Y,Z] [-i prio] 
- 		[-[uj] A1:S1-F1[-PIN]] [-m mac][-o oscam_host:dvbapi_port] [-p public_host] [-r remote_rtp_host] 
-@@ -116,6 +108,7 @@ Help
- 	- specifies 1 dvbt satip server  with address 192.168.1.3:554
- 	- specifies 1 dvbc satip server  with address 192.168.1.4:554
- 
-+* -O --satip-tcp Use RTSP over TCP instead of UDP for data transport 
- * -S --slave ADAPTER1,ADAPTER2-ADAPTER4[,..] - specify slave adapters	
- 	* Allows specifying bonded adapters (multiple adapters connected with a splitter to the same LNB)
- 	Only one adapter needs to be master all others needs to have this parameter specified
 diff --git a/adapter.c b/adapter.c
-index f02c4d5..c130c1c 100644
+index 0b56213..ca4eddd 100644
 --- a/adapter.c
 +++ b/adapter.c
 @@ -58,6 +58,8 @@ adapter *adapter_alloc()
@@ -74,19 +35,7 @@ index f02c4d5..c130c1c 100644
  	mutex_lock(&ad->mutex);
  	if (is_adapter_disabled(i))
  		goto NOK;
-@@ -183,10 +186,8 @@ int init_hw(int i)
- 	ad->fe_sock = -1;
- 	ad->sock = -1;
- 
--	if (ad->enabled)
--	{
-+	if (!ad->open)
- 		goto NOK;
--	}
- 
- 	if (ad->open(ad))
- 	{
-@@ -326,10 +327,12 @@ void close_adapter(int na)
+@@ -324,10 +327,12 @@ void close_adapter(int na)
  	ad->sock = -1;
  	ad->strength = 0;
  	ad->snr = 0;
@@ -100,7 +49,7 @@ index f02c4d5..c130c1c 100644
  	//      if(a[na]->buf)free1(a[na]->buf);a[na]->buf=NULL;
  	LOG("done closing adapter %d", na);
  }
-@@ -544,6 +547,19 @@ int set_adapter_for_stream(int sid, int aid)
+@@ -533,6 +538,19 @@ int set_adapter_for_stream(int sid, int aid)
  	return 0;
  }
  
@@ -120,7 +69,7 @@ index f02c4d5..c130c1c 100644
  void close_adapter_for_stream(int sid, int aid)
  {
  	adapter *ad;
-@@ -562,9 +578,12 @@ void close_adapter_for_stream(int sid, int aid)
+@@ -551,9 +569,12 @@ void close_adapter_for_stream(int sid, int aid)
  	LOG("closed adapter %d for stream %d m:%d s:%d", aid, sid, ad->master_sid,
  			ad->sid_cnt);
  	// delete the attached PIDs as well
@@ -135,7 +84,7 @@ index f02c4d5..c130c1c 100644
  		mark_pids_deleted(aid, sid, NULL);
  	update_pids(aid);
  //	if (a[aid]->sid_cnt == 0) 
-@@ -660,6 +679,7 @@ int tune(int aid, int sid)
+@@ -649,6 +670,7 @@ int tune(int aid, int sid)
  		ad->status = -1;
  		ad->status_cnt = 0;
  		set_socket_pos(ad->sock, 0);	// flush the existing buffer
@@ -143,7 +92,7 @@ index f02c4d5..c130c1c 100644
  		ad->rlen = 0;
  		if (ad->sid_cnt > 1)	 // the master changed the frequency
  		{
-@@ -978,6 +998,18 @@ get_adapter1(int aid, char *file, int line)
+@@ -980,6 +1002,18 @@ get_adapter1(int aid, char *file, int line)
  	return a[aid];
  }
  
@@ -162,7 +111,7 @@ index f02c4d5..c130c1c 100644
  char* get_stream_pids(int s_id, char *dest, int max_size);
  char *
  describe_adapter(int sid, int aid, char *dad, int ld)
-@@ -1092,9 +1124,11 @@ void free_all_adapters()
+@@ -1094,9 +1128,11 @@ void free_all_adapters()
  		{
  			if (a[i]->buf)
  				free1(a[i]->buf);
@@ -174,7 +123,7 @@ index f02c4d5..c130c1c 100644
  
  #ifndef DISABLE_NETCVCLIENT
  	fprintf(stderr, "\n\nREEL: recv_exit\n");
-@@ -1347,6 +1381,93 @@ void set_slave_adapters(char *o)
+@@ -1349,6 +1385,93 @@ void set_slave_adapters(char *o)
  
  	}
  }
@@ -268,7 +217,7 @@ index f02c4d5..c130c1c 100644
  extern char *fe_delsys[];
  void set_adapters_delsys(char *o)
  {
-@@ -1615,6 +1736,82 @@ char *get_all_delsys(int aid, char *dest, int max_size)
+@@ -1617,6 +1740,82 @@ char *get_all_delsys(int aid, char *dest, int max_size)
  	return dest;
  }
  
@@ -351,7 +300,7 @@ index f02c4d5..c130c1c 100644
  _symbols adapters_sym[] =
  		{
  		{ "ad_enabled", VAR_AARRAY_INT8, a, 1, MAX_ADAPTERS, offsetof(adapter,
-@@ -1657,4 +1854,7 @@ _symbols adapters_sym[] =
+@@ -1659,4 +1858,7 @@ _symbols adapters_sym[] =
  				{ "tuner_c2", VAR_INT, &tuner_c2, 1, 0, 0 },
  				{ "tuner_t", VAR_INT, &tuner_t, 1, 0, 0 },
  				{ "tuner_c", VAR_INT, &tuner_c, 1, 0, 0 },
@@ -360,7 +309,7 @@ index f02c4d5..c130c1c 100644
 +				{ "ad_axe_coax", VAR_FUNCTION_STRING, (void *) &get_axe_coax, 0, 0, 0 },
  				{ NULL, 0, NULL, 0, 0 } };
 diff --git a/adapter.h b/adapter.h
-index 72f61c8..e051bec 100644
+index a0c2634..52138cc 100644
 --- a/adapter.h
 +++ b/adapter.h
 @@ -6,7 +6,11 @@
@@ -422,8 +371,8 @@ index 72f61c8..e051bec 100644
  void reset_pids_type(int aid, int clear_pat);
  void reset_ecm_type_for_key(int aid, int key);
  int delsys_match(adapter *ad, int del_sys);
-@@ -145,6 +159,7 @@ void set_adapters_delsys(char *o);
- int signal_thread(sockets *s);
+@@ -146,6 +160,7 @@ int signal_thread(sockets *s);
+ int compare_tunning_parameters(int aid, transponder * tp);
  
  #define get_adapter(a) get_adapter1(a, __FILE__, __LINE__)
 +#define get_adapter2(a) get_adapter21(a, __FILE__, __LINE__)
@@ -432,10 +381,10 @@ index 72f61c8..e051bec 100644
  #define adapter_lock(a) adapter_lock1(__FILE__,__LINE__,a)
 diff --git a/axe.h b/axe.h
 new file mode 100644
-index 0000000..d8b06bc
+index 0000000..0bbd074
 --- /dev/null
 +++ b/axe.h
-@@ -0,0 +1,149 @@
+@@ -0,0 +1,154 @@
 +#ifndef __AXE_H
 +#define __AXE_H
 +
@@ -526,6 +475,11 @@ index 0000000..d8b06bc
 +  return ioctl(fd, DMXTS_TRANSFER_START);
 +}
 +
++static inline int axe_dmxts_stop(int fd)
++{
++  return ioctl(fd, DMXTS_TRANSFER_STOP);
++}
++
 +#ifdef AXE_MAIN
 +
 +int axe_fp_fd = -1;
@@ -585,102 +539,8 @@ index 0000000..d8b06bc
 +#endif
 +
 +#endif
-diff --git a/configure b/configure
-index 6aa1c64..1104eb5 100755
---- a/configure
-+++ b/configure
-@@ -662,6 +662,7 @@ infodir
- docdir
- oldincludedir
- includedir
-+runstatedir
- localstatedir
- sharedstatedir
- sysconfdir
-@@ -741,6 +742,7 @@ datadir='${datarootdir}'
- sysconfdir='${prefix}/etc'
- sharedstatedir='${prefix}/com'
- localstatedir='${prefix}/var'
-+runstatedir='${localstatedir}/run'
- includedir='${prefix}/include'
- oldincludedir='/usr/include'
- docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
-@@ -993,6 +995,15 @@ do
-   | -silent | --silent | --silen | --sile | --sil)
-     silent=yes ;;
- 
-+  -runstatedir | --runstatedir | --runstatedi | --runstated \
-+  | --runstate | --runstat | --runsta | --runst | --runs \
-+  | --run | --ru | --r)
-+    ac_prev=runstatedir ;;
-+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
-+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
-+  | --run=* | --ru=* | --r=*)
-+    runstatedir=$ac_optarg ;;
-+
-   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
-     ac_prev=sbindir ;;
-   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
-@@ -1130,7 +1141,7 @@ fi
- for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
- 		datadir sysconfdir sharedstatedir localstatedir includedir \
- 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
--		libdir localedir mandir
-+		libdir localedir mandir runstatedir
- do
-   eval ac_val=\$$ac_var
-   # Remove trailing slashes.
-@@ -1283,6 +1294,7 @@ Fine tuning of the installation directories:
-   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
-   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
-   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
-+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
-   --libdir=DIR            object code libraries [EPREFIX/lib]
-   --includedir=DIR        C header files [PREFIX/include]
-   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
-@@ -4040,19 +4052,19 @@ else
- FM="$FM\n$openssl disabled"
- fi
- 
--
--for ac_header in execinfo.h
-+{ $as_echo "$as_me:${as_lineno-$LINENO}:  == Checking Embedded == " >&5
-+$as_echo "$as_me:  == Checking Embedded == " >&6;}
-+for ac_func in backtrace
- do :
--  ac_fn_c_check_header_mongrel "$LINENO" "execinfo.h" "ac_cv_header_execinfo_h" "$ac_includes_default"
--if test "x$ac_cv_header_execinfo_h" = xyes; then :
-+  ac_fn_c_check_func "$LINENO" "backtrace" "ac_cv_func_backtrace"
-+if test "x$ac_cv_func_backtrace" = xyes; then :
-   cat >>confdefs.h <<_ACEOF
--#define HAVE_EXECINFO_H 1
-+#define HAVE_BACKTRACE 1
- _ACEOF
-  EMBEDDED=0
- else
-   EMBEDDED=1
- fi
--
- done
- 
- if test "$EMBEDDED" = "1"; then
-diff --git a/configure.ac b/configure.ac
-index 62cd966..2dbd51b 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -84,8 +84,8 @@ else
- FM="$FM\n$openssl disabled"
- fi
- 
--
--AC_CHECK_HEADERS([execinfo.h],[EMBEDDED=0],[EMBEDDED=1])
-+AC_MSG_NOTICE([ == Checking Embedded == ])
-+AC_CHECK_FUNCS([backtrace],[EMBEDDED=0],[EMBEDDED=1])
- if test "$EMBEDDED" = "1"; then
- FM="$FM\n$emb enabled"
- else
 diff --git a/dvb.c b/dvb.c
-index f7f8b0f..71ad4b9 100644
+index 07195e4..41c678e 100644
 --- a/dvb.c
 +++ b/dvb.c
 @@ -42,6 +42,11 @@
@@ -813,15 +673,6 @@ index f7f8b0f..71ad4b9 100644
  	if (ioctl(fd, FE_SET_VOLTAGE, SEC_VOLTAGE_13) == -1)
  		LOG("send_unicable: pre voltage  SEC_VOLTAGE_13 failed for fd %d: %s",
  				fd, strerror(errno));
-@@ -524,7 +590,7 @@ int send_jess(int fd, int freq, int pos, int pol, int hiband, diseqc *d)
- 	int t = freq - 100;
- 
- 	cmd.msg[1] = d->uslot << 3;
--	cmd.msg[1] |= ((t << 8) & 0x07);
-+	cmd.msg[1] |= ((t >> 8) & 0x07);
- 	cmd.msg[2] = (t & 0xff);
- 	cmd.msg[3] = ((pos & 0x3f) << 2) | (pol ? 2 : 0) | (hiband ? 1 : 0);
- 	if (d->pin < 256)
 @@ -539,6 +605,9 @@ int send_jess(int fd, int freq, int pos, int pol, int hiband, diseqc *d)
  			fd, freq, d->ufreq, pos, pol, hiband, d->uslot, cmd.msg[0],
  			cmd.msg[1], cmd.msg[2], cmd.msg[3], cmd.msg[4]);
@@ -1062,7 +913,7 @@ index f7f8b0f..71ad4b9 100644
  	return freq;
  }
  
-@@ -647,6 +912,14 @@ int dvb_tune(int aid, transponder * tp)
+@@ -647,6 +912,15 @@ int dvb_tune(int aid, transponder * tp)
  	memset(p_cmd, 0, sizeof(p_cmd));
  	bclear = getTick();
  
@@ -1070,6 +921,7 @@ index f7f8b0f..71ad4b9 100644
 +	ssize_t drv;
 +	char buf[1316];
 +	axe_set_tuner_led(aid + 1, 1);
++	axe_dmxts_stop(ad->dvr);
 +	axe_fe_reset(ad->fe);
 +	do { drv = read(ad->dvr, buf, sizeof(buf)); } while (drv > 0);
 +#endif
@@ -1077,7 +929,7 @@ index f7f8b0f..71ad4b9 100644
  	if ((ioctl(fd_frontend, FE_SET_PROPERTY, &cmdseq_clear)) == -1)
  	{
  		LOG("FE_SET_PROPERTY DTV_CLEAR failed for fd %d: %s", fd_frontend,
-@@ -666,8 +939,10 @@ int dvb_tune(int aid, transponder * tp)
+@@ -666,8 +940,10 @@ int dvb_tune(int aid, transponder * tp)
  
  		ADD_PROP(DTV_SYMBOL_RATE, tp->sr)
  		ADD_PROP(DTV_INNER_FEC, tp->fec)
@@ -1088,7 +940,7 @@ index f7f8b0f..71ad4b9 100644
  #if DVBAPIVERSION >= 0x0502
  		ADD_PROP(DTV_STREAM_ID, tp->plp)
  #endif
-@@ -676,7 +951,12 @@ int dvb_tune(int aid, transponder * tp)
+@@ -676,7 +952,12 @@ int dvb_tune(int aid, transponder * tp)
  				"tuning to %d(%d) pol: %s (%d) sr:%d fec:%s delsys:%s mod:%s rolloff:%s pilot:%s, ts clear=%jd, ts pol=%jd",
  				tp->freq, freq, get_pol(tp->pol), tp->pol, tp->sr,
  				fe_fec[tp->fec], fe_delsys[tp->sys], fe_modulation[tp->mtype],
@@ -1102,7 +954,7 @@ index f7f8b0f..71ad4b9 100644
  		break;
  
  	case SYS_DVBT:
-@@ -777,29 +1057,46 @@ int dvb_tune(int aid, transponder * tp)
+@@ -777,29 +1058,46 @@ int dvb_tune(int aid, transponder * tp)
  		if (ioctl(fd_frontend, FE_SET_PROPERTY, &p) == -1)
  		{
  			LOG("dvb_tune: set property failed %d %s", errno, strerror(errno));
@@ -1154,7 +1006,7 @@ index f7f8b0f..71ad4b9 100644
  		return -1;
  	}
  
-@@ -825,10 +1122,22 @@ int dvb_set_pid(adapter *a, uint16_t i_pid)
+@@ -825,10 +1123,22 @@ int dvb_set_pid(adapter *a, uint16_t i_pid)
  	LOG("setting filter on PID %d for fd %d", i_pid, fd);
  
  	return fd;
@@ -1177,7 +1029,7 @@ index f7f8b0f..71ad4b9 100644
  	if (fd < 0)
  		LOG_AND_RETURN(0, "DMX_STOP on an invalid handle %d, pid %d", fd, pid);
  	if (ioctl(fd, DMX_STOP, NULL) < 0)
-@@ -837,10 +1146,20 @@ int dvb_del_filters(int fd, int pid)
+@@ -837,10 +1147,20 @@ int dvb_del_filters(int fd, int pid)
  		LOG("clearing filter on PID %d FD %d", pid, fd);
  	close(fd);
  	return 0;
@@ -1198,7 +1050,7 @@ index f7f8b0f..71ad4b9 100644
  	int i, res, rv = 0;
  	struct dvb_frontend_info fe_info;
  
-@@ -929,6 +1248,7 @@ fe_delivery_system_t dvb_delsys(int aid, int fd, fe_delivery_system_t *sys)
+@@ -929,6 +1249,7 @@ fe_delivery_system_t dvb_delsys(int aid, int fd, fe_delivery_system_t *sys)
  				fe_delsys[sys[i]], sys[i]);
  
  	return (fe_delivery_system_t) rv;
@@ -1206,7 +1058,7 @@ index f7f8b0f..71ad4b9 100644
  
  }
  
-@@ -1041,6 +1361,7 @@ void dvb_get_signal(adapter *ad)
+@@ -1041,6 +1362,7 @@ void dvb_get_signal(adapter *ad)
  		ad->max_strength = (strength > 0) ? strength : 1;
  	if (ad->max_snr <= snr)
  		ad->max_snr = (snr > 0) ? snr : 1;
@@ -1214,7 +1066,7 @@ index f7f8b0f..71ad4b9 100644
  	if (snr > 4096)
  		new_gs = 0;
  	if (new_gs)
-@@ -1053,6 +1374,14 @@ void dvb_get_signal(adapter *ad)
+@@ -1053,6 +1375,14 @@ void dvb_get_signal(adapter *ad)
  		strength = strength >> 8;
  		snr = snr >> 8;
  	}
@@ -1229,7 +1081,7 @@ index f7f8b0f..71ad4b9 100644
  	// keep the assignment at the end for the signal thread to get the right values as no locking is done on the adapter
  	ad->snr = snr;
  	ad->strength = strength;
-@@ -1065,12 +1394,51 @@ void dvb_commit(adapter *a)
+@@ -1065,12 +1395,53 @@ void dvb_commit(adapter *a)
  	return;
  }
  
@@ -1242,8 +1094,10 @@ index f7f8b0f..71ad4b9 100644
 +	if (a2->fe <= 0)
 +		return;
 +	a2->fe = -1;
-+	if (a2->fe2 > 0)
++	if (a2->fe2 > 0) {
++		axe_dmxts_stop(a2->fe2);
 +		axe_fe_reset(a2->fe2);
++	}
 +	for (aid = busy = 0; aid < 4; aid++) {
 +		c = a[aid];
 +		c->axe_used &= ~(1 << a2->id);
@@ -1283,7 +1137,7 @@ index f7f8b0f..71ad4b9 100644
  }
  
  void find_dvb_adapter(adapter **a)
-@@ -1081,9 +1449,21 @@ void find_dvb_adapter(adapter **a)
+@@ -1081,9 +1452,21 @@ void find_dvb_adapter(adapter **a)
  	int i = 0, j = 0;
  	adapter *ad;
  
@@ -1305,7 +1159,7 @@ index f7f8b0f..71ad4b9 100644
  			sprintf(buf, "/dev/dvb/adapter%d/frontend%d", i, j);
  			fd = open(buf, O_RDONLY | O_NONBLOCK);
  			if (fd < 0)
-@@ -1091,7 +1471,8 @@ void find_dvb_adapter(adapter **a)
+@@ -1091,7 +1474,8 @@ void find_dvb_adapter(adapter **a)
  				sprintf(buf, "/dev/dvb/adapter%d/ca%d", i, j);
  				fd = open(buf, O_RDONLY | O_NONBLOCK);
  			}
@@ -1315,7 +1169,7 @@ index f7f8b0f..71ad4b9 100644
  			if (fd >= 0)
  			{
  //				if (is_adapter_disabled(na))
-@@ -1122,6 +1503,14 @@ void find_dvb_adapter(adapter **a)
+@@ -1122,6 +1506,14 @@ void find_dvb_adapter(adapter **a)
  				if (na == MAX_ADAPTERS)
  					return;
  			}
@@ -1331,43 +1185,10 @@ index f7f8b0f..71ad4b9 100644
  	for (; na < MAX_ADAPTERS; na++)
  		if (a[na])
 diff --git a/dvbapi.c b/dvbapi.c
-index bfa5ca1..77a448f 100644
+index 408b593..77a448f 100644
 --- a/dvbapi.c
 +++ b/dvbapi.c
-@@ -366,12 +366,14 @@ int dvbapi_reply(sockets * s)
- 		{
- 			int k_id, algo, mode;
- 			SKey *k;
--			pos += 13;
-+			pos += 17;
- 			k_id = b[4];
- 			dvbapi_copy32r(algo, b, 5);
- 			dvbapi_copy32r(mode, b, 9);
- 			LOG("Key %d, Algo set to %d, Mode set to %d", k_id, algo, mode);
- 			k = get_key(k_id);
-+			if(!k)
-+				break;
- 			set_algo(k, algo, mode);
- 			break;
- 		}
-@@ -396,6 +398,7 @@ SKey *get_active_key(SPid *p)
- 	SKey *k;
- 	adapter *ad;
- 	int key = p->key;
-+	int counter = 0;
- 	int64_t ctime = getTick();
- 	uint8_t nullcw[16] =
- 	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-@@ -413,7 +416,7 @@ SKey *get_active_key(SPid *p)
- 	LOGL(3,
- 			"get_active_key: searching key for pid %d, starting key %d parity %d ok %d %d",
- 			p->pid, key, k->parity, k->key_ok[0], k->key_ok[1]);
--	while (k && k->enabled)
-+	while (k && k->enabled && (counter ++ < 10))
- 	{
- 		if ((k->parity != -1) && k->key_ok[k->parity]
- 				&& (ctime - k->cw_time[k->parity] > MAX_KEY_TIME)) // key expired
-@@ -975,7 +978,6 @@ int keys_del(int i)
+@@ -978,7 +978,6 @@ int keys_del(int i)
  	enabledKeys = ek;
  	if (!ek && sock > 0)
  		TEST_WRITE(write(sock, buf, sizeof(buf)));
@@ -1375,7 +1196,7 @@ index bfa5ca1..77a448f 100644
  	return 0;
  }
  
-@@ -1069,6 +1071,18 @@ void dvbapi_delete_keys_for_adapter(int aid)
+@@ -1072,6 +1071,18 @@ void dvbapi_delete_keys_for_adapter(int aid)
  			keys_del(i);
  }
  
@@ -1407,7 +1228,7 @@ index 6c45650..69f1f37 100644
  #endif
  #endif
 diff --git a/html/status.html b/html/status.html
-index cd000e5..3b0c289 100644
+index cd000e5..d28a2cc 100644
 --- a/html/status.html
 +++ b/html/status.html
 @@ -83,6 +83,9 @@ var ad_phyfd	= [$ad_phyfd0$, $ad_phyfd1$, $ad_phyfd2$, $ad_phyfd3$, $ad_phyfd4$,
@@ -1430,7 +1251,18 @@ index cd000e5..3b0c289 100644
  myTable += "<th class='dt-left'>Streams</th>";
  myTable += "<th class='dt-left'>Cryptinfo</th>";
  myTable += "</tr></thead><tbody>";
-@@ -173,6 +179,9 @@ for (var i = 0; i < max_adapters; i++) {
+@@ -163,16 +169,16 @@ for (var i = 0; i < max_adapters; i++) {
+ 		var s1 = parseInt(ad_strength[i] / 2.55);
+ 		signal = "<div class='level'>STR <div class='pBar' data-from='"+ s1 + "' data-to='" + s1 + "'></div> " + s1 + "%</div><br />";
+ 
+-		if (ad_type[i] == 1 || ad_type[i] == 3)
+-			var s2 = parseInt(ad_snr[i] / 2.55);
+-		else
+-			var s2 = parseInt(ad_snr[i] / 0.15);
++		var s2 = parseInt(ad_snr[i] / 0.15);
+ 		signal += "<div class='level'>SNR <div class='pBar' data-from='"+ s2 + "' data-to='" + s2 + "'></div> " + s2 + "%</div><br />";
+ 
+ 		if (ad_ber[i] > 0)
  			signal += "<div class='level'>BER <div class='pBar' data-from='"+ ad_ber[i] + "' data-to='" + ad_ber[i] + "' data-color='red'></div> " + ad_ber[i] + "</div><br />";
  	}
  	myTable += "<td class='dt-right'>" + signal + " </td>";
@@ -1441,18 +1273,10 @@ index cd000e5..3b0c289 100644
  	// STREAMS
  	myTable += "<td class='dt-left'>";
 diff --git a/minisatip.c b/minisatip.c
-index 6402f64..a21f267 100644
+index 676a05a..a21f267 100644
 --- a/minisatip.c
 +++ b/minisatip.c
-@@ -72,6 +72,7 @@ static const struct option long_options[] =
- #endif
- #ifndef DISABLE_SATIPCLIENT
- 		{ "satip-servers", required_argument, NULL, 's' },
-+		{ "satip-tcp", no_argument, NULL, 'O' },
- #endif
- #ifndef DISABLE_NETCVCLIENT
- 		{ "netceiver", required_argument, NULL, 'n' },
-@@ -88,6 +89,14 @@ static const struct option long_options[] =
+@@ -89,6 +89,14 @@ static const struct option long_options[] =
  		{ "xml", required_argument, NULL, 'X' },
  		{ "help", no_argument, NULL, 'h' },
  		{ "version", no_argument, NULL, 'V' },
@@ -1467,13 +1291,7 @@ index 6402f64..a21f267 100644
  		{ 0, 0, 0, 0 } };
  
  #define RRTP_OPT 'r'
-@@ -116,11 +125,19 @@ static const struct option long_options[] =
- #define SATIPCLIENT_OPT 's'
- #define NETCVCLIENT_OPT 'n'
- #define PRIORITY_OPT 'i'
--#define PRIORITY_OPT 'i'
-+#define SATIP_TCP_OPT 'O'
- #define DOCUMENTROOT_OPT 'R'
+@@ -122,6 +130,14 @@ static const struct option long_options[] =
  #define XML_OPT 'X'
  #define THREADS_OPT 'T'
  #define DMXSOURCE_OPT '9'
@@ -1488,19 +1306,7 @@ index 6402f64..a21f267 100644
  
  char *built_info[] =
  {
-@@ -129,6 +146,11 @@ char *built_info[] =
- #else 
- 		"Built with dvbcsa",
- #endif
-+#ifdef DISABLE_DVBCA
-+		"Built without CI",
-+#else
-+		"Built with CI",
-+#endif
- #ifdef DISABLE_DVBAPI
- 		"Built without dvbapi",
- #else 
-@@ -171,8 +193,11 @@ void print_version(int use_log)
+@@ -177,8 +193,11 @@ void print_version(int use_log)
  	char buf[200];
  	int i, len = 0;
  	memset(buf, 0, sizeof(buf));
@@ -1514,7 +1320,7 @@ index 6402f64..a21f267 100644
  	if (!use_log)
  		puts(buf);
  	else
-@@ -185,7 +210,7 @@ void usage()
+@@ -191,7 +210,7 @@ void usage()
  {
  	print_version(0);
  	printf(
@@ -1523,7 +1329,7 @@ index 6402f64..a21f267 100644
  	\t[-[uj] A1:S1-F1[-PIN]] [-m mac]"
  #ifndef DISABLE_DVBAPI
  					"[-o oscam_host:dvbapi_port] "
-@@ -196,7 +221,8 @@ void usage()
+@@ -202,7 +221,8 @@ void usage()
  			"[-s [DELSYS:]host[:port] "
  #endif
  			"[-u A1:S1-F1[-PIN]] [-w http_server[:port]] \n\
@@ -1533,15 +1339,7 @@ index 6402f64..a21f267 100644
  Help\n\
  -------\n\
  \n\
-@@ -286,6 +312,7 @@ Help\n\
- 	- specifies 1 dvbt satip server  with address 192.168.1.3:554\n\
- 	- specifies 1 dvbc satip server  with address 192.168.1.4:554\n\
- \n\
-+* -O --satip-tcp Use RTSP over TCP instead of UDP for data transport \n\
- "
- #endif
- 			"\
-@@ -322,7 +349,38 @@ Help\n\
+@@ -329,7 +349,38 @@ Help\n\
  	* eg: -y 5544 \n\
  	- changing this to a port > 1024 removes the requirement for minisatip to run as root\n\
  \n\
@@ -1581,11 +1379,8 @@ index 6402f64..a21f267 100644
  			app_name,
  			ADAPTER_BUFFER,
  			DVR_BUFFER, opts.no_threads ? "DISABLED" : "ENABLED");
-@@ -360,11 +418,12 @@ void set_options(int argc, char *argv[])
- 	opts.clean_psi = 0;
- 	opts.satip_addpids = 1;
- 	opts.satip_setup_pids = 0;
-+	opts.satip_rtsp_over_tcp = 0;
+@@ -370,9 +421,9 @@ void set_options(int argc, char *argv[])
+ 	opts.satip_rtsp_over_tcp = 0;
  	opts.output_buffer = 512 * 1024;
  	opts.satip_servers[0] = 0;
 -	opts.document_root = "html";
@@ -1596,7 +1391,7 @@ index 6402f64..a21f267 100644
  	opts.th_priority = -1;
  	opts.diseqc_before_cmd = 15;
  	opts.diseqc_after_cmd = 54;
-@@ -376,10 +435,11 @@ void set_options(int argc, char *argv[])
+@@ -384,10 +435,11 @@ void set_options(int argc, char *argv[])
  #ifdef NO_BACKTRACE
  	opts.no_threads = 1;
  #endif
@@ -1604,12 +1399,12 @@ index 6402f64..a21f267 100644
  	memset(opts.playlist, 0, sizeof(opts.playlist));
  
  	while ((opt = getopt_long(argc, argv,
--			"flr:a:td:w:p:s:n:hc:b:m:p:e:x:u:j:o:gy:i:q:D:VR:S:TX:Y:",
+-			"flr:a:td:w:p:s:n:hc:b:m:p:e:x:u:j:o:gy:i:q:D:VR:S:TX:Y:O",
 +			"flr:a:td:w:p:s:n:hc:b:m:p:e:x:u:j:o:gy:i:q:D:VR:S:TX:Y:OL:QZ:U:M:P:A:",
  			long_options, NULL)) != -1)
  	{
  		//              printf("options %d %c %s\n",opt,opt,optarg);
-@@ -451,9 +511,12 @@ void set_options(int argc, char *argv[])
+@@ -459,9 +511,12 @@ void set_options(int argc, char *argv[])
  			opts.adapter_buffer = (opts.adapter_buffer / 188) * 188;
  			if (opts.adapter_buffer < ADAPTER_BUFFER)
  				opts.adapter_buffer = ADAPTER_BUFFER;
@@ -1623,23 +1418,7 @@ index 6402f64..a21f267 100644
  			break;
  		}
  
-@@ -567,6 +630,15 @@ void set_options(int argc, char *argv[])
- 
- 			break;
- 
-+		case SATIP_TCP_OPT:
-+#ifdef DISABLE_SATIPCLIENT
-+			LOGL(0, "%s was not compiled with satip client support, please change the Makefile", app_name);
-+			exit (0);
-+
-+#endif
-+			opts.satip_rtsp_over_tcp = 1;
-+			break;
-+
- 		case NETCVCLIENT_OPT:
- 		{
- #ifdef DISABLE_NETCVCLIENT
-@@ -612,6 +684,39 @@ void set_options(int argc, char *argv[])
+@@ -629,6 +684,39 @@ void set_options(int argc, char *argv[])
  				LOGL(0, "Not a valid path for the xml file")
  			;
  			break;
@@ -1679,112 +1458,7 @@ index 6402f64..a21f267 100644
  		}
  
  	}
-@@ -880,6 +985,9 @@ int read_http(sockets * s)
- {
- 	char *arg[50];
- 	char buf[2000]; // the XML should not be larger than 1400 as it will create problems
-+	char url[300];
-+	char *space;
-+	int is_head = 0;
- 	static char *xml =
- 			"<?xml version=\"1.0\"?>"
- 					"<root xmlns=\"urn:schemas-upnp-org:device-1-0\" configId=\"0\">"
-@@ -916,14 +1024,35 @@ int read_http(sockets * s)
- 		s->flags = s->flags | 1;
- 		return 0;
- 	}
-+	url[0] = 0;
-+	space = strchr(s->buf, ' ');
-+	if(space)
-+	{
-+		int i = 0;
-+		space++;
-+		while( space[i] && space[i] != ' ')
-+		{
-+			url[i] = space[i];
-+			if( i++ > sizeof(url) - 3)
-+				break;
-+		}
-+		url[i] = 0;
-+	}
- 
--	if (strncasecmp((const char*) s->buf, "GET ", 4) == 0
--			&& strstr((const char*) s->buf, "/?"))
-+	if (strstr(url, "/?") && !strncasecmp((const char*) s->buf, "GET ", 4))
- 	{
--		read_rtsp(s);
--		return 0;
-+			read_rtsp(s);
-+			return 0;
- 	}
- 
-+	if(!strncasecmp((const char*) s->buf, "HEAD ", 5))
-+		is_head = 1;
-+
-+	if (is_head && strstr(url, "/?"))
-+	{
-+		http_response(s, 200, NULL, NULL, 0, 0);
-+		return 0;	
-+	}
- 	s->rlen = 0;
- 
- 	LOG("read HTTP from %d sid: %d: ", s->sock, s->sid);
-@@ -931,7 +1060,7 @@ int read_http(sockets * s)
- 
- 	split(arg, (char*) s->buf, 50, ' ');
- //      LOG("args: %s -> %s -> %s",arg[0],arg[1],arg[2]);
--	if (strncmp(arg[0], "GET", 3) != 0)
-+	if (strncmp(arg[0], "GET", 3) && !is_head)
- 		REPLY_AND_RETURN(503);
- 	if (uuidi == 0)
- 		ssdp_discovery(s);
-@@ -943,7 +1072,7 @@ int read_http(sockets * s)
- 		extern int tuner_s2, tuner_t, tuner_c, tuner_t2, tuner_c2;
- 		char adapters[400];
- 		char headers[500];
--
-+		
- 		memset(adapters, 0, sizeof(adapters));
- 		if (tuner_s2)
- 			sprintf(adapters, "DVBS2-%d,", tuner_s2);
-@@ -983,6 +1112,11 @@ int read_http(sockets * s)
- 			http_response(s, 404, NULL, NULL, 0, 0);
- 			return 0;
- 		}
-+		if(is_head)
-+		{
-+			http_response(s, 200, ctype, NULL, 0, 0);
-+			return 0;
-+		}
- 		if (strstr(ctype, "image") || strstr(ctype, "css")
- 				|| strstr(ctype, "javascript"))
- 		{
-@@ -1051,7 +1185,7 @@ int ssdp_discovery(sockets * s)
- 	if (s->type != TYPE_UDP)
- 		return 0;
- 
--	LOG("ssdp_discovery: bootid: %d deviceid: %d http: %s", opts.bootid,
-+	LOGL(3, "ssdp_discovery: bootid: %d deviceid: %d http: %s", opts.bootid,
- 			opts.device_id, opts.http_host);
- 
- 	for (i = 0; i < 3; i++)
-@@ -1060,7 +1194,7 @@ int ssdp_discovery(sockets * s)
- 				nt[i] + 2, app_name, version, uuid, i == 1 ? "" : nt[i],
- 				opts.bootid, opts.device_id);
- 		salen = sizeof(ssdp_sa);
--		LOGL(3, "Discovery packet %d:\n%s", i + 1, buf);
-+		LOGL(5, "Discovery packet %d:\n%s", i + 1, buf);
- 		sendto(s->sock, buf, strlen(buf), MSG_NOSIGNAL,
- 				(const struct sockaddr *) &ssdp_sa, salen);
- 	}
-@@ -1102,17 +1236,20 @@ int ssdp_reply(sockets * s)
- 	ruuid = strcasestr((const char *) s->buf, "uuid:");
- 	if (ruuid && strncmp(uuid, strip(ruuid + 5), strlen(uuid)) == 0)
- 	{
--		LOGL(3, "Dropping packet from the same UUID as mine (from %s:%d)",
-+		LOGL(5, "Dropping packet from the same UUID as mine (from %s:%d)",
- 				get_socket_rhost(s->id, ra, sizeof(ra)),
- 				get_socket_rport(s->id));
+@@ -1154,6 +1242,9 @@ int ssdp_reply(sockets * s)
  		return 0;
  	}
  
@@ -1792,30 +1466,9 @@ index 6402f64..a21f267 100644
 +	axe_set_network_led(1);
 +#endif
  // not my uuid
--	LOG("Received SSDP packet from %s:%d -> handle %d",
-+	LOGL(4, "Received SSDP packet from %s:%d -> handle %d",
+ 	LOGL(4, "Received SSDP packet from %s:%d -> handle %d",
  			get_socket_rhost(s->id, ra, sizeof(ra)), get_socket_rport(s->id),
- 			s->sock);
--	LOGL(3, "%s", s->buf);
-+	LOGL(5, "%s", s->buf);
- 
- 	if (strncasecmp((const char *) s->buf, "NOTIFY", 6) == 0)
- 	{
-@@ -1156,11 +1293,11 @@ int ssdp_reply(sockets * s)
- 	sprintf(buf, reply, get_current_timestamp(), opts.http_host, opts.xml_path,
- 			app_name, version, uuid, opts.bootid, did);
- 
--	LOG("ssdp_reply fd: %d -> %s:%d, bootid: %d deviceid: %d http: %s", ssdp,
-+	LOGL(5, "ssdp_reply fd: %d -> %s:%d, bootid: %d deviceid: %d http: %s", ssdp,
- 			get_socket_rhost(s->id, ra, sizeof(ra)), get_socket_rport(s->id),
- 			opts.bootid, did, opts.http_host);
- //use ssdp (unicast) even if received to multicast address
--	LOGL(3, "%s", buf);
-+	LOGL(5, "%s", buf);
- 	sendto(ssdp, buf, strlen(buf), MSG_NOSIGNAL,
- 			(const struct sockaddr *) &s->sa, salen);
- 	return 0;
-@@ -1243,7 +1380,11 @@ int main(int argc, char *argv[])
+@@ -1289,7 +1380,11 @@ int main(int argc, char *argv[])
  
  	if (!opts.no_threads)
  		set_socket_thread(sock_signal, start_new_thread("signal"));
@@ -1830,22 +1483,19 @@ index 6402f64..a21f267 100644
 diff --git a/minisatip.h b/minisatip.h
 old mode 100644
 new mode 100755
-index 8194eb2..984c6f7
+index 8116c66..f73a4f2
 --- a/minisatip.h
 +++ b/minisatip.h
-@@ -8,9 +8,9 @@
- #include "utils.h"
+@@ -10,7 +10,7 @@
  
- 
--#define VERSION_BUILD "43"
-+#define VERSION_BUILD "49"
+ #define VERSION_BUILD "50"
  #define CC(a,b,c) #a b #c
 -#define VERSION CC(0.5.,VERSION_BUILD,)
 +#define VERSION CC(0.5.,VERSION_BUILD,-axe102)
  
  void set_options (int argc, char *argv[]);
  
-@@ -53,12 +53,17 @@ struct struct_opts
+@@ -53,6 +53,11 @@ struct struct_opts
  	int force_scan;
  	int clean_psi;
  	int file_line;
@@ -1857,392 +1507,8 @@ index 8194eb2..984c6f7
  	char *last_log;	
  	int dvbapi_port;
  	char *dvbapi_host;
- 	int drop_encrypted;
- 	int rtsp_port;
--	uint8_t satip_addpids, satip_setup_pids;
-+	uint8_t satip_addpids, satip_setup_pids, satip_rtsp_over_tcp;
- 	uint8_t netcv_count;
- 	char *netcv_if;
- 	char playlist[200];
-diff --git a/satipc.c b/satipc.c
-index a7dfef4..404bfb8 100644
---- a/satipc.c
-+++ b/satipc.c
-@@ -17,6 +17,7 @@
-  * USA
-  *
-  */
-+#define _GNU_SOURCE
- 
- #include <stdint.h>
- #include <string.h>
-@@ -37,13 +38,15 @@
- #include <net/if.h>
- #include <fcntl.h>
- #include <ctype.h>
--#include <string.h>
-+#include "utils.h"
- #include "dvbapi.h"
- #include "satipc.h"
- #include "ca.h"
- #include "minisatip.h"
- #include "dvb.h"
- 
-+#define TCP_DATA_SIZE ((ADAPTER_BUFFER/1316)*(1316+16))     
-+
- extern char *fe_delsys[];
- extern struct struct_opts opts;
- 
-@@ -65,11 +68,13 @@ typedef struct struct_satipc
- 	int wp, qp; // written packet, queued packet
- 	char ignore_packets; // ignore packets coming from satip server while tuning
- 	char satip_fe, last_cmd;
-+	char use_tcp;
- 	char expect_reply, force_commit, want_commit, want_tune, sent_transport;
- 	int64_t last_setup, last_connect;
- 	uint8_t addpids, setup_pids;
-+	unsigned char *tcp_data;
-+	int tcp_size, tcp_pos, tcp_len;
- 	char use_fe;
--
- 	uint32_t rcvp, repno, rtp_miss, rtp_ooo;   // rtp statstics
- 	uint16_t rtp_seq;
- 
-@@ -210,6 +215,10 @@ int satipc_reply(sockets * s)
- 	{
- 		satipc_commit(ad);
- 	}
-+
-+	if (!sip->expect_reply && sip->last_cmd == RTSP_PLAY)
-+		http_request(ad, NULL, "DESCRIBE");
-+
- 	return 0;
- }
- 
-@@ -223,10 +232,7 @@ int satipc_timeout(sockets *s)
- 			ad?sip->sip:NULL, ad ? sip->sport : 0, s->sid, s->id, s->sock,
- 			s->timeout_ms);
- 
--	if (sip->last_cmd == RTSP_PLAY)
--		http_request(ad, NULL, "DESCRIBE");
--	else
--		http_request(ad, NULL, "OPTIONS");
-+	http_request(ad, NULL, "OPTIONS");
- 
- 	s->rtime = getTick();
- 	return 0;
-@@ -284,7 +290,7 @@ int satipc_rtcp_reply(sockets * s)
- 	{
- 		copy32r(rp, b, 20);
- 
--		if ((++sip->repno % 100) == 0)  //every 20s
-+		if (!sip->use_tcp && ((++sip->repno % 100) == 0))  //every 20s
- 			LOG(
- 					"satipc: rtp report, adapter %d: rtcp missing packets %d, rtp missing %d, rtp ooo %d, pid err %d",
- 					ad->id, rp - sip->rcvp, sip->rtp_miss, sip->rtp_ooo,
-@@ -309,34 +315,47 @@ int satipc_open_device(adapter *ad)
- 	if (ad->fe < 0)
- 		return 2;
- 
--	LOG("satipc: connected to SAT>IP server %s port %d, handle %d", sip->sip,
--			sip->sport, ad->fe);
--	sip->listen_rtp = opts.start_rtp + 1000 + ad->id * 2;
--	ad->dvr = udp_bind(NULL, sip->listen_rtp);
--	sip->rtcp = udp_bind(NULL, sip->listen_rtp + 1);
--
--	ad->fe_sock = sockets_add(ad->fe, NULL, ad->id, TYPE_TCP,
--			(socket_action) satipc_reply, (socket_action) satipc_close,
--			(socket_action) satipc_timeout);
--	sip->rtcp_sock = sockets_add(sip->rtcp, NULL, ad->id, TYPE_TCP,
--			(socket_action) satipc_rtcp_reply, (socket_action) satipc_close,
--			NULL);
--	sockets_timeout(ad->fe_sock, 30000); // 30s
--	set_socket_receive_buffer(ad->dvr, opts.dvr_buffer);
--	if (ad->fe_sock < 0 || ad->dvr < 0 || sip->rtcp < 0 || sip->rtcp_sock < 0)
-+	LOG("satipc: connected to SAT>IP server %s port %d %s handle %d", sip->sip,
-+			sip->sport, sip->use_tcp ? "[RTSP OVER TCP]" : "", ad->fe);
-+	if (!sip->use_tcp)
- 	{
--		sockets_del(sip->rtcp_sock);
--		sockets_del(ad->fe_sock);
--		close(sip->rtcp);
--		close(ad->dvr);
--		close(ad->fe);
-+		sip->listen_rtp = opts.start_rtp + 1000 + ad->id * 2;
-+		ad->dvr = udp_bind(NULL, sip->listen_rtp);
-+		sip->rtcp = udp_bind(NULL, sip->listen_rtp + 1);
-+
-+		ad->fe_sock = sockets_add(ad->fe, NULL, ad->id, TYPE_TCP,
-+				(socket_action) satipc_reply, (socket_action) satipc_close,
-+				(socket_action) satipc_timeout);
-+		sip->rtcp_sock = sockets_add(sip->rtcp, NULL, ad->id, TYPE_TCP,
-+				(socket_action) satipc_rtcp_reply, (socket_action) satipc_close,
-+				NULL);
-+		sockets_timeout(ad->fe_sock, 30000); // 30s
-+		set_socket_receive_buffer(ad->dvr, opts.dvr_buffer);
-+		if (ad->fe_sock < 0 || ad->dvr < 0 || sip->rtcp < 0
-+				|| sip->rtcp_sock < 0)
-+		{
-+			sockets_del(sip->rtcp_sock);
-+			sockets_del(ad->fe_sock);
-+			close(sip->rtcp);
-+			close(ad->dvr);
-+			close(ad->fe);
-+		}
- 	}
-+	else
-+	{
-+		ad->dvr = ad->fe;
-+		ad->fe = -1;
-+		ad->fe_sock = sockets_add(SOCK_TIMEOUT, NULL, ad->id, TYPE_UDP,
-+		NULL, NULL, (socket_action) satipc_timeout);
-+		sockets_timeout(ad->fe_sock, 30000); // 30s
- 
-+	}
- 	sip->session[0] = 0;
- 	sip->lap = 0;
- 	sip->ldp = 0;
- 	sip->cseq = 1;
- 	sip->err = 0;
-+	sip->tcp_pos = sip->tcp_len = 0;
- 	sip->expect_reply = 0;
- 	sip->last_connect = 0;
- 	sip->sent_transport = 0;
-@@ -412,13 +431,170 @@ int satipc_read(int socket, void *buf, int len, sockets *ss, int *rb)
- 	return (*rb >= 0);
- }
- 
-+int process_rtsp_tcp(sockets *ss, unsigned char *rtsp, int rtsp_len, void *buf,
-+		int len)
-+{
-+	int nl = 0;
-+	unsigned char tmp_char;
-+	satipc *sip = get_satip(ss->sid);
-+	adapter *ad = get_adapter(ss->sid);
-+	if (!ad || !sip)
-+		return 0;
-+
-+	if (sip->ignore_packets)
-+		return 0;
-+
-+	if (rtsp[1] == 1)
-+	{
-+		tmp_char = rtsp[rtsp_len + 4];
-+		rtsp[rtsp_len + 4] = 0;
-+		set_adapter_signal(ad, rtsp + 4, rtsp_len);
-+		rtsp[rtsp_len + 4] = tmp_char;
-+		return 0;
-+	}
-+	else if (rtsp[1] == 0)
-+	{
-+		nl = rtsp_len - 12;
-+		if (nl > len)
-+			nl = len;
-+
-+		if (nl > 0)
-+			memcpy(buf, rtsp + 16, nl);
-+
-+	}
-+	else
-+		LOG("Not processing packet as the type is %02X (not 0 or 1)", rtsp[1]);
-+
-+	return nl;
-+}
-+
-+int satipc_tcp_read(int socket, void *buf, int len, sockets *ss, int *rb)
-+{
-+	unsigned char *rtsp;
-+	sockets tmp_sock;
-+	uint16_t seq;
-+	static int iter;
-+	int pos;
-+	int rtsp_len;
-+	int tmp_len;
-+	adapter *ad;
-+	satipc *sip;
-+	get_ad_and_sipr(ss->sid, 0);
-+	*rb = 0;
-+
-+	if (!sip->tcp_data)
-+	{
-+		sip->tcp_size = TCP_DATA_SIZE;
-+		sip->tcp_data = malloc1(sip->tcp_size + 1);
-+		if (!sip->tcp_data)
-+			LOG_AND_RETURN(-1, "Cannot alloc memory for tcp_data with size %d",
-+					sip->tcp_size);
-+		memset(sip->tcp_data, 0, sip->tcp_size + 1);
-+	}
-+
-+	if (sip->tcp_len == sip->tcp_size && sip->tcp_pos == 0)
-+	{
-+		LOG("Probably the buffer needs to be increased, as it is full");
-+		sip->tcp_len = 0;
-+	}
-+	if (sip->tcp_len == sip->tcp_size)
-+	{
-+		int nl = sip->tcp_len - sip->tcp_pos;
-+		memmove(sip->tcp_data, sip->tcp_data + sip->tcp_pos, nl);
-+//		LOG("Moved from the position %d, length %d", sip->tcp_pos, nl);
-+		sip->tcp_pos = 0;
-+		sip->tcp_len = nl;
-+
-+	}
-+
-+	tmp_len = read(socket, sip->tcp_data + sip->tcp_len,
-+			sip->tcp_size - sip->tcp_len);
-+
-+	if (tmp_len <= 0)
-+		return 0;
-+
-+	pos = 0;
-+	sip->tcp_len += tmp_len;
-+	while (sip->tcp_pos < sip->tcp_len - 6)
-+	{
-+		rtsp = sip->tcp_data + sip->tcp_pos;
-+
-+		if ((rtsp[0] == 0x24) && (rtsp[1] < 2) && (rtsp[4] == 0x80)
-+				&& ((rtsp[5] == 0x21) || (rtsp[5] == 0xC8)))
-+		{
-+			copy16r(rtsp_len, rtsp, 2);
-+
-+			if (rtsp_len + sip->tcp_pos > sip->tcp_len) // expecting more data in the buffer
-+				break;
-+
-+			if (rtsp[1] == 0 && (rtsp_len - 12 + pos > len)) // destination buffer full
-+			{
-+				LOGL(4,
-+						"Destination buffer is full @ buf %x pos %d, required %d len %d [%d]",
-+						buf, pos, rtsp_len - 12, len, sip->tcp_pos);
-+				break;
-+			}
-+			sip->tcp_pos += rtsp_len + 4;
-+
-+			pos += process_rtsp_tcp(ss, rtsp, rtsp_len, buf + pos, len - pos);
-+			*rb = pos;
-+
-+		}
-+		else if (!strncmp(rtsp, "RTSP", 4))
-+		{
-+			unsigned char *nlnl, *cl;
-+			int bytes;
-+			unsigned char tmp_char;
-+			nlnl = strstr(rtsp, "\r\n\r\n");
-+			if (nlnl && (cl = strcasestr(rtsp, "content-length:")))
-+			{
-+				cl += 15;
-+				while (*cl == 0x20)
-+					cl++;
-+
-+				int icl = map_intd(cl, NULL, 0);
-+				nlnl += icl;
-+			}
-+			if (!nlnl)
-+				break;
-+			memset(&tmp_sock, 0, sizeof(tmp_sock));
-+			bytes = nlnl - rtsp;
-+			sip->tcp_pos += bytes + 4;
-+			tmp_sock.buf = rtsp;
-+			tmp_sock.rlen = bytes;
-+			tmp_sock.sid = ss->sid;
-+			tmp_sock.sock = ad->dvr;
-+			tmp_sock.id = ss->id;
-+			tmp_char = rtsp[bytes + 4];
-+			rtsp[bytes + 4] = 0;
-+			satipc_reply(&tmp_sock);
-+			rtsp[bytes + 4] = tmp_char;
-+		}
-+		else
-+		{
-+			LOG("ignoring byte %02X", rtsp[0]);
-+			sip->tcp_pos++;
-+		}
-+	}
-+
-+	if (sip->tcp_pos == sip->tcp_len)
-+		sip->tcp_pos = sip->tcp_len = 0;
-+
-+	return (*rb >= 0);
-+}
-+
- void satip_post_init(adapter *ad)
- {
- 	satipc *sip;
- 	get_ad_and_sip(ad->id);
--	sockets_setread(ad->sock, satipc_read);
--	set_socket_thread(ad->fe_sock, get_socket_thread(ad->sock)); // set all the threads to run in the new thread with the adapter
--	set_socket_thread(sip->rtcp_sock, get_socket_thread(ad->sock));
-+	if (sip->use_tcp)
-+		sockets_setread(ad->sock, satipc_tcp_read);
-+	else
-+	{
-+		sockets_setread(ad->sock, satipc_read);
-+		set_socket_thread(sip->rtcp_sock, get_socket_thread(ad->sock));
-+	}
-+	set_socket_thread(ad->fe_sock, get_socket_thread(ad->sock));
- }
- 
- int satipc_set_pid(adapter *ad, uint16_t pid)
-@@ -536,7 +712,7 @@ int http_request(adapter *ad, char *url, char *method)
- 	char buf[2048];
- 	char sid[40];
- 	char *qm;
--	int lb;
-+	int lb, remote_socket;
- 	char format[] = "%s rtsp://%s:%d/%s%s%s RTSP/1.0\r\nCSeq: %d%s\r\n\r\n";
- 	__attribute__((unused)) int rv;
- 	satipc *sip = get_satip(ad->id);
-@@ -546,6 +722,7 @@ int http_request(adapter *ad, char *url, char *method)
- 	session[0] = 0;
- 	sid[0] = 0;
- 	int64_t ctime = getTick();
-+	remote_socket = sip->use_tcp ? ad->dvr : ad->fe;
- 
- 	if (!method && sip->sent_transport == 0)
- 	{
-@@ -560,8 +737,11 @@ int http_request(adapter *ad, char *url, char *method)
- 		sip->sent_transport = 1;
- 		sip->stream_id = -1;
- 		sip->session[0] = 0;
--		sprintf(session, "\r\nTransport:RTP/AVP;unicast;client_port=%d-%d",
--				sip->listen_rtp, sip->listen_rtp + 1);
-+		if (sip->use_tcp)
-+			sprintf(session, "\r\nTransport: RTP/AVP/TCP;interleaved=0-1");
-+		else
-+			sprintf(session, "\r\nTransport:RTP/AVP;unicast;client_port=%d-%d",
-+					sip->listen_rtp, sip->listen_rtp + 1);
- 	}
- 	else
- 	{
-@@ -601,7 +781,7 @@ int http_request(adapter *ad, char *url, char *method)
- 			qm, url, sip->cseq++, session);
- 
- 	LOG("satipc_http_request (ad %d): %s to handle %d: \n%s", ad->id,
--			sip->expect_reply ? "queueing" : "sending", ad->fe, buf);
-+			sip->expect_reply ? "queueing" : "sending", remote_socket, buf);
- 	if (sip->expect_reply)
- 	{
- 		setItem(MAKE_ITEM(ad->id, sip->qp++), (unsigned char *) buf, lb + 1, 0);
-@@ -609,7 +789,7 @@ int http_request(adapter *ad, char *url, char *method)
- 	else
- 	{
- 		sip->wp = sip->qp = 0;
--		rv = write(ad->fe, buf, lb);
-+		rv = write(remote_socket, buf, lb);
- 	}
- 	sip->expect_reply = 1;
- 	return 0;
-@@ -915,6 +1095,9 @@ void find_satip_adapter(adapter **a)
- 			sip->satip_fe = determine_fe(a, i, sip->sip, sip->sport);
- 			sip->addpids = opts.satip_addpids;
- 			sip->setup_pids = opts.satip_setup_pids;
-+			sip->tcp_size = 0;
-+			sip->tcp_data = NULL;
-+			sip->use_tcp = opts.satip_rtsp_over_tcp;
- 
- 			j++;
- 			LOG("Satip device %s port %d delsys %d: %s %s", sip->sip,
 diff --git a/socketworks.c b/socketworks.c
-index 5452fea..f4e0d60 100644
+index 471dc5c..f4e0d60 100644
 --- a/socketworks.c
 +++ b/socketworks.c
 @@ -435,6 +435,7 @@ int sockets_add(int sock, struct sockaddr_in *sa, int sid, int type,
@@ -2280,20 +1546,7 @@ index 5452fea..f4e0d60 100644
  	mutex_unlock(&s_mutex);
  	return 0;
  }
-@@ -525,6 +527,7 @@ void *select_and_execute(void *arg)
- 	les = 1;
- 	es = 0;
- 	lt = getTick();
-+	memset(&pf, -1, sizeof(pf));
- 	LOG("Starting select_and_execute on thread ID %x, thread_name %s", tid,
- 			thread_name);
- 	while (run_loop)
-@@ -627,10 +630,33 @@ void *select_and_execute(void *arg)
- 						err = errno;
- 					if (rlen > 0)
- 						ss->rtime = c_time;
--					if (read_ok && rlen > 0)
-+					if (read_ok && rlen >= 0)
+@@ -632,6 +634,29 @@ void *select_and_execute(void *arg)
  						ss->rlen += rlen;
  					else
  						ss->rlen = 0;
@@ -2323,16 +1576,7 @@ index 5452fea..f4e0d60 100644
  					//force 0 at the end of the string
  					if (ss->lbuf >= ss->rlen)
  						ss->buf[ss->rlen] = 0;
-@@ -720,6 +746,8 @@ void *select_and_execute(void *arg)
- 		}
- 	}
- 
-+	clean_mutexes();
-+
- 	if (tid == main_tid)
- 		LOG("The main loop ended, run_loop = %d", run_loop);
- 	add_join_thread(tid);
-@@ -878,6 +906,7 @@ void set_socket_buffer(int sid, unsigned char *buf, int len)
+@@ -881,6 +906,7 @@ void set_socket_buffer(int sid, unsigned char *buf, int len)
  
  void free_all_streams();
  void free_all_adapters();
@@ -2340,7 +1584,7 @@ index 5452fea..f4e0d60 100644
  
  void free_all()
  {
-@@ -887,12 +916,17 @@ void free_all()
+@@ -890,12 +916,17 @@ void free_all()
  	{
  		if (s[i] && s[i]->enabled)
  			sockets_del(i);
@@ -2359,7 +1603,7 @@ index 5452fea..f4e0d60 100644
  }
  
  void set_socket_send_buffer(int sock, int len)
-@@ -945,6 +979,14 @@ void set_socket_pos(int sock, int pos)
+@@ -948,6 +979,14 @@ void set_socket_pos(int sock, int pos)
  	ss->rlen = pos;
  }
  
@@ -2397,10 +1641,10 @@ index 0782477..723821a
  int get_socket_rport(int s_id);
  void set_sock_lock(int i, SMutex *m);
 diff --git a/stream.c b/stream.c
-index 83c0f4f..9008510 100644
+index fd57684..547a5a3 100644
 --- a/stream.c
 +++ b/stream.c
-@@ -290,14 +290,15 @@ int close_stream(int i)
+@@ -297,14 +297,15 @@ int close_stream(int i)
  		return 0;
  
  	sid = st[i];
@@ -2417,7 +1661,7 @@ index 83c0f4f..9008510 100644
  	sid->enabled = 0;
  	sid->timeout = 0;
  	ad = sid->adapter;
-@@ -312,7 +313,6 @@ int close_stream(int i)
+@@ -319,7 +320,6 @@ int close_stream(int i)
  	 if(sid->buf)free(sid->buf);
  	 sid->pids = sid->apids = sid->dpids = sid->buf = NULL;
  	 */
@@ -2425,7 +1669,7 @@ index 83c0f4f..9008510 100644
  
  	if (sid->rtcp_sock > 0 || sid->rtcp > 0)
  	{
-@@ -332,6 +332,7 @@ int close_stream(int i)
+@@ -339,6 +339,7 @@ int close_stream(int i)
  
  	sockets_del_for_sid (i);
  
@@ -2433,64 +1677,7 @@ index 83c0f4f..9008510 100644
  	mutex_unlock(&st_mutex);
  	LOG("closed stream %d", i);
  	return 0;
-@@ -632,8 +633,8 @@ int send_rtp(streams * sid, const struct iovec *iov, int liov)
- 				ntohs(sid->sa.sin_port));
- 	}
- 
--	LOGL(7, "sent %d bytes for stream %d, handle %d seq %d => %s:%d", total_len,
--			sid->sid, sid->rsock, sid->seq - 1,
-+	LOGL(7, "%s: sent %d bytes for stream %d, handle %d seq %d => %s:%d", 
-+			__FUNCTION__, total_len, sid->sid, sid->rsock, sid->seq - 1,
- 			get_stream_rhost(sid->sid, ra, sizeof(ra)), ntohs(sid->sa.sin_port));
- 
- 	return rv;
-@@ -649,12 +650,14 @@ int send_rtpb(streams * sid, unsigned char *b, int len)
- 	return send_rtp(sid, (const struct iovec *) iov, 1);
- }
- 
--unsigned char rtcp_buf[1600];
- 
- int send_rtcp(int s_id, int64_t ctime)
- {
- 	int len, rv = 0;
-+	int total_len = 0;
- 	char dad[1000];
-+	char ra[50];
-+	unsigned char rtcp_buf[1600];
- 	int c_time = (int) (ctime / 1000) & 0xFFFFFFFF;
- 	unsigned char *rtcp = rtcp_buf + 4;
- 	streams *sid = get_sid(s_id);
-@@ -714,20 +717,26 @@ int send_rtcp(int s_id, int64_t ctime)
- 	rtcp[65] = 0;
- 	copy16(rtcp, 66, la);
- 	memcpy(rtcp + 68, a, la + 4);
-+	total_len = len + 52;
- 	if (sid->type == STREAM_RTSP_UDP)
--		rv = send(sid->rtcp, rtcp, len + 52, MSG_NOSIGNAL);
-+		rv = send(sid->rtcp, rtcp, total_len, MSG_NOSIGNAL);
- 	else
- 	{
- 		rtcp_buf[0] = 0x24;
- 		rtcp_buf[1] = 1;
--		copy16(rtcp_buf, 2, len + 52);
--		rv = send(sid->rsock, rtcp_buf, len + 52 + 4, MSG_NOSIGNAL);
-+		copy16(rtcp_buf, 2, total_len);
-+		total_len += 4;
-+		rv = send(sid->rsock, rtcp_buf, total_len, MSG_NOSIGNAL);
- 	}
- //	if(rv>0)
- //		sid->rsock_err = 0;
- //	else	
- //		sid->rsock_err ++;
- 	sid->rtcp_wtime = ctime;
-+	LOGL(7, "%s: sent %d bytes for stream %d, handle %d seq %d => %s:%d", 
-+			__FUNCTION__, total_len, sid->sid, sid->rsock, sid->seq - 1,
-+			get_stream_rhost(sid->sid, ra, sizeof(ra)), ntohs(sid->sa.sin_port));
-+
- //	sid->sp = 0;
- //	sid->sb = 0;
- 	return rv;
-@@ -1125,8 +1134,10 @@ void free_all_streams()
+@@ -1140,8 +1141,10 @@ void free_all_streams()
  
  	for (i = 0; i < MAX_STREAMS; i++)
  	{
@@ -2503,7 +1690,7 @@ index 83c0f4f..9008510 100644
  
  	}
 diff --git a/utils.c b/utils.c
-index 24eeb8f..5724684 100644
+index 17c2350..5724684 100644
 --- a/utils.c
 +++ b/utils.c
 @@ -37,6 +37,8 @@
@@ -2515,21 +1702,7 @@ index 24eeb8f..5724684 100644
  #include <net/if.h>
  #include <fcntl.h>
  #include <ctype.h>
-@@ -185,8 +187,12 @@ int setItem(int64_t key, unsigned char *data, int len, int pos) // pos = -1 -> a
- 	if (pos == -1)
- 		pos = s->len;
- 	if (pos + len >= s->max_size) // make sure we do not overflow the data buffer
-+	{
-+		LOG(
-+				"Overflow detected for item %jx, pos %d, size to be added %d, max_size %d",
-+				key, pos, len, s->max_size);
- 		len = s->max_size - pos;
--
-+	}
- 	s->len = pos + len;
- 	memcpy(s->data + pos, data, len);
- 	return 0;
-@@ -745,6 +751,14 @@ void * get_var_address(char *var, float *multiplier, int * type, void *storage,
+@@ -749,6 +751,14 @@ void * get_var_address(char *var, float *multiplier, int * type, void *storage,
  					*multiplier = 1;
  					return storage;
  				}
@@ -2544,52 +1717,26 @@ index 24eeb8f..5724684 100644
  				else if (sym[i][j].type == VAR_FUNCTION_STRING)
  				{
  					off = map_intd(var + strlen(sym[i][j].name), NULL, 0);
-@@ -942,6 +956,12 @@ int mutex_lock1(char *FILE, int line, SMutex* mutex)
- 	else
- 		LOGL(5, "%s:%d Locking mutex %p", FILE, line, mutex);
- 	rv = pthread_mutex_lock(&mutex->mtx);
-+	if (!mutex->enabled && rv == 0)
+@@ -1038,12 +1048,12 @@ int mutex_destroy(SMutex* mutex)
+ 				__FUNCTION__, mutex, rv, strerror(rv));
+ 
+ 	LOGL(4, "Destroying mutex %p", mutex);
+-//	if ((rv = pthread_mutex_destroy(&mutex->mtx)))
+-//	{
+-//		LOG("mutex destroy %p failed with error %d %s", mutex, rv, strerror(rv));
+-//		mutex->enabled = 1;
+-//		return 1;
+-//	}
++	if ((rv = pthread_mutex_destroy(&mutex->mtx)))
 +	{
-+		pthread_mutex_unlock(&mutex->mtx);
-+		LOG("Mutex %x destroyed meanwhile", mutex);
++		LOG("mutex destroy %p failed with error %d %s", mutex, rv, strerror(rv));
++		mutex->enabled = 1;
 +		return 1;
 +	}
- 	if (rv != 0)
- 	{
- 		LOG("Mutex Lock %p failed", mutex);
-@@ -949,7 +969,7 @@ int mutex_lock1(char *FILE, int line, SMutex* mutex)
- 	}
- 	mutex->file = FILE;
- 	mutex->line = line;
--	mutex->state = 1;
-+	mutex->state++;
- 	mutex->tid = tid;
- 	mutex->lock_time = getTick();
+ 	return 0;
+ }
  
-@@ -970,7 +990,7 @@ int mutex_unlock1(char *FILE, int line, SMutex* mutex)
- 	if (!mutex || mutex->enabled)
- 	{
- 		LOGL(5, "%s:%d Unlocking mutex %p", FILE, line, mutex);
--
-+		mutex->state--;
- 		rv = pthread_mutex_unlock(&mutex->mtx);
- 	}
- 	else
-@@ -1019,11 +1039,11 @@ int mutex_destroy(SMutex* mutex)
- 		imtx--;
- 	}
- 
--	if ((rv = pthread_mutex_unlock(&mutex->mtx)) != 1)
-+	if ((rv = pthread_mutex_unlock(&mutex->mtx)) != 1  && rv != 0)
- 		LOG("%s: pthread_mutex_unlock 1 failed for %p with error %d %s",
- 				__FUNCTION__, mutex, rv, strerror(rv));
- 
--	if ((rv = pthread_mutex_unlock(&mutex->mtx)) != 1)
-+	if ((rv = pthread_mutex_unlock(&mutex->mtx)) != 1 && rv != 0)
- 		LOG("%s: pthread_mutex_unlock 2 failed for %p with error %d %s",
- 				__FUNCTION__, mutex, rv, strerror(rv));
- 
-@@ -1078,6 +1098,7 @@ pthread_t start_new_thread(char *name)
+@@ -1088,6 +1098,7 @@ pthread_t start_new_thread(char *name)
  
  void set_thread_prio(pthread_t tid, int prio)
  {
@@ -2597,7 +1744,7 @@ index 24eeb8f..5724684 100644
  	int rv;
  	struct sched_param param;
  	memset(&param, 0, sizeof(struct sched_param));
-@@ -1085,6 +1106,12 @@ void set_thread_prio(pthread_t tid, int prio)
+@@ -1095,6 +1106,12 @@ void set_thread_prio(pthread_t tid, int prio)
  	if ((rv = pthread_setschedparam(pthread_self(), SCHED_RR, &param)))
  		LOG("pthread_setschedparam failed with error %d", rv);
  	return;
@@ -2610,7 +1757,7 @@ index 24eeb8f..5724684 100644
  }
  
  struct struct_array
-@@ -1109,8 +1136,8 @@ int add_new_lock(void **arr, int count, int size, SMutex *mutex)
+@@ -1119,8 +1136,8 @@ int add_new_lock(void **arr, int count, int size, SMutex *mutex)
  					LOG_AND_RETURN(-1,
  							"Could not allocate memory for %p index %d", arr, i);
  				memset(sa[i], 0, size);

@@ -669,7 +669,7 @@ index 0000000..cfc1927
 diff --git a/dvb.c b/dvb.c
 old mode 100755
 new mode 100644
-index 5701bd2..58d8f1a
+index 5701bd2..bf5c7f2
 --- a/dvb.c
 +++ b/dvb.c
 @@ -41,6 +41,10 @@
@@ -771,15 +771,18 @@ index 5701bd2..58d8f1a
  		LOG("send_unicable: FE_SET_VOLTAGE failed for fd %d: %s", fd, strerror(errno));	
  	msleep(15);
  	if (ioctl(fd, FE_DISEQC_SEND_MASTER_CMD, &cmd) == -1)
-@@ -286,6 +340,7 @@ int send_jess(int fd, int freq, int pos, int pol, int hiband, int slot, int ufre
+@@ -286,21 +340,25 @@ int send_jess(int fd, int freq, int pos, int pol, int hiband, int slot, int ufre
  	};
  //	int t = (freq / 1000) - 100;
  	int t = freq - 100;
 +	int o13v = ufreq < 0;
  
  	cmd.msg[1] = slot << 3;
- 	cmd.msg[1] |= ((t << 8) & 0x07);
-@@ -295,12 +350,15 @@ int send_jess(int fd, int freq, int pos, int pol, int hiband, int slot, int ufre
+-	cmd.msg[1] |= ((t << 8) & 0x07);
++	cmd.msg[1] |= ((t >> 8) & 0x07);
+ 	cmd.msg[2] = (t & 0xff);
+ 	cmd.msg[3] = ((pos & 0x3f) << 2) | (pol ? 2 : 0) | (hiband ? 1 : 0);
+ 
  	LOGL(3, "send_jess fd %d, freq %d, ufreq %d, pos = %d, pol = %d, hiband = %d, slot %d, diseqc => %02x %02x %02x %02x %02x",
                    fd, freq, ufreq, pos, pol, hiband, slot, cmd.msg[0], cmd.msg[1], cmd.msg[2], cmd.msg[3], cmd.msg[4]);
  
