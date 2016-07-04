@@ -1,5 +1,5 @@
 diff --git a/adapter.c b/adapter.c
-index 285faea..937ac7c 100755
+index 285faea..c9bf29c 100755
 --- a/adapter.c
 +++ b/adapter.c
 @@ -29,10 +29,15 @@
@@ -74,12 +74,12 @@ index 285faea..937ac7c 100755
  			a[i].fn);
 +#ifdef AXE
 +		sprintf (buf, "/dev/axe/frontend-%d", a[i].pa);
-+#else
- 		sprintf (buf, "/dev/dvb/adapter%d/frontend%d", a[i].pa, a[i].fn);
--		a[i].fe = open (buf, O_RDWR | O_NONBLOCK);
 +		if (a[i].fe2 > 0)
 +			a[i].fe = a[i].fe2;
 +		else
++#else
+ 		sprintf (buf, "/dev/dvb/adapter%d/frontend%d", a[i].pa, a[i].fn);
+-		a[i].fe = open (buf, O_RDWR | O_NONBLOCK);
 +#endif
 +		a[i].fe = a[i].fe2 = open (buf, O_RDWR | O_NONBLOCK);
 +

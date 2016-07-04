@@ -31,7 +31,7 @@ KMODULES = drivers/usb/serial/cp210x.ko \
 	   drivers/usb/serial/oti6858.ko
 
 MINISATIP_COMMIT=54df9348e7bd7e6075f54f1b93ec4ad36429abe0
-MINISATIP5_COMMIT=087be7788e9bd04e23564a87a99e71fc69cc8e8d
+MINISATIP5_COMMIT=67e88c2d743d6df9c4a96aad772414169f61b764
 
 BUSYBOX=busybox-1.24.1
 
@@ -135,7 +135,7 @@ fs.cpio: $(CPIO_SRCS)
 	  -d "fs-add" \
 	  $(foreach m,$(EXTRA_AXE_MODULES), -e "$(EXTRA_AXE_MODULES_DIR)/$(m):lib/modules/axe/$(m)") \
 	  -e "patches/axe_dmxts_std.ko:lib/modules/axe/axe_dmxts_std.ko" \
-	  -e "patches/axe_fe_156.ko:lib/modules/axe/axe_fe.ko" \
+	  -e "patches/axe_fe_157.ko:lib/modules/axe/axe_fe.ko" \
 	  $(foreach m,$(ORIG_FILES), -e "$(EXTRA_AXE_MODULES_DIR)/../$(m):lib/modules/axe/$(m)") \
 	  $(foreach m,$(EXTRA_AXE_LIBS), -e "$(EXTRA_AXE_LIBS_DIR)/$(m):lib/$(m)") \
 	  -e "tools/i2c_mangle.ko:lib/modules/axe/i2c_mangle.ko" \

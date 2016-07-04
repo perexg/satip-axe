@@ -1,17 +1,18 @@
 diff --git a/adapter.c b/adapter.c
-index 0b56213..ca4eddd 100644
+index ec07d56..ade0c02 100644
 --- a/adapter.c
 +++ b/adapter.c
-@@ -58,6 +58,8 @@ adapter *adapter_alloc()
+@@ -59,6 +59,9 @@ adapter *adapter_alloc()
  {
  	adapter *ad = malloc1(sizeof(adapter));
- 
+ 	memset(ad, 0, sizeof(adapter));
++
 +	mutex_init(&ad->mutex);
 +
  	/* diseqc setup */
  	ad->diseqc_param.fast = opts.diseqc_fast;
  	ad->diseqc_param.committed_no = opts.diseqc_committed_no;
-@@ -118,6 +120,7 @@ int adapter_timeout(sockets *s)
+@@ -127,6 +130,7 @@ int adapter_timeout(sockets *s)
  		return 0;
  	}
  
@@ -19,7 +20,7 @@ index 0b56213..ca4eddd 100644
  	if (opts.no_threads)
  	{
  		for (i = 0; i < MAX_ADAPTERS; i++)
-@@ -134,6 +137,7 @@ int adapter_timeout(sockets *s)
+@@ -143,6 +147,7 @@ int adapter_timeout(sockets *s)
  			s->sid, do_close, max_close);
  	if (!do_close)
  		s->rtime = max_close;
@@ -27,7 +28,7 @@ index 0b56213..ca4eddd 100644
  
  	return do_close;
  }
-@@ -171,7 +175,6 @@ int init_hw(int i)
+@@ -183,7 +188,6 @@ int init_hw(int i)
  		return 2;
  
  	ad = a[i];
@@ -35,7 +36,7 @@ index 0b56213..ca4eddd 100644
  	mutex_lock(&ad->mutex);
  	if (is_adapter_disabled(i))
  		goto NOK;
-@@ -324,10 +327,12 @@ void close_adapter(int na)
+@@ -346,10 +350,12 @@ int close_adapter(int na)
  	ad->sock = -1;
  	ad->strength = 0;
  	ad->snr = 0;
@@ -48,8 +49,8 @@ index 0b56213..ca4eddd 100644
 +	mutex_unlock(&ad->mutex);
  	//      if(a[na]->buf)free1(a[na]->buf);a[na]->buf=NULL;
  	LOG("done closing adapter %d", na);
- }
-@@ -533,6 +538,19 @@ int set_adapter_for_stream(int sid, int aid)
+ 	return 1;
+@@ -556,6 +562,19 @@ int set_adapter_for_stream(int sid, int aid)
  	return 0;
  }
  
@@ -69,7 +70,7 @@ index 0b56213..ca4eddd 100644
  void close_adapter_for_stream(int sid, int aid)
  {
  	adapter *ad;
-@@ -551,9 +569,12 @@ void close_adapter_for_stream(int sid, int aid)
+@@ -574,9 +593,12 @@ void close_adapter_for_stream(int sid, int aid)
  	LOG("closed adapter %d for stream %d m:%d s:%d", aid, sid, ad->master_sid,
  			ad->sid_cnt);
  	// delete the attached PIDs as well
@@ -83,8 +84,8 @@ index 0b56213..ca4eddd 100644
 +	} else
  		mark_pids_deleted(aid, sid, NULL);
  	update_pids(aid);
- //	if (a[aid]->sid_cnt == 0) 
-@@ -649,6 +670,7 @@ int tune(int aid, int sid)
+ //	if (a[aid]->sid_cnt == 0)
+@@ -672,6 +694,7 @@ int tune(int aid, int sid)
  		ad->status = -1;
  		ad->status_cnt = 0;
  		set_socket_pos(ad->sock, 0);	// flush the existing buffer
@@ -92,7 +93,7 @@ index 0b56213..ca4eddd 100644
  		ad->rlen = 0;
  		if (ad->sid_cnt > 1)	 // the master changed the frequency
  		{
-@@ -980,6 +1002,18 @@ get_adapter1(int aid, char *file, int line)
+@@ -1003,6 +1026,18 @@ get_adapter1(int aid, char *file, int line)
  	return a[aid];
  }
  
@@ -111,7 +112,7 @@ index 0b56213..ca4eddd 100644
  char* get_stream_pids(int s_id, char *dest, int max_size);
  char *
  describe_adapter(int sid, int aid, char *dad, int ld)
-@@ -1094,9 +1128,11 @@ void free_all_adapters()
+@@ -1120,9 +1155,11 @@ void free_all_adapters()
  		{
  			if (a[i]->buf)
  				free1(a[i]->buf);
@@ -123,7 +124,7 @@ index 0b56213..ca4eddd 100644
  
  #ifndef DISABLE_NETCVCLIENT
  	fprintf(stderr, "\n\nREEL: recv_exit\n");
-@@ -1349,6 +1385,93 @@ void set_slave_adapters(char *o)
+@@ -1375,6 +1412,93 @@ void set_slave_adapters(char *o)
  
  	}
  }
@@ -217,7 +218,7 @@ index 0b56213..ca4eddd 100644
  extern char *fe_delsys[];
  void set_adapters_delsys(char *o)
  {
-@@ -1617,6 +1740,82 @@ char *get_all_delsys(int aid, char *dest, int max_size)
+@@ -1643,6 +1767,82 @@ char *get_all_delsys(int aid, char *dest, int max_size)
  	return dest;
  }
  
@@ -300,7 +301,7 @@ index 0b56213..ca4eddd 100644
  _symbols adapters_sym[] =
  		{
  		{ "ad_enabled", VAR_AARRAY_INT8, a, 1, MAX_ADAPTERS, offsetof(adapter,
-@@ -1659,4 +1858,7 @@ _symbols adapters_sym[] =
+@@ -1685,4 +1885,7 @@ _symbols adapters_sym[] =
  				{ "tuner_c2", VAR_INT, &tuner_c2, 1, 0, 0 },
  				{ "tuner_t", VAR_INT, &tuner_t, 1, 0, 0 },
  				{ "tuner_c", VAR_INT, &tuner_c, 1, 0, 0 },
@@ -309,7 +310,7 @@ index 0b56213..ca4eddd 100644
 +				{ "ad_axe_coax", VAR_FUNCTION_STRING, (void *) &get_axe_coax, 0, 0, 0 },
  				{ NULL, 0, NULL, 0, 0 } };
 diff --git a/adapter.h b/adapter.h
-index a0c2634..52138cc 100644
+index 8941f7a..526b38d 100644
 --- a/adapter.h
 +++ b/adapter.h
 @@ -6,7 +6,11 @@
@@ -324,11 +325,13 @@ index a0c2634..52138cc 100644
  #ifdef NO_BACKTRACE
  #define MAX_STREAMS_PER_PID 8
  #else
-@@ -63,7 +67,7 @@ typedef struct struct_adapter
+@@ -62,8 +66,8 @@ typedef struct struct_adapter
+ {
  	char enabled;
  	SMutex mutex;
- 	char type; // available on the system 
+-	char type, slow_dev; // available on the system
 -	int fe, dvr, dmx;
++	char type, slow_dev; // available on the system 
 +	int fe, fe2, dvr, dmx;
  	int pa, fn;
  	// physical adapter, physical frontend number
@@ -1185,7 +1188,7 @@ index 07195e4..41c678e 100644
  	for (; na < MAX_ADAPTERS; na++)
  		if (a[na])
 diff --git a/dvbapi.c b/dvbapi.c
-index 408b593..77a448f 100644
+index ee62007..ea30fc2 100644
 --- a/dvbapi.c
 +++ b/dvbapi.c
 @@ -978,7 +978,6 @@ int keys_del(int i)
@@ -1196,7 +1199,7 @@ index 408b593..77a448f 100644
  	return 0;
  }
  
-@@ -1072,6 +1071,18 @@ void dvbapi_delete_keys_for_adapter(int aid)
+@@ -1073,6 +1072,18 @@ void dvbapi_delete_keys_for_adapter(int aid)
  			keys_del(i);
  }
  
@@ -1273,7 +1276,7 @@ index cd000e5..d28a2cc 100644
  	// STREAMS
  	myTable += "<td class='dt-left'>";
 diff --git a/minisatip.c b/minisatip.c
-index 676a05a..a21f267 100644
+index 1ffa159..dcc1393 100644
 --- a/minisatip.c
 +++ b/minisatip.c
 @@ -89,6 +89,14 @@ static const struct option long_options[] =
@@ -1483,12 +1486,12 @@ index 676a05a..a21f267 100644
 diff --git a/minisatip.h b/minisatip.h
 old mode 100644
 new mode 100755
-index 8116c66..f73a4f2
+index ab893df..e9bc48c
 --- a/minisatip.h
 +++ b/minisatip.h
 @@ -10,7 +10,7 @@
  
- #define VERSION_BUILD "50"
+ #define VERSION_BUILD "54"
  #define CC(a,b,c) #a b #c
 -#define VERSION CC(0.5.,VERSION_BUILD,)
 +#define VERSION CC(0.5.,VERSION_BUILD,-axe102)
@@ -1508,10 +1511,10 @@ index 8116c66..f73a4f2
  	int dvbapi_port;
  	char *dvbapi_host;
 diff --git a/socketworks.c b/socketworks.c
-index 471dc5c..f4e0d60 100644
+index 94a7035..add39d8 100644
 --- a/socketworks.c
 +++ b/socketworks.c
-@@ -435,6 +435,7 @@ int sockets_add(int sock, struct sockaddr_in *sa, int sid, int type,
+@@ -437,6 +437,7 @@ int sockets_add(int sock, struct sockaddr_in *sa, int sid, int type,
  	ss->buf = NULL;
  	ss->lbuf = 0;
  	ss->timeout_ms = 0;
@@ -1519,7 +1522,7 @@ index 471dc5c..f4e0d60 100644
  	ss->id = i;
  	ss->read = (read_action) sockets_read;
  	ss->lock = NULL;
-@@ -462,15 +463,16 @@ int sockets_del(int sock)
+@@ -464,15 +465,16 @@ int sockets_del(int sock)
  	if (sock < 0 || sock > MAX_SOCKS || !s[sock] || !s[sock]->enabled)
  		return 0;
  
@@ -1537,8 +1540,8 @@ index 471dc5c..f4e0d60 100644
  	ss->enabled = 0;
  	so = ss->sock;
  	ss->sock = -1;			 // avoid infinite loop
-@@ -492,7 +494,7 @@ int sockets_del(int sock)
- 	ss->lock = NULL;
+@@ -497,7 +499,7 @@ int sockets_del(int sock)
+ 
  	LOG("sockets_del: %d Last open socket is at index %d current_handle %d",
  			sock, i, so);
 -	mutex_destroy(&ss->mutex);
@@ -1546,7 +1549,7 @@ index 471dc5c..f4e0d60 100644
  	mutex_unlock(&s_mutex);
  	return 0;
  }
-@@ -632,6 +634,29 @@ void *select_and_execute(void *arg)
+@@ -637,6 +639,29 @@ void *select_and_execute(void *arg)
  						ss->rlen += rlen;
  					else
  						ss->rlen = 0;
@@ -1576,7 +1579,7 @@ index 471dc5c..f4e0d60 100644
  					//force 0 at the end of the string
  					if (ss->lbuf >= ss->rlen)
  						ss->buf[ss->rlen] = 0;
-@@ -881,6 +906,7 @@ void set_socket_buffer(int sid, unsigned char *buf, int len)
+@@ -886,6 +911,7 @@ void set_socket_buffer(int sid, unsigned char *buf, int len)
  
  void free_all_streams();
  void free_all_adapters();
@@ -1584,7 +1587,7 @@ index 471dc5c..f4e0d60 100644
  
  void free_all()
  {
-@@ -890,12 +916,17 @@ void free_all()
+@@ -895,12 +921,17 @@ void free_all()
  	{
  		if (s[i] && s[i]->enabled)
  			sockets_del(i);
@@ -1603,7 +1606,7 @@ index 471dc5c..f4e0d60 100644
  }
  
  void set_socket_send_buffer(int sock, int len)
-@@ -948,6 +979,14 @@ void set_socket_pos(int sock, int pos)
+@@ -953,6 +984,14 @@ void set_socket_pos(int sock, int pos)
  	ss->rlen = pos;
  }
  
@@ -1641,7 +1644,7 @@ index 0782477..723821a
  int get_socket_rport(int s_id);
  void set_sock_lock(int i, SMutex *m);
 diff --git a/stream.c b/stream.c
-index fd57684..547a5a3 100644
+index 53492d8..408ce20 100644
 --- a/stream.c
 +++ b/stream.c
 @@ -297,14 +297,15 @@ int close_stream(int i)
@@ -1690,7 +1693,7 @@ index fd57684..547a5a3 100644
  
  	}
 diff --git a/utils.c b/utils.c
-index 17c2350..5724684 100644
+index 689b8f3..5a5f1d3 100644
 --- a/utils.c
 +++ b/utils.c
 @@ -37,6 +37,8 @@
@@ -1717,7 +1720,7 @@ index 17c2350..5724684 100644
  				else if (sym[i][j].type == VAR_FUNCTION_STRING)
  				{
  					off = map_intd(var + strlen(sym[i][j].name), NULL, 0);
-@@ -1038,12 +1048,12 @@ int mutex_destroy(SMutex* mutex)
+@@ -1043,12 +1053,12 @@ int mutex_destroy(SMutex* mutex)
  				__FUNCTION__, mutex, rv, strerror(rv));
  
  	LOGL(4, "Destroying mutex %p", mutex);
@@ -1736,7 +1739,7 @@ index 17c2350..5724684 100644
  	return 0;
  }
  
-@@ -1088,6 +1098,7 @@ pthread_t start_new_thread(char *name)
+@@ -1093,6 +1103,7 @@ pthread_t start_new_thread(char *name)
  
  void set_thread_prio(pthread_t tid, int prio)
  {
@@ -1744,7 +1747,7 @@ index 17c2350..5724684 100644
  	int rv;
  	struct sched_param param;
  	memset(&param, 0, sizeof(struct sched_param));
-@@ -1095,6 +1106,12 @@ void set_thread_prio(pthread_t tid, int prio)
+@@ -1100,6 +1111,12 @@ void set_thread_prio(pthread_t tid, int prio)
  	if ((rv = pthread_setschedparam(pthread_self(), SCHED_RR, &param)))
  		LOG("pthread_setschedparam failed with error %d", rv);
  	return;
@@ -1757,7 +1760,7 @@ index 17c2350..5724684 100644
  }
  
  struct struct_array
-@@ -1119,8 +1136,8 @@ int add_new_lock(void **arr, int count, int size, SMutex *mutex)
+@@ -1124,8 +1141,8 @@ int add_new_lock(void **arr, int count, int size, SMutex *mutex)
  					LOG_AND_RETURN(-1,
  							"Could not allocate memory for %p index %d", arr, i);
  				memset(sa[i], 0, size);
