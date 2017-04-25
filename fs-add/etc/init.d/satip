@@ -2,9 +2,10 @@
 
 MINISATIP_PROGRAM=minisatip
 MINISATIP5_PROGRAM=minisatip5
+MINISATIP7_PROGRAM=minisatip7
 test -r /etc/sysconfig/config && . /etc/sysconfig/config
 
-if test "$MINISATIP" != "yes" -a "$MINISATIP5" != "yes"; then
+if test "$MINISATIP" != "yes" -a "$MINISATIP5" != "yes" -a "$MINISATIP7" != "yes"; then
   exit 0
 fi
 
@@ -26,6 +27,7 @@ while test ! -f /tmp/nosatip; do
   done
   MINISATIP_PROGRAM=minisatip
   MINISATIP5_PROGRAM=minisatip5
+  MINISATIP7_PROGRAM=minisatip7
   . /etc/sysconfig/config
   if test "$MINISATIP" = "yes"; then
     nice -5 $MINISATIP_PROGRAM -f -g $MINISATIP_OPTS
@@ -33,6 +35,9 @@ while test ! -f /tmp/nosatip; do
   elif test "$MINISATIP5" = "yes"; then
     nice -5 $MINISATIP5_PROGRAM -f -g $MINISATIP5_OPTS
     logger -p local0.notice "minisatip5 exited $?, restarting"
+  elif test "$MINISATIP7" = "yes"; then
+    nice -5 $MINISATIP7_PROGRAM -f -g $MINISATIP7_OPTS
+    logger -p local0.notice "minisatip7 exited $?, restarting"
   else
     exit 0
   fi

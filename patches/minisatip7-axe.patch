@@ -1,0 +1,38 @@
+diff --git a/minisatip.c b/minisatip.c
+index 840ad20..df140fa 100755
+--- a/minisatip.c
++++ b/minisatip.c
+@@ -72,7 +72,7 @@ static const struct option long_options[] =
+ 	{ "jess", required_argument, NULL, 'j' },
+ 	{ "diseqc", required_argument, NULL, 'd' },
+ 	{ "diseqc-timing", required_argument, NULL, 'q' },
+-	{"nopm", required_argument, NULL, 'Z'},
++	{ "nopm", required_argument, NULL, 'Z' },
+ #ifndef DISABLE_DVBAPI
+ 	{ "dvbapi", required_argument, NULL, 'o' },
+ #endif
+@@ -473,10 +473,9 @@ void set_options(int argc, char *argv[])
+ #endif
+ 
+ #ifdef AXE
+-	opts.nopm = 1;
+ 	opts.no_threads = 1;
+ 	opts.axe_skippkt = 35;
+-	opts.document_root = "/usr/share/minisatip/html";
++	opts.document_root = "/usr/share/minisatip7/html";
+ #define AXE_OPTS "7:QW:M:8:A:"
+ #else
+ #define AXE_OPTS ""
+diff --git a/minisatip.h b/minisatip.h
+index 88f47dc..f501fe6 100644
+--- a/minisatip.h
++++ b/minisatip.h
+@@ -10,7 +10,7 @@
+ 
+ #define VERSION_BUILD "4"
+ #define CC(a,b,c) #a b #c
+-#define VERSION CC(0.7.,VERSION_BUILD,)
++#define VERSION CC(0.7.,VERSION_BUILD,-axe201)
+ 
+ void set_options (int argc, char *argv[]);
+ 

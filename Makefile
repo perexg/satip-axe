@@ -32,6 +32,7 @@ KMODULES = drivers/usb/serial/cp210x.ko \
 
 MINISATIP_COMMIT=54df9348e7bd7e6075f54f1b93ec4ad36429abe0
 MINISATIP5_COMMIT=67e88c2d743d6df9c4a96aad772414169f61b764
+MINISATIP7_COMMIT=407833b54abb8b62773bed6a6c04f676abf8d356
 
 BUSYBOX=busybox-1.24.1
 
@@ -122,6 +123,7 @@ CPIO_SRCS += dropbear
 CPIO_SRCS += ethtool
 CPIO_SRCS += minisatip
 CPIO_SRCS += minisatip5
+CPIO_SRCS += minisatip7
 CPIO_SRCS += oscam
 CPIO_SRCS += tools/axehelper
 CPIO_SRCS += nfsutils
@@ -151,6 +153,8 @@ fs.cpio: $(CPIO_SRCS)
 	  $(foreach f,$(notdir $(wildcard apps/minisatip/icons/*)), -e "apps/minisatip/icons/$f:usr/share/minisatip/icons/$f") \
 	  -e "apps/minisatip5/minisatip:sbin/minisatip5" \
 	  $(foreach f,$(notdir $(wildcard apps/minisatip5/html/*)), -e "apps/minisatip5/html/$f:usr/share/minisatip/html/$f") \
+	  -e "apps/minisatip7/minisatip:sbin/minisatip7" \
+	  $(foreach f,$(notdir $(wildcard apps/minisatip7/html/*)), -e "apps/minisatip7/html/$f:usr/share/minisatip7/html/$f") \
 	  -e "apps/$(NANO)/src/nano:usr/bin/nano" \
 	  -e "apps/mtd-utils/nandwrite:usr/sbin/nandwrite2" \
 	  -e "apps/oscam-svn/Distribution/oscam-1.20-unstable_svn$(OSCAM_REV)-sh4-linux:sbin/oscamd"
@@ -346,21 +350,53 @@ minisatip5-clean:
 	rm -rf apps/minisatip5
 
 #
+# minisatip7
+#
+
+apps/minisatip7/axe.h: patches/minisatip7-axe.patch
+	rm -rf apps/minisatip7
+	$(call GIT_CLONE,https://github.com/catalinii/minisatip.git,minisatip7,$(MINISATIP7_COMMIT))
+	cd apps/minisatip7; patch -p1 < ../../patches/minisatip7-axe.patch
+
+apps/minisatip7/minisatip: apps/minisatip7/axe.h
+	cd apps/minisatip7 && ./configure \
+		--enable-axe \
+		--disable-dvbca \
+		--disable-dvbcsa \
+		--disable-dvbaes \
+		--disable-netceiver
+	make -C apps/minisatip7 \
+	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+	  EXTRA_CFLAGS="-O2 -I$(CURDIR)/kernel/include"
+
+.PHONY: minisatip7
+minisatip7: apps/minisatip7/minisatip
+
+.PHONY: minisatip7-clean
+minisatip7-clean:
+	rm -rf apps/minisatip7
+
+#
 # minisatip package
 #
 
-dist/packages/minisatip-$(VERSION).tar.gz: minisatip minisatip5
+dist/packages/minisatip-$(VERSION).tar.gz: minisatip minisatip5 minisatip7
 	rm -rf fs/usr/share/minisatip
-	mkdir -p fs/usr/share/minisatip/icons/ fs/usr/share/minisatip/html/
+	mkdir -p fs/usr/share/minisatip/icons/ \
+		 fs/usr/share/minisatip/html/ \
+		 fs/usr/share/minisatip7/html/
 	install -m 755 apps/minisatip/minisatip fs/sbin/minisatip
 	install -m 644 apps/minisatip/icons/* fs/usr/share/minisatip/icons/
 	install -m 755 apps/minisatip5/minisatip fs/sbin/minisatip5
 	install -m 644 apps/minisatip5/html/* fs/usr/share/minisatip/html/
+	install -m 755 apps/minisatip7/minisatip fs/sbin/minisatip7
+	install -m 644 apps/minisatip7/html/* fs/usr/share/minisatip7/html/
 	tar cvz -C fs -f dist/packages/minisatip-$(VERSION).tar.gz \
 		sbin/minisatip \
 		sbin/minisatip5 \
 		usr/share/minisatip/icons \
-		usr/share/minisatip/html
+		usr/share/minisatip/html \
+		usr/share/minisatip7/html
 	ls -la dist/packages/minisatip*
 
 .PHONY: minisatip-package
