@@ -6,6 +6,20 @@ It allows very complex usage. This document tries to explain some special
 configurations. For simplicity, the input are numbered as 0-3 here, but
 the physical F-type connector on the box have numering 1-4.
 
+NOTE: Some options identifiers were changed between minisatip5 and minisatip7:
+
+minisatip7 | minisatip5/minisatip | description
+-----------+----------------------+-------------------------
+-7         | -L                   | tuner linking
+-9         | -X                   | unicable input
+-W         | -P                   | AXE power
+-8         | -Z                   | quattro hiband mode
+
+other AXE specific option | decription
+--------------------------+---------------------
+-Q                        | quattro mode
+-A                        | free inputs
+-M                        | skip MPEG-TS packets
 
 Standard DiseqC timing and setup
 --------------------------------
@@ -18,14 +32,14 @@ Power
 -----
 
 Since build 11, you may control the power on box inputs. If you
-use '-P 1' option, the inputs will be powered down when no active
-client is using the minisatip. This behaviour is similar to minisatip
-implementation in build 10 or bellow.
+use /minisatip7/ '-W 1' or /minisatip5/ '-P 1' option, the inputs will
+be powered down when no active client is using the minisatip. This
+behaviour is similar to minisatip implementation in build 10 or bellow.
 
-If you keep the standard behaviour '-P 0', the inputs are powered down
-when they are not used by any client. There is a delay of 30 seconds
-before the power is turned off. Depending on the coaxial wiring and
-used reception components, the independent input power down might
+If you keep the standard behaviour '-W 0' or '-P 0', the inputs are
+powered down when they are not used by any client. There is a delay
+of 30 seconds before the power is turned off. Depending on the coaxial
+wiring and used reception components, the independent input power down might
 affect the signal quality during the power down phase.
 
 Free inputs
@@ -77,8 +91,10 @@ Tvheadend should be configured like this (for all tuners):
 Linked inputs
 -------------
 
-### Example1: '-L 0:2,1:3'
-### Example2: '-L 0:1,0:2,0:3'
+### Example1: '-7 0:2,1:3' / minisatip7
+### Example1: '-L 0:2,1:3' / minisatip5
+### Example2: '-7 0:1,0:2,0:3' / minisatip7
+### Example2: '-L 0:1,0:2,0:3' / minisatip5
 
 The first number means master tuner and the second slave tuner.
 The tuners in same group (master can have multiple slaves) can
@@ -92,9 +108,9 @@ Quattro LNB
 The quattro LNB can be configured using -Q option for minisatip. All
 diseqc (AA), voltage and tone setup is executed, so you may eventually
 connect a multiswitch or quad LNB (it makes sense only with
-the -Z option).
+the -8 / -Z option).
 
-The -Z option can eventually reduce the used input to 2 - filtering the
+The -8 / -Z option can eventually reduce the used input to 2 - filtering the
 loband (inputs 2,3) or hiband (inputs 0,1) only. For example, 23.5E
 satellite positions have useable transponders only in hiband. So, it is
 enough to connect coaxial cable only to input 0 and 1 and use other
@@ -102,7 +118,8 @@ two inputs for other LNBs (standard way). Note that SAT>IP source number 1
 is always handled for the inputs 0 and 1 (to use full 4 tuners for the
 loband/hiband inputs).
 
-### Example: '-Q -Z 1'
+### Example: '-Q -8 1' / minisatip7
+### Example: '-Q -Z 1' / minisatip5
 
     box input 0 ---- multiswitch with diseqc AA = 23.5E
     box input 1 ---- multiswitch with diseqc AA = 23.5E
@@ -141,10 +158,10 @@ control the standard LNBs/diseqc equipment.
 
 You may connect multiple unicable LNBs through multiple coaxial
 wires to the box. In this case, it is necessary to tell which tuners
-will use which physical input. In this case '-X T1,T2,T3,T4' option
-should be used wheren you can define the parent inputs for all four
-tuners like: '-X 0,0,2,2' where two unicable groups are connected
-to minisatip input 0 and 2.
+will use which physical input. In this case '-9 T1,T2,T3,T4 /
+'-X T1,T2,T3,T4' option should be used wheren you can define the parent
+inputs for all four tuners like: '-9 0,0,2,2' or '-X 0,0,2,2' where two
+unicable groups are connected to minisatip input 0 and 2.
 
     box input 0 ---+--- wire 1 (unicable group 1)
     box input 1 ---/

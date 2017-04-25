@@ -94,6 +94,23 @@ nfsd:
   - to list connected clients 'showmount'
   - to list exports 'exportfs'
 
+Minisatip 0.7 config:
+---------------------
+
+  - you may add extra parameters to MINISATIP7_OPTS= in /etc/sysconfig/config
+  - WARNING: use -d with unique numbers if you have _multiple_ SAT>IP servers on net
+  - SEE: minisatip.md file in this directory for more details
+  - example 1: only two tuners: MINISATIP_OPTS="-e 0-1"
+  - example 2: unicable: MINISATIP_OPTS="-u 0:1-1420,1:0-1210,2:2-1680,3:3-2040"
+  - AXE hardware specific options:
+     -7 link adapters (identical src,lo/hi,h/v), the format is M:S (master:slave)
+     -Q quattro LNB config (H/H,H/V,L/H,L/V)
+     -9 X AXE unicable/jess input (0-3)
+  - example 3: unicable coax in input 2: MINISATIP_OPTS="-9 1"
+  - example 4: quattro LNB: MINISATIP_OPTS="-Q"
+  - example 5: coax in inputs 1,2, tuner 3 slave to input 1, tuner 4 slave to input 2
+               MINISATIP_OPTS="-7 0:2,1:3"
+
 Minisatip config:
 -----------------
 
