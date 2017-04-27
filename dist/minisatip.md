@@ -9,14 +9,14 @@ the physical F-type connector on the box have numering 1-4.
 NOTE: Some options identifiers were changed between minisatip5 and minisatip7:
 
 minisatip7 | minisatip5/minisatip | description
------------+----------------------+-------------------------
+-----------|----------------------|-------------------------
 -7         | -L                   | tuner linking
 -9         | -X                   | unicable input
 -W         | -P                   | AXE power
 -8         | -Z                   | quattro hiband mode
 
 other AXE specific option | decription
---------------------------+---------------------
+--------------------------|---------------------
 -Q                        | quattro mode
 -A                        | free inputs
 -M                        | skip MPEG-TS packets
