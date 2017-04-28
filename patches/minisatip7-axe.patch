@@ -1,3 +1,117 @@
+diff --git a/adapter.c b/adapter.c
+index 9ddbcbb..26bd3b6 100644
+--- a/adapter.c
++++ b/adapter.c
+@@ -1056,6 +1056,18 @@ get_adapter1(int aid, char *file, int line)
+ 	return a[aid];
+ }
+ 
++adapter *
++get_configured_adapter1(int aid, char *file, int line)
++{
++	if (aid < 0 || aid >= MAX_ADAPTERS || !a[aid] || disabled[aid])
++	{
++		LOG("%s:%d: get_configured_adapter returns NULL for adapter_id %d",
++						file, line, aid);
++		return NULL;
++	}
++	return a[aid];
++}
++
+ char* get_stream_pids(int s_id, char *dest, int max_size);
+ char *
+ describe_adapter(int sid, int aid, char *dad, int ld)
+diff --git a/adapter.h b/adapter.h
+index 7e28640..58c4edd 100755
+--- a/adapter.h
++++ b/adapter.h
+@@ -139,6 +139,7 @@ int update_pids(int aid);
+ int tune(int aid, int sid);
+ SPid *find_pid(int aid, int p);
+ adapter * get_adapter1(int aid, char *file, int line);
++adapter * get_configured_adapter1(int aid, char *file, int line);
+ char *describe_adapter(int sid, int aid, char *dad, int ld);
+ void dump_pids(int aid);
+ void sort_pids(int aid);
+@@ -165,6 +166,7 @@ int signal_thread(sockets *s);
+ int compare_tunning_parameters(int aid, transponder * tp);
+ 
+ #define get_adapter(a) get_adapter1(a, __FILE__, __LINE__)
++#define get_configured_adapter(a) get_configured_adapter1(a, __FILE__, __LINE__)
+ #define get_adapter_nw(aid) ((aid >= 0 && aid < MAX_ADAPTERS && a[aid] && a[aid]->enabled)?a[aid]:NULL)
+ 
+ #define adapter_lock(a) adapter_lock1(__FILE__,__LINE__,a)
+diff --git a/axe.c b/axe.c
+index 3c553c3..1efd30c 100755
+--- a/axe.c
++++ b/axe.c
+@@ -107,6 +107,8 @@ void axe_set_network_led(int on)
+ int axe_read(int socket, void *buf, int len, sockets *ss, int *rv)
+ {
+ 	*rv = read(socket, buf, len);
++	if (len == *rv)
++		LOGL(3, "AXE: MAX READ %d", len);
+ //	if(*rv < 0 || *rv == 0 || errno == -EAGAIN)
+ 	if(*rv < 0 || *rv == 0 || errno == -EAGAIN)
+ 	{
+@@ -213,11 +215,8 @@ static inline int extra_quattro(int input, int diseqc, int *equattro)
+ adapter *use_adapter(int input)
+ {
+ 	int input2 = input < 4 ? input : -1;
+-	adapter *ad = get_adapter(input2);
++	adapter *ad = get_configured_adapter(input2);
+ 	char buf[32];
+-	if(!ad)
+-		init_hw(input2);
+-	ad = get_adapter(input2);
+ 	if (ad) {
+ 		if (ad->fe2 <= 0) {
+ 			sprintf (buf, "/dev/axe/frontend-%d", input);
+@@ -287,7 +286,7 @@ int axe_setup_switch(adapter *ad)
+ 					pos = absolute_table[diseqc][aid];
+ 					if (pos <= 0) continue;
+ 					pos--;
+-					ad2 = get_adapter(aid);
++					ad2 = get_configured_adapter(aid);
+ 					if (!ad2) continue;
+ 					if (ad2->fe2 <= 0) continue;
+ 					if ((ad2->axe_used & ~(1 << ad->id)) == 0) continue;
+@@ -300,7 +299,7 @@ int axe_setup_switch(adapter *ad)
+ 						pos = absolute_table[diseqc][aid];
+ 						if (pos <= 0) continue;
+ 						pos--;
+-						ad2 = get_adapter(aid);
++						ad2 = get_configured_adapter(aid);
+ 						if (!ad2) continue;
+ 						LOGL(3, "axe: checking %d used 0x%x in %d", ad->id, ad2->axe_used, ad2->id);
+ 						if (ad2->axe_used & ~(1 << ad->id)) continue;
+@@ -327,7 +326,7 @@ int axe_setup_switch(adapter *ad)
+ 				}
+ 				if (adm->old_pol >= 0) {
+ 					for (aid = 0; aid < 4; aid++) {
+-						ad2 = get_adapter(aid);
++						ad2 = get_configured_adapter(aid);
+ 						if (!ad2 || ad2->fe2 <= 0 || ad == ad2) continue;
+ 						if (ad2->slave && ad2->slave - 1 != adm->pa) continue;
+ 						if (!ad2->slave && ad2 != adm) continue;
+@@ -408,7 +407,7 @@ int axe_setup_switch(adapter *ad)
+ 
+ axe:
+ 	for (aid = 0; aid < 4; aid++) {
+-		ad2 = get_adapter(aid);
++		ad2 = get_configured_adapter(aid);
+ 		if (ad2)
+ 			LOGL(3, "axe_fe: used[%d] = 0x%x, pol=%d, hiband=%d, diseqc=%d",
+ 								aid, ad2->axe_used, ad2->old_pol, ad2->old_hiband, ad2->old_diseqc);
+@@ -757,7 +756,7 @@ char *get_axe_coax(int aid, char *dest, int max_size)
+ 		return dest;
+ 
+ 	for (i = 0; i < 4; i++) {
+-		ad = get_adapter(i);
++		ad = get_configured_adapter(i);
+ 		if (ad && ad->axe_used & (1<<aid))
+ 			len += snprintf(dest + len, max_size - len, "LNB%d,", i + 1);
+ 	}
 diff --git a/minisatip.c b/minisatip.c
 index 840ad20..df140fa 100755
 --- a/minisatip.c
@@ -24,7 +138,7 @@ index 840ad20..df140fa 100755
  #else
  #define AXE_OPTS ""
 diff --git a/minisatip.h b/minisatip.h
-index 88f47dc..f501fe6 100644
+index 88f47dc..1e01778 100644
 --- a/minisatip.h
 +++ b/minisatip.h
 @@ -10,7 +10,7 @@
@@ -32,7 +146,154 @@ index 88f47dc..f501fe6 100644
  #define VERSION_BUILD "4"
  #define CC(a,b,c) #a b #c
 -#define VERSION CC(0.7.,VERSION_BUILD,)
-+#define VERSION CC(0.7.,VERSION_BUILD,-axe201)
++#define VERSION CC(0.7.,VERSION_BUILD,-axe202)
  
  void set_options (int argc, char *argv[]);
+ 
+diff --git a/socketworks.c b/socketworks.c
+index 0c40830..b4ba864 100755
+--- a/socketworks.c
++++ b/socketworks.c
+@@ -1178,7 +1178,7 @@ int alloc_snpacket(SNPacket *p, int len)
+ int sockets_writev(int sock_id, struct iovec *iov, int iovcnt)
+ {
+ 	int rv = 0, i, pos = 0, len;
+-	unsigned char tmpbuf[1500];
++	unsigned char tmpbuf[(STREAMS_BUFFER*3)/2];
+ 	struct iovec tmpiov;
+ 	sockets *s = get_sockets(sock_id);
+ 	if(!s)
+@@ -1197,7 +1197,8 @@ int sockets_writev(int sock_id, struct iovec *iov, int iovcnt)
+ 		{
+ 			for(i=0; i<iovcnt; i++)
+ 			{
+-				memcpy(tmpbuf + pos, iov[i].iov_base, iov[i].iov_len);
++				if (rv < pos + iov[i].iov_len)
++					memcpy(tmpbuf + pos, iov[i].iov_base, iov[i].iov_len);
+ 				pos += iov[i].iov_len;
+ 			}
+ 			LOGL(3, "incomplete write it %d, setting the buffer at offset %d and length %d from %d", s->iteration, rv, len - rv, len);
+diff --git a/stream.c b/stream.c
+index e69725b..443d618 100755
+--- a/stream.c
++++ b/stream.c
+@@ -695,14 +695,17 @@ int send_rtcp(int s_id, int64_t ctime)
+ 
+ void flush_streamb(streams * sid, unsigned char *buf, int rlen, int64_t ctime)
+ {
+-	int i, rv = 0;
++	int i, rv = 0, blen, len;
+ 
+ 	if (sid->type == STREAM_HTTP)
+ 		rv = sockets_write(sid->rsock_id, buf, rlen);
+-	else
+-		for (i = 0; i < rlen; i += DVB_FRAME * 7)
+-			rv += send_rtpb(sid, &buf[i],
+-																			((rlen - i) > DVB_FRAME * 7) ? DVB_FRAME * 7 : (rlen - i));
++	else {
++		blen = sid->type == STREAM_RTSP_TCP ? TCP_STREAMS_BUFFER : UDP_STREAMS_BUFFER;
++		for (i = 0; i < rlen; i += blen) {
++			len = ((rlen - i) > blen) ? blen : (rlen - i);
++			rv += send_rtpb(sid, &buf[i], len);
++		}
++	}
+ 
+ 	sid->iiov = 0;
+ 	sid->wtime = ctime;
+@@ -794,7 +797,7 @@ int check_new_transponder(adapter *ad, int rlen)
+ 
+ int process_packet(unsigned char *b, adapter *ad)
+ {
+-	int j, cc;
++	int j, cc, max_pack;
+ 	SPid *p;
+ 	int _pid = (b[1] & 0x1f) * 256 + b[2];
+ 	streams *sid;
+@@ -824,7 +827,7 @@ int process_packet(unsigned char *b, adapter *ad)
+ 
+ 	if (p->cc != cc)
+ 	{
+-		LOGL(5, "PID Continuity error (adapter %d): pid: %03d, Expected CC: %X, Actual CC: %X",
++		LOGL(1, "PID Continuity error (adapter %d): pid: %03d, Expected CC: %X, Actual CC: %X",
+ 							ad->id, _pid, p->cc, cc);
+ 		p->err++;
+ 	}
+@@ -864,16 +867,17 @@ int process_packet(unsigned char *b, adapter *ad)
+ 	{
+ 		if ((sid = get_sid(p->sid[j])) && sid->do_play)
+ 		{
+-			if (sid->iiov > 7)
++			max_pack = sid->type == STREAM_RTSP_TCP ? TCP_MAX_PACK : UDP_MAX_PACK;
++			if (sid->iiov > max_pack)
+ 			{
+ 				LOG(
+-					"ERROR: possible writing outside of allocated space iiov > 7 for SID %d PID %d",
+-					sid->sid, _pid);
++					"ERROR: possible writing outside of allocated space iiov > %d for SID %d PID %d",
++					MAX_PACK, sid->sid, _pid);
+ 				sid->iiov = 6;
+ 			}
+ 			sid->iov[sid->iiov].iov_base = b;
+ 			sid->iov[sid->iiov++].iov_len = DVB_FRAME;
+-			if (sid->iiov >= 7)
++			if (sid->iiov >= max_pack)
+ 				flush_streami(sid, rtime);
+ 		}
+ 	}
+@@ -906,7 +910,7 @@ int process_dmx(sockets * s)
+ #ifndef DISABLE_TABLES
+ 	process_stream(ad, rlen);
+ #else
+-	if (ad->sid_cnt == 1 && ad->master_sid >= 0 && opts.log < 2) // we have just 1 stream, do not check the pids, send everything to the destination
++	if (ad->sid_cnt == 1 && ad->master_sid >= 0) // we have just 1 stream, do not check the pids, send everything to the destination
+ 	{
+ 		sid = get_sid(ad->master_sid);
+ 		if (!sid || sid->enabled != 1)
+diff --git a/stream.h b/stream.h
+index f8bfeda..05e9f09 100644
+--- a/stream.h
++++ b/stream.h
+@@ -7,12 +7,17 @@
+ 
+ #define MAX_STREAMS 100
+ #define DVB_FRAME 188
+-#define STREAMS_BUFFER 7*DVB_FRAME
++#define TCP_RTP_CHUNKS 20
++#define UDP_STREAMS_BUFFER (7 * DVB_FRAME)
++#define TCP_STREAMS_BUFFER (TCP_RTP_CHUNKS * UDP_STREAMS_BUFFER)
++#define STREAMS_BUFFER TCP_STREAMS_BUFFER
+ 
+ #define STREAM_HTTP 1
+ #define STREAM_RTSP_UDP 2
+ #define STREAM_RTSP_TCP 3
+-#define MAX_PACK 7				 // maximum rtp packets to buffer
++#define UDP_MAX_PACK 7 // maximum udp rtp packets to buffer
++#define TCP_MAX_PACK (TCP_RTP_CHUNKS * UDP_MAX_PACK)
++#define MAX_PACK TCP_MAX_PACK
+ #define LEN_PIDS (MAX_PIDS * 5 + 1)
+ 
+ typedef struct struct_streams
+diff --git a/utils.c b/utils.c
+index ef3d568..7629891 100755
+--- a/utils.c
++++ b/utils.c
+@@ -472,7 +472,7 @@ extern int run_loop;
+ 
+ void posix_signal_handler(int sig, siginfo_t * siginfo, ucontext_t * ctx)
+ {
+-	int sp = 0, ip = 0;
++	uint64_t sp = 0, ip = 0;
+ 
+ 	if (sig == SIGINT)
+ 	{
+@@ -483,6 +483,10 @@ void posix_signal_handler(int sig, siginfo_t * siginfo, ucontext_t * ctx)
+ 	sp = ctx->uc_mcontext.gregs[29];
+ 	ip = ctx->uc_mcontext.pc;
+ #endif
++#ifdef __sh__
++	sp = ctx->uc_mcontext.pr;
++	ip = ctx->uc_mcontext.pc;
++#endif
+ 	printf("RECEIVED SIGNAL %d - SP=%lX IP=%lX\n", sig, (long unsigned int) sp,
+ 								(long unsigned int) ip);
  

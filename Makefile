@@ -362,6 +362,7 @@ apps/minisatip7/minisatip: apps/minisatip7/axe.h
 	cd apps/minisatip7 && ./configure \
 		--enable-axe \
 		--disable-dvbca \
+		--disable-dvbapi \
 		--disable-dvbcsa \
 		--disable-dvbaes \
 		--disable-netceiver
