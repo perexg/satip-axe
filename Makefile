@@ -32,11 +32,11 @@ KMODULES = drivers/usb/serial/cp210x.ko \
 
 MINISATIP_COMMIT=54df9348e7bd7e6075f54f1b93ec4ad36429abe0
 MINISATIP5_COMMIT=67e88c2d743d6df9c4a96aad772414169f61b764
-MINISATIP7_COMMIT=407833b54abb8b62773bed6a6c04f676abf8d356
+MINISATIP7_COMMIT=df737931da04bc1a178d7abddb3d6d9b57d70fe9
 
-BUSYBOX=busybox-1.24.1
+BUSYBOX=busybox-1.26.2
 
-DROPBEAR=dropbear-2015.71
+DROPBEAR=dropbear-2016.74
 DROPBEAR_SBIN_FILES=dropbear
 DROPBEAR_BIN_FILES=dbclient dropbearconvert dropbearkey scp
 
@@ -47,11 +47,11 @@ MTD_UTILS_COMMIT=v1.5.1
 LIBTIRPC_VERSION=0.2.5
 LIBTIRPC=libtirpc-$(LIBTIRPC_VERSION)
 
-RPCBIND_VERSION=0.2.2
+RPCBIND_VERSION=0.2.3
 RPCBIND=rpcbind-$(RPCBIND_VERSION)
 RPCBIND_SBIN_FILES=rpcbind rpcinfo
 
-NFSUTILS_VERSION=1.3.3
+NFSUTILS_VERSION=1.3.4
 NFSUTILS=nfs-utils-$(NFSUTILS_VERSION)
 NFSUTILS_SBIN_FILES=utils/showmount/showmount \
 		    utils/exportfs/exportfs \
@@ -62,13 +62,13 @@ NFSUTILS_SBIN_FILES=utils/showmount/showmount \
 		    utils/statd/statd \
 		    utils/nfsd/nfsd
 
-NANO_VERSION=2.4.3
+NANO_VERSION=2.8.1
 NANO=nano-$(NANO_VERSION)
 NANO_FILENAME=$(NANO).tar.gz
-NANO_DOWNLOAD=http://www.nano-editor.org/dist/v2.4/$(NANO_FILENAME)
+NANO_DOWNLOAD=http://www.nano-editor.org/dist/v2.8/$(NANO_FILENAME)
 
 PYTHON3_VERSION0=3.5
-PYTHON3_VERSION=$(PYTHON3_VERSION0).1
+PYTHON3_VERSION=$(PYTHON3_VERSION0).3
 PYTHON3=Python-$(PYTHON3_VERSION)
 PYTHON3_PACKAGE_NAME=$(PYTHON3)-1
 PYTHON3_FILENAME=$(PYTHON3).tgz
@@ -78,8 +78,8 @@ MULTICAST_RTP_PACKAGE_NAME=multicast-rtp-1
 
 TVHEADEND_COMMIT=master
 
-# 10663 10937
-OSCAM_REV=11234
+# 10663 10937 11234
+OSCAM_REV=11384
 
 define GIT_CLONE
 	@mkdir -p apps/host
@@ -414,7 +414,6 @@ apps/$(BUSYBOX)/Makefile:
 apps/$(BUSYBOX)/busybox: apps/$(BUSYBOX)/Makefile
 	make -C apps/$(BUSYBOX) CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux- defconfig
 	make -C apps/$(BUSYBOX) CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux-
-	#make -C apps/$(DROPBEAR) PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp"
 
 .PHONY: busybox
 busybox: apps/$(BUSYBOX)/busybox

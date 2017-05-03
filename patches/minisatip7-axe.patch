@@ -1,48 +1,21 @@
 diff --git a/adapter.c b/adapter.c
-index 9ddbcbb..26bd3b6 100644
+index 26bd3b6..4606a1e 100644
 --- a/adapter.c
 +++ b/adapter.c
-@@ -1056,6 +1056,18 @@ get_adapter1(int aid, char *file, int line)
- 	return a[aid];
- }
- 
-+adapter *
-+get_configured_adapter1(int aid, char *file, int line)
-+{
-+	if (aid < 0 || aid >= MAX_ADAPTERS || !a[aid] || disabled[aid])
-+	{
-+		LOG("%s:%d: get_configured_adapter returns NULL for adapter_id %d",
-+						file, line, aid);
-+		return NULL;
-+	}
-+	return a[aid];
-+}
-+
- char* get_stream_pids(int s_id, char *dest, int max_size);
- char *
- describe_adapter(int sid, int aid, char *dad, int ld)
-diff --git a/adapter.h b/adapter.h
-index 7e28640..58c4edd 100755
---- a/adapter.h
-+++ b/adapter.h
-@@ -139,6 +139,7 @@ int update_pids(int aid);
- int tune(int aid, int sid);
- SPid *find_pid(int aid, int p);
- adapter * get_adapter1(int aid, char *file, int line);
-+adapter * get_configured_adapter1(int aid, char *file, int line);
- char *describe_adapter(int sid, int aid, char *dad, int ld);
- void dump_pids(int aid);
- void sort_pids(int aid);
-@@ -165,6 +166,7 @@ int signal_thread(sockets *s);
- int compare_tunning_parameters(int aid, transponder * tp);
- 
- #define get_adapter(a) get_adapter1(a, __FILE__, __LINE__)
-+#define get_configured_adapter(a) get_configured_adapter1(a, __FILE__, __LINE__)
- #define get_adapter_nw(aid) ((aid >= 0 && aid < MAX_ADAPTERS && a[aid] && a[aid]->enabled)?a[aid]:NULL)
- 
- #define adapter_lock(a) adapter_lock1(__FILE__,__LINE__,a)
+@@ -1873,9 +1873,9 @@ _symbols adapters_sym[] =
+ 	{ "ad_sys", VAR_AARRAY_INT, a, 1, MAX_ADAPTERS, offsetof(
+ 				adapter, tp.sys) },
+ 	{ "ad_allsys", VAR_FUNCTION_STRING, (void *) &get_all_delsys, 0,
+-			0, 0 },
++			MAX_ADAPTERS, 0 },
+ 	{ "ad_pids", VAR_FUNCTION_STRING, (void *) &get_adapter_pids, 0,
+-			0, 0 },
++			MAX_ADAPTERS, 0 },
+ 	{ "tuner_s2", VAR_INT, &tuner_s2, 1, 0, 0 },
+ 	{ "tuner_t2", VAR_INT, &tuner_t2, 1, 0, 0 },
+ 	{ "tuner_c2", VAR_INT, &tuner_c2, 1, 0, 0 },
 diff --git a/axe.c b/axe.c
-index 3c553c3..1efd30c 100755
+index 486b2f8..642f152 100755
 --- a/axe.c
 +++ b/axe.c
 @@ -107,6 +107,8 @@ void axe_set_network_led(int on)
@@ -54,82 +27,543 @@ index 3c553c3..1efd30c 100755
  //	if(*rv < 0 || *rv == 0 || errno == -EAGAIN)
  	if(*rv < 0 || *rv == 0 || errno == -EAGAIN)
  	{
-@@ -213,11 +215,8 @@ static inline int extra_quattro(int input, int diseqc, int *equattro)
- adapter *use_adapter(int input)
+@@ -770,9 +772,9 @@ char *get_axe_coax(int aid, char *dest, int max_size)
+ 
+ _symbols axe_sym[] =
  {
- 	int input2 = input < 4 ? input : -1;
--	adapter *ad = get_adapter(input2);
-+	adapter *ad = get_configured_adapter(input2);
- 	char buf[32];
--	if(!ad)
--		init_hw(input2);
--	ad = get_adapter(input2);
- 	if (ad) {
- 		if (ad->fe2 <= 0) {
- 			sprintf (buf, "/dev/axe/frontend-%d", input);
-@@ -287,7 +286,7 @@ int axe_setup_switch(adapter *ad)
- 					pos = absolute_table[diseqc][aid];
- 					if (pos <= 0) continue;
- 					pos--;
--					ad2 = get_adapter(aid);
-+					ad2 = get_configured_adapter(aid);
- 					if (!ad2) continue;
- 					if (ad2->fe2 <= 0) continue;
- 					if ((ad2->axe_used & ~(1 << ad->id)) == 0) continue;
-@@ -300,7 +299,7 @@ int axe_setup_switch(adapter *ad)
- 						pos = absolute_table[diseqc][aid];
- 						if (pos <= 0) continue;
- 						pos--;
--						ad2 = get_adapter(aid);
-+						ad2 = get_configured_adapter(aid);
- 						if (!ad2) continue;
- 						LOGL(3, "axe: checking %d used 0x%x in %d", ad->id, ad2->axe_used, ad2->id);
- 						if (ad2->axe_used & ~(1 << ad->id)) continue;
-@@ -327,7 +326,7 @@ int axe_setup_switch(adapter *ad)
- 				}
- 				if (adm->old_pol >= 0) {
- 					for (aid = 0; aid < 4; aid++) {
--						ad2 = get_adapter(aid);
-+						ad2 = get_configured_adapter(aid);
- 						if (!ad2 || ad2->fe2 <= 0 || ad == ad2) continue;
- 						if (ad2->slave && ad2->slave - 1 != adm->pa) continue;
- 						if (!ad2->slave && ad2 != adm) continue;
-@@ -408,7 +407,7 @@ int axe_setup_switch(adapter *ad)
+-	{ "ad_axe_pktc", VAR_FUNCTION_INT64, (void *) &get_axe_pktc, 0, 0, 0 },
+-	{ "ad_axe_ccerr", VAR_FUNCTION_INT64, (void *) &get_axe_ccerr, 0, 0, 0 },
+-	{ "ad_axe_coax", VAR_FUNCTION_STRING, (void *) &get_axe_coax, 0, 0, 0 },
++	{ "ad_axe_pktc", VAR_FUNCTION_INT64, (void *) &get_axe_pktc, 0, MAX_ADAPTERS, 0 },
++	{ "ad_axe_ccerr", VAR_FUNCTION_INT64, (void *) &get_axe_ccerr, 0, MAX_ADAPTERS, 0 },
++	{ "ad_axe_coax", VAR_FUNCTION_STRING, (void *) &get_axe_coax, 0, MAX_ADAPTERS, 0 },
+ 	{ NULL, 0, NULL, 0, 0 }
+ };
  
- axe:
- 	for (aid = 0; aid < 4; aid++) {
--		ad2 = get_adapter(aid);
-+		ad2 = get_configured_adapter(aid);
- 		if (ad2)
- 			LOGL(3, "axe_fe: used[%d] = 0x%x, pol=%d, hiband=%d, diseqc=%d",
- 								aid, ad2->axe_used, ad2->old_pol, ad2->old_hiband, ad2->old_diseqc);
-@@ -757,7 +756,7 @@ char *get_axe_coax(int aid, char *dest, int max_size)
- 		return dest;
- 
- 	for (i = 0; i < 4; i++) {
--		ad = get_adapter(i);
-+		ad = get_configured_adapter(i);
- 		if (ad && ad->axe_used & (1<<aid))
- 			len += snprintf(dest + len, max_size - len, "LNB%d,", i + 1);
+diff --git a/html/sort_desc.png b/html/sort_desc.png
+new file mode 100644
+index 0000000..0e156de
+Binary files /dev/null and b/html/sort_desc.png differ
+diff --git a/html/status.html b/html/status.html
+index 8d2f6e5..812a13d 100755
+--- a/html/status.html
++++ b/html/status.html
+@@ -2,7 +2,7 @@
+ <html>
+ <head>
+ 	<meta charset="utf-8"/>
+-	<title>Minisatip/$version$ on $http_host$</title>
++	<title>Minisatip status</title>
+ 	<link rel="stylesheet" type="text/css" href="jquery.dataTables.min.css">
+ 	<style>
+ 	body {
+@@ -47,9 +47,17 @@
+ 		margin: 0 4px;
+ 		padding: 0;
  	}
+-	.polling {
++	.upperbar {
+ 		padding-bottom: 4px;
+ 	}
++	.separator {
++		padding-left: 16px;
++	}
++	.dstate {
++		text-valign: center;
++		text-size: 1.5em;
++		font-family: "Lucida Console", Monaco, monospace;
++	}
+ 	</style>
+ 
+ 	<script type="text/javascript" language="javascript" src="jquery-1.12.0.min.js"></script>
+@@ -58,201 +66,204 @@
+ </head>
+ 
+ <body>
+-<div class="polling">Refresh:
++<table class='display cell-border compact'><tbody><tr>
++<td class="upperbar">Refresh:
+ <input type="text" id="pintervall" value="" readonly /> sec.
+ <button id="pdec">&minus;</button>
+ <button id="pstatus">PAUSE</button>
+ <button id="pinc">+</button>
+-</div>
++</td>
++<td class="separator" />
++<td class="upperbar">
++<button id="stats">Stats ON</button>
++</td>
++<td class="separator" />
++<td id="statsarea" class="upperbar"/>
++</tr></tbody></table>
++
++<div id="table"/>
+ 
+ <script type="text/javascript">
+-var ad_type = [ $ad_type0$, $ad_type1$, $ad_type2$, $ad_type3$, $ad_type4$, $ad_type5$, $ad_type6$, $ad_type7$, $ad_type8$, $ad_type9$, $ad_type10$, $ad_type11$, $ad_type12$, $ad_type13$, $ad_type14$, $ad_type15$, $ad_type16$, $ad_type17$, $ad_type18$, $ad_type19$, $ad_type20$, $ad_type21$, $ad_type22$, $ad_type23$, $ad_type24$, $ad_type25$, $ad_type26$, $ad_type27$, $ad_type28$, $ad_type29$, $ad_type30$, $ad_type31$ ];
+-var ad_enabled = [ $ad_enabled0$, $ad_enabled1$, $ad_enabled2$, $ad_enabled3$, $ad_enabled4$, $ad_enabled5$, $ad_enabled6$, $ad_enabled7$, $ad_enabled8$, $ad_enabled9$, $ad_enabled10$, $ad_enabled11$, $ad_enabled12$, $ad_enabled13$, $ad_enabled14$, $ad_enabled15$, $ad_enabled16$, $ad_enabled17$, $ad_enabled18$, $ad_enabled19$, $ad_enabled20$, $ad_enabled21$, $ad_enabled22$, $ad_enabled23$, $ad_enabled24$, $ad_enabled25$, $ad_enabled26$, $ad_enabled27$, $ad_enabled28$, $ad_enabled29$, $ad_enabled30$, $ad_enabled31$ ];
+-var ad_sys = [ $ad_sys0$, $ad_sys1$, $ad_sys2$, $ad_sys3$, $ad_sys4$, $ad_sys5$, $ad_sys6$, $ad_sys7$, $ad_sys8$, $ad_sys9$, $ad_sys10$, $ad_sys11$, $ad_sys12$, $ad_sys13$, $ad_sys14$, $ad_sys15$, $ad_sys16$, $ad_sys17$, $ad_sys18$, $ad_sys19$, $ad_sys20$, $ad_sys21$, $ad_sys22$, $ad_sys23$, $ad_sys24$, $ad_sys25$, $ad_sys26$, $ad_sys27$, $ad_sys28$, $ad_sys29$, $ad_sys30$, $ad_sys31$ ];
+-var ad_strength = [ $ad_strength0$, $ad_strength1$, $ad_strength2$, $ad_strength3$, $ad_strength4$, $ad_strength5$, $ad_strength6$, $ad_strength7$, $ad_strength8$, $ad_strength9$, $ad_strength10$, $ad_strength11$, $ad_strength12$, $ad_strength13$, $ad_strength14$, $ad_strength15$, $ad_strength16$, $ad_strength17$, $ad_strength18$, $ad_strength19$, $ad_strength20$, $ad_strength21$, $ad_strength22$, $ad_strength23$, $ad_strength24$, $ad_strength25$, $ad_strength26$, $ad_strength27$, $ad_strength28$, $ad_strength29$, $ad_strength30$, $ad_strength31$ ];
+-var ad_ber = [ $ad_ber0$, $ad_ber1$, $ad_ber2$, $ad_ber3$, $ad_ber4$, $ad_ber5$, $ad_ber6$, $ad_ber7$, $ad_ber8$, $ad_ber9$, $ad_ber10$, $ad_ber11$, $ad_ber12$, $ad_ber13$, $ad_ber14$, $ad_ber15$, $ad_ber16$, $ad_ber17$, $ad_ber18$, $ad_ber19$, $ad_ber20$, $ad_ber21$, $ad_ber22$, $ad_ber23$, $ad_ber24$, $ad_ber25$, $ad_ber26$, $ad_ber27$, $ad_ber28$, $ad_ber29$, $ad_ber30$, $ad_ber31$ ];
+-var ad_master = [ $ad_master0$, $ad_master1$, $ad_master2$, $ad_master3$, $ad_master4$, $ad_master5$, $ad_master6$, $ad_master7$, $ad_master8$, $ad_master9$, $ad_master10$, $ad_master11$, $ad_master12$, $ad_master13$, $ad_master14$, $ad_master15$, $ad_master16$, $ad_master17$, $ad_master18$, $ad_master19$, $ad_master20$, $ad_master21$, $ad_master22$, $ad_master23$, $ad_master24$, $ad_master25$, $ad_master26$, $ad_master27$, $ad_master28$, $ad_master29$, $ad_master30$, $ad_master31$ ];
+-var ad_pos = [ $ad_pos0$, $ad_pos1$, $ad_pos2$, $ad_pos3$, $ad_pos4$, $ad_pos5$, $ad_pos6$, $ad_pos7$, $ad_pos8$, $ad_pos9$, $ad_pos10$, $ad_pos11$, $ad_pos12$, $ad_pos13$, $ad_pos14$, $ad_pos15$, $ad_pos16$, $ad_pos17$, $ad_pos18$, $ad_pos19$, $ad_pos20$, $ad_pos21$, $ad_pos22$, $ad_pos23$, $ad_pos24$, $ad_pos25$, $ad_pos26$, $ad_pos27$, $ad_pos28$, $ad_pos29$, $ad_pos30$, $ad_pos31$ ];
+-var ad_freq = [ $ad_freq0$, $ad_freq1$, $ad_freq2$, $ad_freq3$, $ad_freq4$, $ad_freq5$, $ad_freq6$, $ad_freq7$, $ad_freq8$, $ad_freq9$, $ad_freq10$, $ad_freq11$, $ad_freq12$, $ad_freq13$, $ad_freq14$, $ad_freq15$, $ad_freq16$, $ad_freq17$, $ad_freq18$, $ad_freq19$, $ad_freq20$, $ad_freq21$, $ad_freq22$, $ad_freq23$, $ad_freq24$, $ad_freq25$, $ad_freq26$, $ad_freq27$, $ad_freq28$, $ad_freq29$, $ad_freq30$, $ad_freq31$ ];
+-var ad_pol = [ $ad_pol0$, $ad_pol1$, $ad_pol2$, $ad_pol3$, $ad_pol4$, $ad_pol5$, $ad_pol6$, $ad_pol7$, $ad_pol8$, $ad_pol9$, $ad_pol10$, $ad_pol11$, $ad_pol12$, $ad_pol13$, $ad_pol14$, $ad_pol15$, $ad_pol16$, $ad_pol17$, $ad_pol18$, $ad_pol19$, $ad_pol20$, $ad_pol21$, $ad_pol22$, $ad_pol23$, $ad_pol24$, $ad_pol25$, $ad_pol26$, $ad_pol27$, $ad_pol28$, $ad_pol29$, $ad_pol30$, $ad_pol31$ ];
+-var ad_sr = [ $ad_sr0$, $ad_sr1$, $ad_sr2$, $ad_sr3$, $ad_sr4$, $ad_sr5$, $ad_sr6$, $ad_sr7$, $ad_sr8$, $ad_sr9$, $ad_sr10$, $ad_sr11$, $ad_sr12$, $ad_sr13$, $ad_sr14$, $ad_sr15$, $ad_sr16$, $ad_sr17$, $ad_sr18$, $ad_sr19$, $ad_sr20$, $ad_sr21$, $ad_sr22$, $ad_sr23$, $ad_sr24$, $ad_sr25$, $ad_sr26$, $ad_sr27$, $ad_sr28$, $ad_sr29$, $ad_sr30$, $ad_sr31$ ];
+-var ad_bw = [ $ad_bw0$, $ad_bw1$, $ad_bw2$, $ad_bw3$, $ad_bw4$, $ad_bw5$, $ad_bw6$, $ad_bw7$, $ad_bw8$, $ad_bw9$, $ad_bw10$, $ad_bw11$, $ad_bw12$, $ad_bw13$, $ad_bw14$, $ad_bw15$, $ad_bw16$, $ad_bw17$, $ad_bw18$, $ad_bw19$, $ad_bw20$, $ad_bw21$, $ad_bw22$, $ad_bw23$, $ad_bw24$, $ad_bw25$, $ad_bw26$, $ad_bw27$, $ad_bw28$, $ad_bw29$, $ad_bw30$, $ad_bw31$ ];
+-var ad_diseqc = [ $ad_diseqc0$, $ad_diseqc1$, $ad_diseqc2$, $ad_diseqc3$, $ad_diseqc4$, $ad_diseqc5$, $ad_diseqc6$, $ad_diseqc7$, $ad_diseqc8$, $ad_diseqc9$, $ad_diseqc10$, $ad_diseqc11$, $ad_diseqc12$, $ad_diseqc13$, $ad_diseqc14$, $ad_diseqc15$, $ad_diseqc16$, $ad_diseqc17$, $ad_diseqc18$, $ad_diseqc19$, $ad_diseqc20$, $ad_diseqc21$, $ad_diseqc22$, $ad_diseqc23$, $ad_diseqc24$, $ad_diseqc25$, $ad_diseqc26$, $ad_diseqc27$, $ad_diseqc28$, $ad_diseqc29$, $ad_diseqc30$, $ad_diseqc31$ ];
+-var ad_snr = [ $ad_snr0$, $ad_snr1$, $ad_snr2$, $ad_snr3$, $ad_snr4$, $ad_snr5$, $ad_snr6$, $ad_snr7$, $ad_snr8$, $ad_snr9$, $ad_snr10$, $ad_snr11$, $ad_snr12$, $ad_snr13$, $ad_snr14$, $ad_snr15$, $ad_snr16$, $ad_snr17$, $ad_snr18$, $ad_snr19$, $ad_snr20$, $ad_snr21$, $ad_snr22$, $ad_snr23$, $ad_snr24$, $ad_snr25$, $ad_snr26$, $ad_snr27$, $ad_snr28$, $ad_snr29$, $ad_snr30$, $ad_snr31$ ];
+-var ad_phyad = [ $ad_phyad0$, $ad_phyad1$, $ad_phyad2$, $ad_phyad3$, $ad_phyad4$, $ad_phyad5$, $ad_phyad6$, $ad_phyad7$, $ad_phyad8$, $ad_phyad9$, $ad_phyad10$, $ad_phyad11$, $ad_phyad12$, $ad_phyad13$, $ad_phyad14$, $ad_phyad15$, $ad_phyad16$, $ad_phyad17$, $ad_phyad18$, $ad_phyad19$, $ad_phyad20$, $ad_phyad21$, $ad_phyad22$, $ad_phyad23$, $ad_phyad24$, $ad_phyad25$, $ad_phyad26$, $ad_phyad27$, $ad_phyad28$, $ad_phyad29$, $ad_phyad30$, $ad_phyad31$ ];
+-var ad_phyfd = [ $ad_phyfd0$, $ad_phyfd1$, $ad_phyfd2$, $ad_phyfd3$, $ad_phyfd4$, $ad_phyfd5$, $ad_phyfd6$, $ad_phyfd7$, $ad_phyfd8$, $ad_phyfd9$, $ad_phyfd10$, $ad_phyfd11$, $ad_phyfd12$, $ad_phyfd13$, $ad_phyfd14$, $ad_phyfd15$, $ad_phyfd16$, $ad_phyfd17$, $ad_phyfd18$, $ad_phyfd19$, $ad_phyfd20$, $ad_phyfd21$, $ad_phyfd22$, $ad_phyfd23$, $ad_phyfd24$, $ad_phyfd25$, $ad_phyfd26$, $ad_phyfd27$, $ad_phyfd28$, $ad_phyfd29$, $ad_phyfd30$, $ad_phyfd31$ ];
+-var ad_allsys = [ "$ad_allsys0$", "$ad_allsys1$", "$ad_allsys2$", "$ad_allsys3$", "$ad_allsys4$", "$ad_allsys5$", "$ad_allsys6$", "$ad_allsys7$", "$ad_allsys8$", "$ad_allsys9$", "$ad_allsys10$", "$ad_allsys11$", "$ad_allsys12$", "$ad_allsys13$", "$ad_allsys14$", "$ad_allsys15$", "$ad_allsys16$", "$ad_allsys17$", "$ad_allsys18$", "$ad_allsys19$", "$ad_allsys20$", "$ad_allsys21$", "$ad_allsys22$", "$ad_allsys23$", "$ad_allsys24$", "$ad_allsys25$", "$ad_allsys26$", "$ad_allsys27$", "$ad_allsys28$", "$ad_allsys29$", "$ad_allsys30$", "$ad_allsys31$" ];
+-var ad_pids = [ "$ad_pids0$", "$ad_pids1$", "$ad_pids2$", "$ad_pids3$", "$ad_pids4$", "$ad_pids5$", "$ad_pids6$", "$ad_pids7$", "$ad_pids8$", "$ad_pids9$", "$ad_pids10$", "$ad_pids11$", "$ad_pids12$", "$ad_pids13$", "$ad_pids14$", "$ad_pids15$", "$ad_pids16$", "$ad_pids17$", "$ad_pids18$", "$ad_pids19$", "$ad_pids20$", "$ad_pids21$", "$ad_pids22$", "$ad_pids23$", "$ad_pids24$", "$ad_pids25$", "$ad_pids26$", "$ad_pids27$", "$ad_pids28$", "$ad_pids29$", "$ad_pids30$", "$ad_pids31$" ];
+-var ad_satip = [ "$ad_satip0$", "$ad_satip1$", "$ad_satip2$", "$ad_satip3$", "$ad_satip4$", "$ad_satip5$", "$ad_satip6$", "$ad_satip7$", "$ad_satip8$", "$ad_satip9$", "$ad_satip10$", "$ad_satip11$", "$ad_satip12$", "$ad_satip13$", "$ad_satip14$", "$ad_satip15$", "$ad_satip16$", "$ad_satip17$", "$ad_satip18$", "$ad_satip19$", "$ad_satip20$", "$ad_satip21$", "$ad_satip22$", "$ad_satip23$", "$ad_satip24$", "$ad_satip25$", "$ad_satip26$", "$ad_satip27$", "$ad_satip28$", "$ad_satip29$", "$ad_satip30$", "$ad_satip31$" ];
+-var ad_axe_pktc = [$ad_axe_pktc0$, $ad_axe_pktc1$, $ad_axe_pktc2$, $ad_axe_pktc3$];
+-var ad_axe_ccerr = [$ad_axe_ccerr0$, $ad_axe_ccerr1$, $ad_axe_ccerr2$, $ad_axe_ccerr3$];
+-var ad_axe_coax = ["$ad_axe_coax0$", "$ad_axe_coax1$", "$ad_axe_coax2$", "$ad_axe_coax3$"];
+-var st_enabled	= [$st_enabled0$, $st_enabled1$, $st_enabled2$, $st_enabled3$, $st_enabled4$, $st_enabled5$, $st_enabled6$, $st_enabled7$, $st_enabled8$, $st_enabled9$, $st_enabled10$, $st_enabled11$, $st_enabled12$, $st_enabled13$, $st_enabled14$, $st_enabled15$ ];
+-var st_adapter	= [$st_adapter0$, $st_adapter1$, $st_adapter2$, $st_adapter3$, $st_adapter4$, $st_adapter5$, $st_adapter6$, $st_adapter7$, $st_adapter8$, $st_adapter9$, $st_adapter10$, $st_adapter11$, $st_adapter12$, $st_adapter13$, $st_adapter14$, $st_adapter15$ ];
+-var st_rport	= [$st_rport0$, $st_rport1$, $st_rport2$, $st_rport3$, $st_rport4$, $st_rport5$, $st_rport6$, $st_rport7$, $st_rport8$, $st_rport9$, $st_rport10$, $st_rport11$, $st_rport12$, $st_rport13$, $st_rport14$, $st_rport15$ ];
+-var st_rhost	= ["$st_rhost0$", "$st_rhost1$", "$st_rhost2$", "$st_rhost3$", "$st_rhost4$", "$st_rhost5$", "$st_rhost6$", "$st_rhost7$", "$st_rhost8$", "$st_rhost9$", "$st_rhost10$", "$st_rhost11$", "$st_rhost12$", "$st_rhost13$", "$st_rhost14$", "$st_rhost15$" ];
+-var st_pids		= ["$st_pids0$", "$st_pids1$", "$st_pids2$", "$st_pids3$", "$st_pids4$", "$st_pids5$", "$st_pids6$", "$st_pids7$", "$st_pids8$", "$st_pids9$", "$st_pids10$", "$st_pids11$", "$st_pids12$", "$st_pids13$", "$st_pids14$", "$st_pids15$" ];
+-var st_useragent = ["$st_useragent0$", "$st_useragent1$", "$st_useragent2$", "$st_useragent3$", "$st_useragent4$", "$st_useragent5$", "$st_useragent6$", "$st_useragent7$", "$st_useragent8$", "$st_useragent9$", "$st_useragent10$", "$st_useragent11$", "$st_useragent12$", "$st_useragent13$", "$st_useragent14$", "$st_useragent15$" ];
+-var st_play		= [$st_play0$, $st_play1$, $st_play2$, $st_play3$, $st_play4$, $st_play5$, $st_play6$, $st_play7$, $st_play8$, $st_play9$, $st_play10$, $st_play11$, $st_play12$, $st_play13$, $st_play14$, $st_play15$ ];
+-var key_enabled	= [$key_enabled0$, $key_enabled1$, $key_enabled2$, $key_enabled3$, $key_enabled4$, $key_enabled5$, $key_enabled6$, $key_enabled7$, $key_enabled8$, $key_enabled9$, $key_enabled10$, $key_enabled11$, $key_enabled12$, $key_enabled13$, $key_enabled14$, $key_enabled15$ ];
+-var key_hops	= [$key_hops0$, $key_hops1$, $key_hops2$, $key_hops3$, $key_hops4$, $key_hops5$, $key_hops6$, $key_hops7$, $key_hops8$, $key_hops9$, $key_hops10$, $key_hops11$, $key_hops12$, $key_hops13$, $key_hops14$, $key_hops15$ ];
+-var key_adapter	= [$key_adapter0$, $key_adapter1$, $key_adapter2$, $key_adapter3$, $key_adapter4$, $key_adapter5$, $key_adapter6$, $key_adapter7$, $key_adapter8$, $key_adapter9$, $key_adapter10$, $key_adapter11$, $key_adapter12$, $key_adapter13$, $key_adapter14$, $key_adapter15$ ];
+-var key_pmt	= [$key_pmt0$, $key_pmt1$, $key_pmt2$, $key_pmt3$, $key_pmt4$, $key_pmt5$, $key_pmt6$, $key_pmt7$, $key_pmt8$, $key_pmt9$, $key_pmt10$, $key_pmt11$, $key_pmt12$, $key_pmt13$, $key_pmt14$, $key_pmt15$ ];
+-var key_ecmtime	= [$key_ecmtime0$, $key_ecmtime1$, $key_ecmtime2$, $key_ecmtime3$, $key_ecmtime4$, $key_ecmtime5$, $key_ecmtime6$, $key_ecmtime7$, $key_ecmtime8$, $key_ecmtime9$, $key_ecmtime10$, $key_ecmtime11$, $key_ecmtime12$, $key_ecmtime13$, $key_ecmtime14$, $key_ecmtime15$ ];
+-var key_cardsystem = ["$key_cardsystem0$", "$key_cardsystem1$", "$key_cardsystem2$", "$key_cardsystem3$", "$key_cardsystem4$", "$key_cardsystem5$", "$key_cardsystem6$", "$key_cardsystem7$", "$key_cardsystem8$", "$key_cardsystem9$", "$key_cardsystem10$", "$key_cardsystem11$", "$key_cardsystem12$", "$key_cardsystem13$", "$key_cardsystem14$", "$key_cardsystem15$" ];
+-var key_reader	= ["$key_reader0$", "$key_reader1$", "$key_reader2$", "$key_reader3$", "$key_reader4$", "$key_reader5$", "$key_reader6$", "$key_reader7$", "$key_reader8$", "$key_reader9$", "$key_reader10$", "$key_reader11$", "$key_reader12$", "$key_reader13$", "$key_reader14$", "$key_reader15$" ];
+-var key_from	= ["$key_from0$", "$key_from1$", "$key_from2$", "$key_from3$", "$key_from4$", "$key_from5$", "$key_from6$", "$key_from7$", "$key_from8$", "$key_from9$", "$key_from10$", "$key_from11$", "$key_from12$", "$key_from13$", "$key_from14$", "$key_from15$" ];
+-var key_protocol = ["$key_protocol0$", "$key_protocol1$", "$key_protocol2$", "$key_protocol3$", "$key_protocol4$", "$key_protocol5$", "$key_protocol6$", "$key_protocol7$", "$key_protocol8$", "$key_protocol9$", "$key_protocol10$", "$key_protocol11$", "$key_protocol12$", "$key_protocol13$", "$key_protocol14$", "$key_protocol15$" ];
+-
+-var max_adapters = 32;
+-var max_streams	= 64;
+-var max_keys 	= 255;
+-var pol			= ["", "(V)", "(H)", "(R)", "(L)"];
+-var sys			= [ "", "dvbc", "dvbcb", "dvbt", "dss", "dvbs", "dvbs2", "dvbh", "isdbt", "isdbs", "isdbc", "atsc", "atscmh", "dmbth", "cmmb", "dab", "dvbt2", "turbo", "dvbcc", "dvbc2" ];
+-
+-var has_axe 	= $has_axe$;
+-
+-var myTable = "<table id='myTable' class='display cell-border compact' cellspacing='0' width='100%'>";
+-myTable += "<thead><tr><th>Tuner</th>";
+-myTable += "<th class=''>Status</th>";
+-myTable += "<th class='dt-right'>Pos.</th>";
+-myTable += "<th class='dt-right'>Frequency</th>";
+-myTable += "<th class='dt-right'>SR/BW</th>";
+-myTable += "<th class='dt-right'>Signal</th>";
+-if(has_axe)
+-{
+-myTable += "<th class='dt-right'>Packets</th>";
+-myTable += "<th class='dt-right'>CC Errors</th>";
+-myTable += "<th class='dt-right'>Coax Cable</th>";
++
++function getDebug(data) {
++	var s = "BW <strong>" + data.bw + "</strong>KB/s | " +
++	        "Total BW <strong>" + data.tbw + "</strong>MiB | " +
++	        "ns/read " + data.ns_read + " | " +
++	        "reads " + data.reads + " | " +
++	        "writes " + data.writes + " | ";
++	if (data.fwrites)
++	        s += "failed writes " + data.fwrites + " | ";
++	s += "tt <strong>" + data.tt + "</strong>ms";
++	return "<div class='dstate'>" + s + "</div>";
+ }
+-myTable += "<th class='dt-left'>Streams</th>";
+-myTable += "<th class='dt-left'>Cryptinfo</th>";
+-myTable += "</tr></thead><tbody>";
+-
+-for (var i = 0; i < max_adapters; i++) {
+-	if (ad_type[i] == 0)
+-		continue;
+-
+-	if (ad_enabled[i] == 1)
+-		myTable += "<tr valign='top'>";
+-	else
+-		myTable += "<tr style='opacity: 0.5;'>";
+-
+-	// TUNER
+-	myTable += "<td class='dt-right'>" + i + "</td>";
+-
+-	// STATUS
+-	var csys = "";
+-	if (ad_sys[i] == 0)
+-		csys = ad_allsys[i];
+-	else
+-		csys = sys[ad_sys[i]];
+-
+-	var tmpimg = csys.split(',');
+-	var sysimg = csys;
+-	if(tmpimg.length > 0)
+-		sysimg = tmpimg[0];
+-
+-	if (ad_enabled[i] == 1)
+-		myTable += "<td class='dt-right enabled'><img src='" + sysimg + ".png' title='" + csys + "' /><br />";
+-	else
+-		myTable += "<td class='dt-right disabled'>" + ad_allsys[i];
+-
+-	if (ad_type[i] == 1 || ad_type[i] == 3) {
+-		// myTable += "<small>(" + ad_phyad[i] + "," + ad_phyfd[i] +")</small>";
+-	} else {
+-		myTable += "<small>(" + ad_satip[i] + ")</small>";
++
++var pol = ["", "(V)", "(H)", "(R)", "(L)"];
++var sys = ["", "dvbc", "dvbcb", "dvbt", "dss", "dvbs", "dvbs2", "dvbh", "isdbt", "isdbs", "isdbc", "atsc", "atscmh", "dmbth", "cmmb", "dab", "dvbt2", "turbo", "dvbcc", "dvbc2"];
++
++function getTable(state) {
++
++	if (!state)
++		return '';
++
++	var myTable = '';
++	var max_adapters = state['ad_enabled'].length;
++	var max_streams = state['st_enabled'].length;
++	var max_keys = 'key_enabled' in state ? state['key_enabled'].length : 0;
++	var has_axe = state['has_axe'];
++
++	var myTable = "<table id='myTable' class='display cell-border compact' cellspacing='0' width='100%'>";
++	myTable += "<thead><tr><th>Tuner</th>";
++	myTable += "<th class=''>Status</th>";
++	myTable += "<th class='dt-right'>Pos.</th>";
++	myTable += "<th class='dt-right'>Frequency</th>";
++	myTable += "<th class='dt-right'>SR/BW</th>";
++	myTable += "<th class='dt-right'>Signal</th>";
++	if(state['has_axe'])
++	{
++		myTable += "<th class='dt-right'>Packets</th>";
++		myTable += "<th class='dt-right'>CC Errors</th>";
++		myTable += "<th class='dt-right'>Coax Cable</th>";
+ 	}
+-	myTable += "</td>";
+-
+-	// POSITION
+-	if ((ad_sys[i] == 5 || ad_sys[i] == 6) && ad_enabled[i])
+-		myTable += "<td class='dt-right'>" + ad_pos[i] + "</td>";
+-	else
+-		myTable += "<td class='dt-right'></td>";
+-
+-	// FREQUENCY
+-	if (ad_enabled[i])
+-		myTable += "<td class='dt-right'>" + ad_freq[i] + " "+pol[ad_pol[i]]+"</td>";
+-	else
+-		myTable += "<td class='dt-right'></td>";
+-
+-	if (ad_enabled[i] && (ad_sys[i] == 0 || ad_sys[i] == 1 || ad_sys[i] == 2 || ad_sys[i] == 5 || ad_sys[i] == 6 || ad_sys[i] == 18 || ad_sys[i] == 19))
+-		myTable += "<td class='dt-right'>" + ad_sr[i] + "</td>";
+-	else if (ad_enabled[i])
+-		myTable += "<td class='dt-right'>" + ad_bw[i]/1000 + "MHZ</td>";
+-	else
+-		myTable += "<td class='dt-right'></td>";
+-
+-	// SIGNAL
+-	var signal = "";
+-	if (ad_enabled[i] == 0) {
+-		signal = "<small>OFFLINE</small>";
+-	} else {
+-		var s1 = parseInt(ad_strength[i] / 2.55);
+-		signal = "<div class='level'>STR <div class='pBar' data-from='"+ s1 + "' data-to='" + s1 + "'></div> " + s1 + "%</div><br />";
+-
+-		if (ad_type[i] == 1 || ad_type[i] == 3)
+-			var s2 = parseInt(ad_snr[i] / 2.55);
++	myTable += "<th class='dt-left'>Streams</th>";
++	myTable += "<th class='dt-left'>Cryptinfo</th>";
++	myTable += "</tr></thead><tbody>";
++
++	for (var i = 0; i < max_adapters; i++) {
++		if (state['ad_type'][i] == 0)
++			continue;
++
++		if (state['ad_enabled'][i] == 1)
++			myTable += "<tr valign='top'>";
+ 		else
+-			var s2 = parseInt(ad_snr[i] / 0.15);
+-		signal += "<div class='level'>SNR <div class='pBar' data-from='"+ s2 + "' data-to='" + s2 + "'></div> " + s2 + "%</div><br />";
++			myTable += "<tr style='opacity: 0.5;'>";
+ 
+-		if (ad_ber[i] > 0)
+-			signal += "<div class='level'>BER <div class='pBar' data-from='"+ ad_ber[i] + "' data-to='" + ad_ber[i] + "' data-color='red'></div> " + ad_ber[i] + "</div><br />";
+-	}
+-	myTable += "<td class='dt-right'>" + signal + " </td>";
++		// TUNER
++		myTable += "<td class='dt-right'>" + i + "</td>";
+ 
+-	if(has_axe)
+-	{
+-		myTable += "<td class='dt-right'>" + ad_axe_pktc[i] + " </td>";
+-		myTable += "<td class='dt-right'>" + ad_axe_ccerr[i] + " </td>";
+-		myTable += "<td class='dt-right'>" + ad_axe_coax[i] + " </td>";	}
+-
+-	// STREAMS
+-	myTable += "<td class='dt-left'>";
+-	for (var j = 0; j < max_streams; j++) {
+-		if (st_enabled[j] == 1 && st_adapter[j] == i) {
+-			var st_rh = st_rhost[j]+":"+st_rport[j];
+-			if (ad_master[i] == j)
+-				st_rh = "<b>"+st_rh+"</b>";
+-			if (st_play[j] == 0)
+-				st_rh = "<i>"+st_rh+"</i>";
+-			myTable += st_rh + "<br />";
+-			if (st_useragent[j] != "")
+-				myTable += "<small>Client: " + st_useragent[j] + "</small><br />";
++		// STATUS
++		var csys = "";
++		if (state['ad_sys'][i] == 0)
++			csys = state['ad_allsys'][i];
++		else
++			csys = sys[state['ad_sys'][i]];
++
++		var tmpimg = csys.split(',');
++		var sysimg = csys;
++		if(tmpimg.length > 0)
++			sysimg = tmpimg[0];
++			
++		var ad_enabled = state['ad_enabled'][i];
++		var ad_type = state['ad_type'][i];
++		var ad_sys = state['ad_sys'][i];
++
++		if (ad_enabled)
++			myTable += "<td class='dt-right enabled'><img src='" + sysimg + ".png' title='" + csys + "' /><br />";
++		else
++			myTable += "<td class='dt-right disabled'>" + state['ad_allsys'][i];
++
++		if (ad_type == 1 || ad_type == 3) {
++			// myTable += "<small>(" + state['ad_phyad'][i] + "," + state['ad_phyfd'][i] +")</small>";
++		} else {
++			myTable += "<small>(" + state['ad_satip'][i] + ")</small>";
+ 		}
+-	}
+-	for (var j = 0; j < max_streams; j++) {
+-		if (st_enabled[j] == 1 && st_adapter[j] == i) {
+-			var st_p = st_pids[j];
+-			if (ad_master[i] == j)
+-				st_p = "" + st_p + "";
+-			if (st_play[j] == 0)
+-				st_p = "<i>" + st_p + "</i>";
+-			myTable += "<small>Pids: " + st_p + "</small><br />";
++		myTable += "</td>";
++
++		// POSITION
++		if ((ad_sys == 5 || ad_sys == 6) && ad_enabled)
++			myTable += "<td class='dt-right'>" + state['ad_pos'][i] + "</td>";
++		else
++			myTable += "<td class='dt-right'></td>";
++
++		// FREQUENCY
++		if (ad_enabled)
++			myTable += "<td class='dt-right'>" +state['ad_freq'][i] + " "+pol[state['ad_pol'][i]]+"</td>";
++		else
++			myTable += "<td class='dt-right'></td>";
++
++		if (ad_enabled && (ad_sys == 0 || ad_sys == 1 || ad_sys == 2 || ad_sys == 5 || ad_sys == 6 || ad_sys == 18 || ad_sys == 19))
++			myTable += "<td class='dt-right'>" + state['ad_sr'][i] + "</td>";
++		else if (ad_enabled)
++			myTable += "<td class='dt-right'>" + state['ad_bw'][i]/1000 + "MHZ</td>";
++		else
++			myTable += "<td class='dt-right'></td>";
++
++		// SIGNAL
++		var signal = "";
++		if (!ad_enabled) {
++			signal = "<small>OFFLINE</small>";
++		} else {
++			var sig = parseInt(state['ad_strength'][i] / 2.55);
++			var sig0 = Math.max(0, sig - 10);
++			signal = "<div class='level'>STR <div class='pBar' data-from='"+ sig0 + "' data-to='" + sig + "'></div> " + sig + "%</div><br />";
++
++			if (ad_type == 1 || ad_type == 3)
++				var snr = parseInt(state['ad_snr'][i] / 2.55);
++			else
++				var snr = parseInt(state['ad_snr'][i] / 0.15);
++			var snr0 = Math.max(0, snr - 10);
++			signal += "<div class='level'>SNR <div class='pBar' data-from='"+ snr0 + "' data-to='" + snr + "'></div> " + snr + "%</div><br />";
++
++			var ber = state['ad_ber'][i];
++			if (ber > 0)
++				signal += "<div class='level'>BER <div class='pBar' data-from='"+ ber + "' data-to='" + ber + "' data-color='red'></div> " + ber + "</div><br />";
+ 		}
+-	}
+-	myTable +="</td>";
+-
+-	// CRYPT
+-	myTable +="<td class=''><small>";
+-	for (var j = 0; j < max_keys; j++)
+-		if (key_enabled[j] == 1 && key_adapter[j] == i) {
+-			myTable += "SYSTEM: " + key_cardsystem[j] + "<br />";
+-			myTable += "PMT: " + key_pmt[j] + "<br />";
+-			myTable += "ECMTIME: " + key_ecmtime[j] + "<br />";
+-			myTable += "READER: " + key_reader[j] + "<br />";
+-			myTable += "IP: " + key_from[j] + " (" + key_protocol[j] + ")<br /><br />";
++		myTable += "<td class='dt-right'>" + signal + " </td>";
++
++		if(has_axe)
++		{
++			myTable += "<td class='dt-right'>" + state['ad_axe_pktc'][i] + " </td>";
++			myTable += "<td class='dt-right'>" + state['ad_axe_ccerr'][i] + " </td>";
++			myTable += "<td class='dt-right'>" + state['ad_axe_coax'][i] + " </td>";	}
++
++		// STREAMS
++		myTable += "<td class='dt-left'>";
++		for (var j = 0; j < max_streams; j++) {
++			if (state['st_enabled'][j] == 1 && state['st_adapter'][j] == i) {
++				var st_rh = state['st_rhost'][j]+":"+state['st_rport'][j];
++				if (state['ad_master'][i] == j)
++					st_rh = "<b>"+st_rh+"</b>";
++				if (state['st_play'][j] == 0)
++					st_rh = "<i>"+st_rh+"</i>";
++				myTable += st_rh + "<br />";
++				if (state['st_useragent'][j] != "")
++					myTable += "<small>Client: " + state['st_useragent'][j] + "</small><br />";
++			}
+ 		}
+-	myTable +="</small></td></tr>";
+-}
+-myTable+="</tbody></table>";
++		for (var j = 0; j < max_streams; j++) {
++			if (state['st_enabled'][j] == 1 && state['st_adapter'][j] == i) {
++				var st_p = state['st_pids'][j];
++				if (state['ad_master'][i] == j)
++					st_p = "" + st_p + "";
++				if (state['st_play'][j] == 0)
++					st_p = "<i>" + st_p + "</i>";
++				myTable += "<small>Pids: " + st_p + "</small><br />";
++			}
++		}
++		myTable +="</td>";
++
++		// CRYPT
++		myTable +="<td class=''><small>";
++		for (var j = 0; j < max_keys; j++)
++			if (state['key_enabled'][j] == 1 && state['key_adapter'][j] == i) {
++				myTable += "SYSTEM: " + state['key_cardsystem'][j] + "<br />";
++				myTable += "PMT: " + state['key_pmt'][j] + "<br />";
++				myTable += "ECMTIME: " + state['key_ecmtime'][j] + "<br />";
++				myTable += "READER: " + state['key_reader'][j] + "<br />";
++				myTable += "IP: " + state['key_from'][j] + " (" + state['key_protocol'][j] + ")<br /><br />";
++			}
++		myTable +="</small></td></tr>";
++	}
+ 
++	myTable += "</tbody></table>";
++	return myTable;
++}
+ 
+ var pcurrent = 1;
+ var pvalues = [5, 10, 15, 30, 60, 300 ];
+ var prefresh;
++var stats = 0;
++var statsrefresh;
++var table = null;
+ 
+ var hashTag = location.hash;
+ if (typeof hashTag.split('#')[1] !== "undefined") {
+@@ -262,30 +273,27 @@ if (typeof hashTag.split('#')[1] !== "undefined") {
+ 	}
+ }
+ 
+-function reloadPage() {
+-	$("#pintervall").val( pvalues[pcurrent] );
+-
+-	clearInterval(prefresh);
+-
+-	prefresh = setInterval(function () {
+-		var url = location.origin + location.pathname + "#" + pcurrent;
+-		location.href = url;
+-		location.reload(true); // force reload
+-	}, pvalues[pcurrent] * 1000);
++function updateStats() {
++	$.post("bandwidth.json", function(data, status) {
++		if (status !== "success") return;
++		$("#statsarea").html(getDebug(data));
++	}).fail(function() {
++		$("#statsarea").html("No data from server");
++	});
+ }
+ 
+-$(document).ready(function() {
+-	console.log("minisatip status: " + Date());
+-
+-	var el = document.createElement('div');
+-	el.innerHTML = myTable;
+-	document.body.appendChild(el);
+-
+-	$('#myTable').DataTable({
++function renewTable(data) {
++	if (table)
++		table.destroy();
++	document.title = "Minisatip/" + data['version'] + " on " + data['http_host'];
++	$('#table').html(getTable(data));
++	table = $('#myTable').DataTable({
+ 		"paging":	false,
+ 		"bFilter":	false,
+ 		"ordering":	true,
+ 		"info":		false,
++		"stateSave":	true,
++		"stateDuration": -1,
+ 		"columnDefs": [
+ 			{ "width": "40px", "targets": 0 },
+ 			{ "width": "40px", "targets": 1 },
+@@ -300,8 +308,32 @@ $(document).ready(function() {
+ 			"emptyTable": "No tuner found/active"
+ 		}
+ 	});
+-
+ 	$(".pBar").pBar();
++}
++
++function getData() {
++	$.post("state.json", function(data, status) {
++		if (status === "success") {
++			renewTable(data);
++		}
++	}).fail(function() {
++		if (table)
++			table.clear().draw();
++	});
++}
++
++function reloadPage() {
++	$("#pintervall").val( pvalues[pcurrent] );
++
++	clearInterval(prefresh);
++
++	prefresh = setInterval(getData, pvalues[pcurrent] * 1000);
++}
++
++$(document).ready(function() {
++	$("#table").html("Loading...");
++	
++	document.title = "Minisatip on " + document.location.hostname;
+ 
+ 	$("#pdec").click(function() {
+ 		if (pcurrent > 0) {
+@@ -329,6 +361,20 @@ $(document).ready(function() {
+ 		}
+ 	});
+ 
++	$("#stats").click(function() {
++		stats ^= 1;
++		$("#stats").html("Stats " + (stats ? "OFF" : "ON"));
++		if (stats) {
++			updateStats();
++			statsrefresh = setInterval(updateStats, 500);
++		} else {
++			clearInterval(statsrefresh);
++			$("#statsarea").html("");
++		}
++	});
++
++
++	getData();
+ 	reloadPage();
+ });
+ 
 diff --git a/minisatip.c b/minisatip.c
-index 840ad20..df140fa 100755
+index 71b4881..a645854 100755
 --- a/minisatip.c
 +++ b/minisatip.c
-@@ -72,7 +72,7 @@ static const struct option long_options[] =
- 	{ "jess", required_argument, NULL, 'j' },
- 	{ "diseqc", required_argument, NULL, 'd' },
- 	{ "diseqc-timing", required_argument, NULL, 'q' },
--	{"nopm", required_argument, NULL, 'Z'},
-+	{ "nopm", required_argument, NULL, 'Z' },
- #ifndef DISABLE_DVBAPI
- 	{ "dvbapi", required_argument, NULL, 'o' },
- #endif
-@@ -473,10 +473,9 @@ void set_options(int argc, char *argv[])
- #endif
- 
+@@ -482,7 +482,7 @@ void set_options(int argc, char *argv[])
  #ifdef AXE
--	opts.nopm = 1;
  	opts.no_threads = 1;
  	opts.axe_skippkt = 35;
 -	opts.document_root = "/usr/share/minisatip/html";
@@ -137,8 +571,91 @@ index 840ad20..df140fa 100755
  #define AXE_OPTS "7:QW:M:8:A:"
  #else
  #define AXE_OPTS ""
+@@ -1024,7 +1024,7 @@ int read_rtsp(sockets * s)
+ 												arg[1], getTick(), (getTickUs() / 1000000));
+ 		}
+ 		if (buf[0] == 0 && sid->type == STREAM_HTTP)
+-			snprintf(buf, sizeof(buf), "Content-Type: video/mp2t");
++			snprintf(buf, sizeof(buf), "Content-Type: video/mp2t\r\nConnection: close");
+ 		http_response(s, 200, buf, NULL, cseq, 0, end);
+ 	}
+ 	else if (strncmp(arg[0], "TEARDOWN", 8) == 0)
+@@ -1066,6 +1066,8 @@ int read_rtsp(sockets * s)
+ 
+ #define REPLY_AND_RETURN(c) {http_response (s, c, NULL, NULL, 0, 0, 1); return 0;}
+ 
++#define JSON_STATE_MAXLEN (128*1024)
++
+ char uuid[100];
+ int uuidi;
+ struct sockaddr_in ssdp_sa;
+@@ -1134,6 +1136,8 @@ int read_http(sockets * s)
+ 		return 0;
+ 	}
+ 
++	sockets_timeout(s->id, 1); //close the connection
++
+ 	if(!strncasecmp((const char*) s->buf, "HEAD ", 5))
+ 		is_head = 1;
+ 
+@@ -1149,13 +1153,11 @@ int read_http(sockets * s)
+ 
+ 	split(arg, (char*) s->buf, 50, ' ');
+ //      LOG("args: %s -> %s -> %s",arg[0],arg[1],arg[2]);
+-	if (strncmp(arg[0], "GET", 3) && !is_head)
++	if (strncmp(arg[0], "GET", 3) && strncmp(arg[0], "POST", 4))
+ 		REPLY_AND_RETURN(503);
+ 	if (uuidi == 0)
+ 		ssdp_discovery(s);
+ 
+-	sockets_timeout(s->id, 1); //close the connection
+-
+ 	if (strcmp(arg[1], "/"DESC_XML) == 0)
+ 	{
+ 		extern int tuner_s2, tuner_t, tuner_c, tuner_t2, tuner_c2;
+@@ -1179,11 +1181,29 @@ int read_http(sockets * s)
+ 		snprintf(buf, sizeof(buf), xml, app_name, app_name, app_name, uuid,
+ 											opts.http_host, adapters, opts.playlist);
+ 		sprintf(headers,
+-										"CACHE-CONTROL: no-cache\r\nContent-type: text/xml\r\nX-SATIP-RTSP-Port: %d",
++										"Cache-Control: no-cache\r\nContent-type: text/xml\r\nX-SATIP-RTSP-Port: %d\r\nConnection: close",
+ 										opts.rtsp_port);
+ 		http_response(s, 200, headers, buf, 0, 0, 1);
+ 		return 0;
+ 	}
++
++	if (strcmp(arg[1], "/state.json") == 0)
++	{
++		char *buf = malloc(JSON_STATE_MAXLEN);
++		int len = get_json_state(buf, JSON_STATE_MAXLEN);
++		http_response(s, 200, "Content-Type: application/json\r\nConnection: close", buf, 0, len, 1);
++		free(buf);
++		return 0;
++	}
++
++	if (strcmp(arg[1], "/bandwidth.json") == 0)
++	{
++		char buf[1024];
++		int len = get_json_bandwidth(buf, sizeof(buf));
++		http_response(s, 200, "Content-Type: application/json\r\nConnection: close", buf, 0, len, 1);
++		return 0;
++	}
++
+ // process file from html directory, the images are just sent back
+ 
+ 	if (!strcmp(arg[1], "/"))
+@@ -1206,8 +1226,7 @@ int read_http(sockets * s)
+ 			http_response(s, 200, ctype, NULL, 0, 0, 1);
+ 			return 0;
+ 		}
+-		if (strstr(ctype, "image") || strstr(ctype, "css")
+-						|| strstr(ctype, "javascript") || strstr(ctype, "octet-stream"))
++		if (strstr(ctype, "no-cache") == NULL)
+ 		{
+ 			http_response(s, 200, ctype, f, 0, nl, 1);
+ 			closefile(f, nl);
 diff --git a/minisatip.h b/minisatip.h
-index 88f47dc..1e01778 100644
+index a242532..137f50b 100644
 --- a/minisatip.h
 +++ b/minisatip.h
 @@ -10,7 +10,7 @@
@@ -146,154 +663,276 @@ index 88f47dc..1e01778 100644
  #define VERSION_BUILD "4"
  #define CC(a,b,c) #a b #c
 -#define VERSION CC(0.7.,VERSION_BUILD,)
-+#define VERSION CC(0.7.,VERSION_BUILD,-axe202)
++#define VERSION CC(0.7.,VERSION_BUILD,-axe203)
  
  void set_options (int argc, char *argv[]);
  
-diff --git a/socketworks.c b/socketworks.c
-index 0c40830..b4ba864 100755
---- a/socketworks.c
-+++ b/socketworks.c
-@@ -1178,7 +1178,7 @@ int alloc_snpacket(SNPacket *p, int len)
- int sockets_writev(int sock_id, struct iovec *iov, int iovcnt)
- {
- 	int rv = 0, i, pos = 0, len;
--	unsigned char tmpbuf[1500];
-+	unsigned char tmpbuf[(STREAMS_BUFFER*3)/2];
- 	struct iovec tmpiov;
- 	sockets *s = get_sockets(sock_id);
- 	if(!s)
-@@ -1197,7 +1197,8 @@ int sockets_writev(int sock_id, struct iovec *iov, int iovcnt)
- 		{
- 			for(i=0; i<iovcnt; i++)
- 			{
--				memcpy(tmpbuf + pos, iov[i].iov_base, iov[i].iov_len);
-+				if (rv < pos + iov[i].iov_len)
-+					memcpy(tmpbuf + pos, iov[i].iov_base, iov[i].iov_len);
- 				pos += iov[i].iov_len;
- 			}
- 			LOGL(3, "incomplete write it %d, setting the buffer at offset %d and length %d from %d", s->iteration, rv, len - rv, len);
 diff --git a/stream.c b/stream.c
-index e69725b..443d618 100755
+index 374488a..c80a3a0 100755
 --- a/stream.c
 +++ b/stream.c
-@@ -695,14 +695,17 @@ int send_rtcp(int s_id, int64_t ctime)
+@@ -47,7 +47,7 @@
  
- void flush_streamb(streams * sid, unsigned char *buf, int rlen, int64_t ctime)
- {
--	int i, rv = 0;
-+	int i, rv = 0, blen, len;
+ extern struct struct_opts opts;
+ streams *st[MAX_STREAMS];
+-SMutex st_mutex;
++SMutex st_mutex, bw_mutex;
+ extern int tuner_s2, tuner_t, tuner_c, tuner_t2, tuner_c2;
  
- 	if (sid->type == STREAM_HTTP)
- 		rv = sockets_write(sid->rsock_id, buf, rlen);
--	else
--		for (i = 0; i < rlen; i += DVB_FRAME * 7)
--			rv += send_rtpb(sid, &buf[i],
--																			((rlen - i) > DVB_FRAME * 7) ? DVB_FRAME * 7 : (rlen - i));
-+	else {
-+		blen = sid->type == STREAM_RTSP_TCP ? TCP_STREAMS_BUFFER : UDP_STREAMS_BUFFER;
-+		for (i = 0; i < rlen; i += blen) {
-+			len = ((rlen - i) > blen) ? blen : (rlen - i);
-+			rv += send_rtpb(sid, &buf[i], len);
+ char *describe_streams(sockets *s, char *req, char *sbuf, int size)
+@@ -545,6 +545,10 @@ int64_t tbw, bw, bwtt;
+ uint32_t reads, writes, failed_writes;
+ int64_t nsecs;
+ 
++int64_t c_tbw, c_bw;
++uint32_t c_reads, c_writes, c_failed_writes;
++int64_t c_ns_read, c_tt;
++
+ uint64_t last_sd;
+ 
+ int send_rtp(streams * sid, const struct iovec *iov, int liov)
+@@ -1078,10 +1082,21 @@ int calculate_bw(sockets *s)
+ 		tbw += bw;
+ 		if (!reads)
+ 			reads = 1;
+-		if (bw > 2000)
++		if (bw > 2000) {
++			mutex_init(&bw_mutex);
++			mutex_lock(&bw_mutex);
++			c_bw = bw / 1024;
++			c_tbw = tbw / 1024576;
++			c_ns_read = nsecs / reads;
++			c_reads = reads;
++			c_writes = writes;
++			c_failed_writes = failed_writes;
++			c_tt = nsecs / 1000;
+ 			LOG(
+ 				"BW %jdKB/s, Total BW: %jd MB, ns/read %jd, r: %d, w: %d fw: %d, tt: %jd ms",
+-				bw / 1024, tbw / 1024576, nsecs / reads, reads, writes, failed_writes, nsecs / 1000);
++				c_bw, c_tbw, c_ns_read, c_reads, c_writes, c_failed_writes, c_tt);
++			mutex_unlock(&bw_mutex);
 +		}
-+	}
- 
- 	sid->iiov = 0;
- 	sid->wtime = ctime;
-@@ -794,7 +797,7 @@ int check_new_transponder(adapter *ad, int rlen)
- 
- int process_packet(unsigned char *b, adapter *ad)
- {
--	int j, cc;
-+	int j, cc, max_pack;
- 	SPid *p;
- 	int _pid = (b[1] & 0x1f) * 256 + b[2];
- 	streams *sid;
-@@ -824,7 +827,7 @@ int process_packet(unsigned char *b, adapter *ad)
- 
- 	if (p->cc != cc)
- 	{
--		LOGL(5, "PID Continuity error (adapter %d): pid: %03d, Expected CC: %X, Actual CC: %X",
-+		LOGL(1, "PID Continuity error (adapter %d): pid: %03d, Expected CC: %X, Actual CC: %X",
- 							ad->id, _pid, p->cc, cc);
- 		p->err++;
- 	}
-@@ -864,16 +867,17 @@ int process_packet(unsigned char *b, adapter *ad)
- 	{
- 		if ((sid = get_sid(p->sid[j])) && sid->do_play)
- 		{
--			if (sid->iiov > 7)
-+			max_pack = sid->type == STREAM_RTSP_TCP ? TCP_MAX_PACK : UDP_MAX_PACK;
-+			if (sid->iiov > max_pack)
- 			{
- 				LOG(
--					"ERROR: possible writing outside of allocated space iiov > 7 for SID %d PID %d",
--					sid->sid, _pid);
-+					"ERROR: possible writing outside of allocated space iiov > %d for SID %d PID %d",
-+					MAX_PACK, sid->sid, _pid);
- 				sid->iiov = 6;
- 			}
- 			sid->iov[sid->iiov].iov_base = b;
- 			sid->iov[sid->iiov++].iov_len = DVB_FRAME;
--			if (sid->iiov >= 7)
-+			if (sid->iiov >= max_pack)
- 				flush_streami(sid, rtime);
- 		}
- 	}
-@@ -906,7 +910,7 @@ int process_dmx(sockets * s)
- #ifndef DISABLE_TABLES
- 	process_stream(ad, rlen);
- #else
--	if (ad->sid_cnt == 1 && ad->master_sid >= 0 && opts.log < 2) // we have just 1 stream, do not check the pids, send everything to the destination
-+	if (ad->sid_cnt == 1 && ad->master_sid >= 0) // we have just 1 stream, do not check the pids, send everything to the destination
- 	{
- 		sid = get_sid(ad->master_sid);
- 		if (!sid || sid->enabled != 1)
+ 		bw = 0;
+ 		failed_writes = 0;
+ 		nsecs = 0;
+@@ -1348,10 +1363,10 @@ _symbols stream_sym[] =
+ 	{ "st_useragent", VAR_AARRAY_STRING, st, 1, MAX_STREAMS, offsetof(
+ 				streams, useragent) },
+ 	{ "st_rhost", VAR_FUNCTION_STRING, (void *) &get_stream_rhost,
+-			0, 0, 0 },
++			0, MAX_STREAMS, 0 },
+ 	{ "st_rport", VAR_FUNCTION_INT, (void *) &get_stream_rport, 0,
+-			0, 0 },
++			MAX_STREAMS, 0 },
+ 	{ "st_pids", VAR_FUNCTION_STRING, (void *) &get_stream_pids, 0,
+-			0, 0 },
++			MAX_STREAMS, 0 },
+ 	{ NULL, 0, NULL, 0, 0 }
+ };
 diff --git a/stream.h b/stream.h
-index f8bfeda..05e9f09 100644
+index 05e9f09..15414e2 100644
 --- a/stream.h
 +++ b/stream.h
-@@ -7,12 +7,17 @@
- 
- #define MAX_STREAMS 100
- #define DVB_FRAME 188
--#define STREAMS_BUFFER 7*DVB_FRAME
-+#define TCP_RTP_CHUNKS 20
-+#define UDP_STREAMS_BUFFER (7 * DVB_FRAME)
-+#define TCP_STREAMS_BUFFER (TCP_RTP_CHUNKS * UDP_STREAMS_BUFFER)
-+#define STREAMS_BUFFER TCP_STREAMS_BUFFER
- 
- #define STREAM_HTTP 1
- #define STREAM_RTSP_UDP 2
- #define STREAM_RTSP_TCP 3
--#define MAX_PACK 7				 // maximum rtp packets to buffer
-+#define UDP_MAX_PACK 7 // maximum udp rtp packets to buffer
-+#define TCP_MAX_PACK (TCP_RTP_CHUNKS * UDP_MAX_PACK)
-+#define MAX_PACK TCP_MAX_PACK
- #define LEN_PIDS (MAX_PIDS * 5 + 1)
- 
- typedef struct struct_streams
+@@ -87,4 +87,9 @@ int unlock_streams_for_adapter(int aid);
+ #define get_sid(a) get_sid1(a, __FILE__, __LINE__)
+ #define get_sid_for(i) ((st[i] && st[i]->enabled)?st[i]:NULL)
+ #define get_sid_nw(i) ((i>=0 && i<MAX_STREAMS && st[i] && st[i]->enabled)?st[i]:NULL)
++
++extern int64_t c_tbw, c_bw;
++extern uint32_t c_reads, c_writes, c_failed_writes;
++extern int64_t c_ns_read, c_tt;
++
+ #endif
 diff --git a/utils.c b/utils.c
-index ef3d568..7629891 100755
+index 953ebe1..0e4c223 100755
 --- a/utils.c
 +++ b/utils.c
-@@ -472,7 +472,7 @@ extern int run_loop;
+@@ -758,10 +758,125 @@ int snprintf_pointer(char *dest, int max_len, int type, void *p,
+ 		nb = snprintf(dest, max_len, "0x%x", (int) ((*(int *) p) * multiplier));
+ 		break;
+ 	}
++	if (nb > max_len) /* see man 'snprintf' */
++		nb = max_len;
+ 	return nb;
+ }
  
- void posix_signal_handler(int sig, siginfo_t * siginfo, ucontext_t * ctx)
- {
--	int sp = 0, ip = 0;
-+	uint64_t sp = 0, ip = 0;
+-char zero[16];
++char zero[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
++
++int get_json_state(char *buf, int len)
++{
++	int ptr = 0, first = 1, i, j, off, string;
++	_symbols *p;
++
++	strlcatf(buf, len, ptr, "{\n");
++	for (i = 0; sym[i] != NULL; i++) {
++		for (j = 0; sym[i][j].name; j++) {
++			p = sym[i] + j;
++			strlcatf(buf, len, ptr, first ? "\"%s\":" : ",\n\"%s\":", p->name);
++			string = 0;
++			switch (p->type) {
++			case VAR_STRING:
++			case VAR_PSTRING:
++			case VAR_HEX:
++			case VAR_AARRAY_STRING:
++			case VAR_AARRAY_PSTRING: string = 1; break;
++			}
++			if (p->type < VAR_ARRAY)
++			{
++				if (string) strlcatf(buf, len, ptr, "\"");
++				ptr += snprintf_pointer(buf + ptr, len - ptr, p->type, p->addr, p->multiplier);
++				if (string) strlcatf(buf, len, ptr, "\"");
++			}
++			else if ((p->type & 0xF0) == VAR_ARRAY)
++			{
++				strlcatf(buf, len, ptr, "[");
++				for (off = 0; off < p->len; off++) {
++					if (string) strlcatf(buf, len, ptr, off > 0 ? ",\"" : "\"");
++					ptr += snprintf_pointer(buf + ptr, len - ptr, p->type,
++								((char *)p->addr) + off + p->skip, p->multiplier);
++					if (string) strlcatf(buf, len, ptr, "\"");
++				}
++				strlcatf(buf, len, ptr, "]");
++			}
++			else if ((sym[i][j].type & 0xF0) == VAR_AARRAY)
++			{
++				strlcatf(buf, len, ptr, "[");
++				for (off = 0; off < p->len; off++) {
++					char **p1 = (char **) p->addr;
++					if (string)
++						strlcatf(buf, len, ptr, off > 0 ? ",\"" : "\"");
++					else if (off > 0)
++						strlcatf(buf, len, ptr, ",");
++					ptr += snprintf_pointer(buf + ptr, len - ptr, p->type,
++								p1[off] ? p1[off] + p->skip : zero, p->multiplier);
++					if (string) strlcatf(buf, len, ptr, "\"");
++				}
++				strlcatf(buf, len, ptr, "]");
++			}
++			else if (sym[i][j].type == VAR_FUNCTION_INT)
++			{
++				get_data_int funi = (get_data_int) p->addr;
++				strlcatf(buf, len, ptr, "[");
++				for (off = 0; off < p->len; off++) {
++					int storage = funi(off);
++					if (off > 0) strlcatf(buf, len, ptr, ",");
++					ptr += snprintf_pointer(buf + ptr, len - ptr, p->type, &storage, 1);
++				}
++				strlcatf(buf, len, ptr, "]");
++			}
++			else if (sym[i][j].type == VAR_FUNCTION_INT64)
++			{
++				get_data_int64 fun64 = (get_data_int64) p->addr;
++				strlcatf(buf, len, ptr, "[");
++				for (off = 0; off < p->len; off++) {
++					int64_t storage = fun64(off);
++					if (off > 0) strlcatf(buf, len, ptr, ",");
++					ptr += snprintf_pointer(buf + ptr, len - ptr, p->type, &storage, 1);
++				}
++				strlcatf(buf, len, ptr, "]");
++			}
++			else if (sym[i][j].type == VAR_FUNCTION_STRING)
++			{
++				char storage[64 * 5]; // variable max len
++				get_data_string funs = (get_data_string) p->addr;
++				strlcatf(buf, len, ptr, "[");
++				for (off = 0; off < p->len; off++) {
++					funs(off, storage, sizeof(storage));
++					strlcatf(buf, len, ptr, off > 0 ? ",\"%s\"" : "\"%s\"", storage);
++				}
++				strlcatf(buf, len, ptr, "]");
++			} else {
++				strlcatf(buf, len, ptr, "\"\"");
++			}
++			first = 0;
++		}
++	}
++	strlcatf(buf, len, ptr, "\n}\n");
++	return ptr;
++}
++
++extern SMutex bw_mutex;
++
++int get_json_bandwidth(char *buf, int len)
++{
++	int ptr = 0;
++	mutex_init(&bw_mutex);
++	mutex_lock(&bw_mutex);
++	strlcatf(buf, len, ptr, "\
++{\n\
++\"bw\":%jd,\n\
++\"tbw\":%jd,\n\
++\"reads\":%u,\n\
++\"writes\":%u,\n\
++\"fwrites\":%u,\n\
++\"ns_read\":%jd,\n\
++\"tt\":%jd\n\
++}", c_bw, c_tbw, c_reads, c_writes, c_failed_writes, c_ns_read, c_tt);
++	mutex_unlock(&bw_mutex);
++	return ptr;
++}
  
- 	if (sig == SIGINT)
+ void * get_var_address(char *var, float *multiplier, int * type, void *storage,
+ 																							int ls)
+@@ -797,7 +912,6 @@ void * get_var_address(char *var, float *multiplier, int * type, void *storage,
+ 
+ 						if (!p)
+ 						{
+-							memset(zero, 0, sizeof(zero));
+ 							p = zero;
+ 						}
+ 						else
+@@ -949,20 +1063,23 @@ char *readfile(char *fn, char *ctype, int *len)
+ 	if (ctype)
  	{
-@@ -483,6 +483,10 @@ void posix_signal_handler(int sig, siginfo_t * siginfo, ucontext_t * ctx)
- 	sp = ctx->uc_mcontext.gregs[29];
- 	ip = ctx->uc_mcontext.pc;
- #endif
-+#ifdef __sh__
-+	sp = ctx->uc_mcontext.pr;
-+	ip = ctx->uc_mcontext.pc;
-+#endif
- 	printf("RECEIVED SIGNAL %d - SP=%lX IP=%lX\n", sig, (long unsigned int) sp,
- 								(long unsigned int) ip);
+ 		if (endswith(fn, "png"))
+-			strcpy(ctype, "Content-type: image/png\r\nConnection: close");
++			strcpy(ctype, "Cache-Control: max-age=3600\r\nContent-type: image/png\r\nConnection: close");
+ 		else if (endswith(fn, "jpg") || endswith(fn, "jpeg"))
+-			strcpy(ctype, "Content-type: image/jpeg\r\nConnection: close");
++			strcpy(ctype, "Cache-Control: max-age=3600\r\nContent-type: image/jpeg\r\nConnection: close");
+ 		else if (endswith(fn, "css"))
+-			strcpy(ctype, "Content-type: text/css\r\nConnection: close");
++			strcpy(ctype, "Cache-Control: max-age=3600\r\nContent-type: text/css\r\nConnection: close");
+ 		else if (endswith(fn, "js"))
+-			strcpy(ctype, "Content-type: text/javascript\r\nConnection: close");
++			strcpy(ctype, "Cache-Control: max-age=3600\r\nContent-type: text/javascript\r\nConnection: close");
+ 		else if (endswith(fn, "htm") || endswith(fn, "html"))
+-			strcpy(ctype, "CACHE-CONTROL: no-cache\r\nContent-type: text/html");
++			strcpy(ctype, "Cache-Control: max-age=3600\r\nContent-type: text/html\r\nConnection: close");
+ 		else if (endswith(fn, "xml"))
+-			strcpy(ctype, "CACHE-CONTROL: no-cache\r\nContent-type: text/xml");
++			strcpy(ctype, "Cache-Control: no-cache\r\nContent-type: text/xml");
++		else if (endswith(fn, "json"))
++			strcpy(ctype, "Cache-Control: no-cache\r\nContent-type: application/json");
+ 		else if (endswith(fn, "m3u"))
+-			strcpy(ctype, "CACHE-CONTROL: no-cache\r\nContent-type: video/x-mpegurl");
+-		else strcpy(ctype, "CACHE-CONTROL: no-cache\r\nContent-type: application/octet-stream");
++			strcpy(ctype, "Cache-Control: no-cache\r\nContent-type: video/x-mpegurl");
++		else
++			strcpy(ctype, "Cache-Control: no-cache\r\nContent-type: application/octet-stream");
+ 	}
+ 	return mem;
+ }
+diff --git a/utils.h b/utils.h
+index 109eff9..4619511 100755
+--- a/utils.h
++++ b/utils.h
+@@ -92,6 +92,8 @@ void set_signal_handler(char *argv0);
+ int becomeDaemon();
+ int end_of_header(char *buf);
+ char *readfile(char *fn, char *ctype, int *len);
++int get_json_state(char *buf, int len);
++int get_json_bandwidth(char *buf, int len);
+ void process_file(void *sock, char *s, int len, char *ctype);
+ int closefile(char *mem, int len);
  
+@@ -126,4 +128,8 @@ void hexdump(char *log_message,void *addr, int len);
+ #define malloc1(a) mymalloc(a,__FILE__,__LINE__)
+ #define free1(a) myfree(a,__FILE__,__LINE__)
+ 
++#define strlcatf(buf, size, ptr, fmt...) \
++  do { int __r = snprintf((buf) + ptr, (size) - ptr, fmt); \
++         ptr = __r >= (size) - ptr ? (size) - 1 : ptr + __r; } while (0)
++
+ #endif
