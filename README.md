@@ -1,13 +1,19 @@
 # satip-axe
 
 A firmware with minisatip for Inverto IDL-400s/Grundig GSS.BOX/Telestar Digibit R1
-**********************************************************************************
+==================================================================================
+
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](http://paypal.me/perex)
 
 Releases:
+---------
 
-  - see to dist directory - README file
+  - see to [dist](https://github.com/perexg/satip-axe/tree/master/dist) directory - README file
   - a TTL USB serial is not required to boot this precompiled firmware
     from the USB stick or an installation to the internal flash
+
+A notes for developers (might be outdated):
+-------------------------------------------
 
 Requirements:
 
