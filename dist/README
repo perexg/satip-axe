@@ -99,6 +99,7 @@ nfsd:
 Minisatip 0.7 config:
 ---------------------
 
+  - this is the preferred minisatip server now
   - you may add extra parameters to MINISATIP7_OPTS= in /etc/sysconfig/config
   - WARNING: use -d with unique numbers if you have _multiple_ SAT>IP servers on net
   - SEE: minisatip.md file in this directory for more details
@@ -217,6 +218,19 @@ Bugs:
 
 History:
 --------
+
+satip-axe-201705251044-14 - Wed Jun  7 2017
+  - kernel modules from idl4k-1.25.0.157 (frontend + demux)
+  - updated minisatip5 (0.5.54)
+  - fixed minisatip issue - multiple frontend device open - #72
+  - added minisatip7 (0.7.4) / NOTE: Some options are changed!
+    - this is the *PREFERRED* Sat>IP server now!
+    - added -0 (--diseqc-multi) option (it's just a workaround)
+  - upgraded busybox to 1.26.2
+  - upgraded dropbear to 2016.74
+  - upgraded rpcbind to 0.2.3
+  - upgraded nfsutils to 1.3.4
+  - upgraded oscam to rev.11384
 
 satip-axe-201605311610-12 - Tue May 31 2016
   - enabled 802.1q in kernel (VLAN)
