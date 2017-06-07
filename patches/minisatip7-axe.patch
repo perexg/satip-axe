@@ -59,7 +59,7 @@ index ed8b1e5..f41b772 100644
 +-include $(DEPS)
 +endif
 diff --git a/adapter.c b/adapter.c
-index 26bd3b6..3c4c0b3 100644
+index cfb742d..7b8814a 100644
 --- a/adapter.c
 +++ b/adapter.c
 @@ -65,6 +65,7 @@ adapter *adapter_alloc()
@@ -144,7 +144,7 @@ index 26bd3b6..3c4c0b3 100644
  
  	if (!ad)
  		return -400;
-@@ -936,7 +931,6 @@ int mark_pids_add(int sid, int aid, char *pids)
+@@ -939,7 +934,6 @@ int mark_pids_add(int sid, int aid, char *pids)
  
  int compare_tunning_parameters(int aid, transponder * tp)
  {
@@ -152,7 +152,7 @@ index 26bd3b6..3c4c0b3 100644
  	adapter *ad = get_adapter(aid);
  	if (!ad)
  		return -1;
-@@ -1072,7 +1066,7 @@ char* get_stream_pids(int s_id, char *dest, int max_size);
+@@ -1075,7 +1069,7 @@ char* get_stream_pids(int s_id, char *dest, int max_size);
  char *
  describe_adapter(int sid, int aid, char *dad, int ld)
  {
@@ -161,7 +161,7 @@ index 26bd3b6..3c4c0b3 100644
  	transponder *t;
  	adapter *ad;
  	streams *ss;
-@@ -1092,7 +1086,7 @@ describe_adapter(int sid, int aid, char *dad, int ld)
+@@ -1095,7 +1089,7 @@ describe_adapter(int sid, int aid, char *dad, int ld)
  	}
  	else
  		t = &ad->tp;
@@ -170,7 +170,7 @@ index 26bd3b6..3c4c0b3 100644
  
  	if (use_ad)
  	{
-@@ -1333,6 +1327,51 @@ void set_diseqc_adapters(char *o)
+@@ -1336,6 +1330,51 @@ void set_diseqc_adapters(char *o)
  	}
  }
  
@@ -222,7 +222,7 @@ index 26bd3b6..3c4c0b3 100644
  
  void set_lnb_adapters(char *o)
  {
-@@ -1404,7 +1443,7 @@ void set_diseqc_timing(char *o)
+@@ -1407,7 +1446,7 @@ void set_diseqc_timing(char *o)
  	int before_cmd, after_cmd, after_repeated_cmd;
  	int after_switch, after_burst, after_tone;
  	char buf[2000], *arg[20];
@@ -231,7 +231,7 @@ index 26bd3b6..3c4c0b3 100644
  	adapter *ad;
  	strncpy(buf, o, sizeof(buf));
  	la = split(arg, buf, sizeof(arg), ',');
-@@ -1550,7 +1589,7 @@ void set_nopm_adapters(char *o)
+@@ -1553,7 +1592,7 @@ void set_nopm_adapters(char *o)
  extern char *fe_delsys[];
  void set_adapters_delsys(char *o)
  {
@@ -240,7 +240,7 @@ index 26bd3b6..3c4c0b3 100644
  	char buf[100], *arg[20], *sep;
  	adapter *ad;
  	strncpy(buf, o, sizeof(buf));
-@@ -1652,7 +1691,6 @@ int signal_thread(sockets *s)
+@@ -1655,7 +1694,6 @@ int signal_thread(sockets *s)
  	int i;
  	int64_t ts, ctime;
  	adapter *ad;
@@ -248,7 +248,7 @@ index 26bd3b6..3c4c0b3 100644
  	for (i = 0; i < MAX_ADAPTERS; i++)
  		if ((ad = get_adapter_nw(i)) && ad->get_signal && ad->tp.freq
  						&& (ad->status_cnt++ > 2) // make sure the kernel has updated the status
-@@ -1873,9 +1911,9 @@ _symbols adapters_sym[] =
+@@ -1876,9 +1914,9 @@ _symbols adapters_sym[] =
  	{ "ad_sys", VAR_AARRAY_INT, a, 1, MAX_ADAPTERS, offsetof(
  				adapter, tp.sys) },
  	{ "ad_allsys", VAR_FUNCTION_STRING, (void *) &get_all_delsys, 0,
@@ -261,7 +261,7 @@ index 26bd3b6..3c4c0b3 100644
  	{ "tuner_t2", VAR_INT, &tuner_t2, 1, 0, 0 },
  	{ "tuner_c2", VAR_INT, &tuner_c2, 1, 0, 0 },
 diff --git a/adapter.h b/adapter.h
-index db7c270..2d379cc 100755
+index 375a820..0445820 100755
 --- a/adapter.h
 +++ b/adapter.h
 @@ -53,6 +53,7 @@ typedef int (*Del_filters)(int fd, int pid);
@@ -1324,7 +1324,7 @@ index 8d2f6e5..812a13d 100755
  });
  
 diff --git a/minisatip.c b/minisatip.c
-index e6e2254..bafbf8b 100755
+index e6e2254..4cff2c7 100755
 --- a/minisatip.c
 +++ b/minisatip.c
 @@ -73,6 +73,7 @@ static const struct option long_options[] =
@@ -1371,7 +1371,18 @@ index e6e2254..bafbf8b 100755
  	opts.nopm = 0;
  	opts.lnb_low = (9750*1000UL);
  	opts.lnb_high = (10600*1000UL);
-@@ -482,7 +489,7 @@ void set_options(int argc, char *argv[])
+@@ -471,7 +478,9 @@ void set_options(int argc, char *argv[])
+ 	opts.lnb_switch = (11700*1000UL);
+ 	opts.max_sbuf = 100;
+ 	opts.max_pids = 0;
+-#if defined(__sh__)
++#if defined(AXE)
++	opts.max_pids = 32;
++#elif defined(__sh__)
+ 	opts.max_pids = 20;
+ #endif
+ 
+@@ -482,7 +491,7 @@ void set_options(int argc, char *argv[])
  #ifdef AXE
  	opts.no_threads = 1;
  	opts.axe_skippkt = 35;
@@ -1380,7 +1391,7 @@ index e6e2254..bafbf8b 100755
  #define AXE_OPTS "7:QW:M:8:A:"
  #else
  #define AXE_OPTS ""
-@@ -491,7 +498,7 @@ void set_options(int argc, char *argv[])
+@@ -491,7 +500,7 @@ void set_options(int argc, char *argv[])
  	memset(opts.playlist, 0, sizeof(opts.playlist));
  
  	while ((opt = getopt_long(argc, argv,
@@ -1389,7 +1400,7 @@ index e6e2254..bafbf8b 100755
  																											long_options, NULL)) != -1)
  	{
  		//              printf("options %d %c %s\n",opt,opt,optarg);
-@@ -651,6 +658,12 @@ void set_options(int argc, char *argv[])
+@@ -651,6 +660,12 @@ void set_options(int argc, char *argv[])
  			break;
  		}
  
@@ -1402,7 +1413,7 @@ index e6e2254..bafbf8b 100755
  		case LNB_OPT:
  		{
  			set_lnb_adapters(optarg);
-@@ -830,7 +843,6 @@ int read_rtsp(sockets * s)
+@@ -830,7 +845,6 @@ int read_rtsp(sockets * s)
  	int sess_id = 0;
  	int end = s->type == TYPE_HTTP;
  	char buf[2000];
@@ -1410,7 +1421,7 @@ index e6e2254..bafbf8b 100755
  	streams *sid = get_sid(s->sid);
  
  	if (s->buf[0] == 0x24 && s->buf[1] < 2)
-@@ -850,7 +862,7 @@ int read_rtsp(sockets * s)
+@@ -850,7 +864,7 @@ int read_rtsp(sockets * s)
  		}
  	}
  
@@ -1419,7 +1430,7 @@ index e6e2254..bafbf8b 100755
  	{
  		if (s->rlen > RBUF - 10)
  		{
-@@ -1024,7 +1036,7 @@ int read_rtsp(sockets * s)
+@@ -1024,7 +1038,7 @@ int read_rtsp(sockets * s)
  												arg[1], getTick(), (getTickUs() / 1000000));
  		}
  		if (buf[0] == 0 && sid->type == STREAM_HTTP)
@@ -1428,7 +1439,7 @@ index e6e2254..bafbf8b 100755
  		http_response(s, 200, buf, NULL, cseq, 0, end);
  	}
  	else if (strncmp(arg[0], "TEARDOWN", 8) == 0)
-@@ -1066,6 +1078,8 @@ int read_rtsp(sockets * s)
+@@ -1066,6 +1080,8 @@ int read_rtsp(sockets * s)
  
  #define REPLY_AND_RETURN(c) {http_response (s, c, NULL, NULL, 0, 0, 1); return 0;}
  
@@ -1437,7 +1448,7 @@ index e6e2254..bafbf8b 100755
  char uuid[100];
  int uuidi;
  struct sockaddr_in ssdp_sa;
-@@ -1096,7 +1110,7 @@ int read_http(sockets * s)
+@@ -1096,7 +1112,7 @@ int read_http(sockets * s)
  		"<satip:X_SATIPCAP xmlns:satip=\"urn:ses-com:satip\">%s</satip:X_SATIPCAP>"
  		"%s"
  		"</device></root>";
@@ -1446,7 +1457,7 @@ index e6e2254..bafbf8b 100755
  	{
  		if (s->rlen > RBUF - 10)
  		{
-@@ -1114,7 +1128,7 @@ int read_http(sockets * s)
+@@ -1114,7 +1130,7 @@ int read_http(sockets * s)
  		return 0;
  	}
  	url[0] = 0;
@@ -1455,7 +1466,7 @@ index e6e2254..bafbf8b 100755
  	if(space)
  	{
  		int i = 0;
-@@ -1134,6 +1148,8 @@ int read_http(sockets * s)
+@@ -1134,6 +1150,8 @@ int read_http(sockets * s)
  		return 0;
  	}
  
@@ -1464,7 +1475,7 @@ index e6e2254..bafbf8b 100755
  	if(!strncasecmp((const char*) s->buf, "HEAD ", 5))
  		is_head = 1;
  
-@@ -1149,13 +1165,11 @@ int read_http(sockets * s)
+@@ -1149,13 +1167,11 @@ int read_http(sockets * s)
  
  	split(arg, (char*) s->buf, 50, ' ');
  //      LOG("args: %s -> %s -> %s",arg[0],arg[1],arg[2]);
@@ -1479,7 +1490,7 @@ index e6e2254..bafbf8b 100755
  	if (strcmp(arg[1], "/"DESC_XML) == 0)
  	{
  		extern int tuner_s2, tuner_t, tuner_c, tuner_t2, tuner_c2;
-@@ -1179,11 +1193,29 @@ int read_http(sockets * s)
+@@ -1179,11 +1195,29 @@ int read_http(sockets * s)
  		snprintf(buf, sizeof(buf), xml, app_name, app_name, app_name, uuid,
  											opts.http_host, adapters, opts.playlist);
  		sprintf(headers,
@@ -1510,7 +1521,7 @@ index e6e2254..bafbf8b 100755
  // process file from html directory, the images are just sent back
  
  	if (!strcmp(arg[1], "/"))
-@@ -1206,8 +1238,7 @@ int read_http(sockets * s)
+@@ -1206,8 +1240,7 @@ int read_http(sockets * s)
  			http_response(s, 200, ctype, NULL, 0, 0, 1);
  			return 0;
  		}
@@ -1520,7 +1531,7 @@ index e6e2254..bafbf8b 100755
  		{
  			http_response(s, 200, ctype, f, 0, nl, 1);
  			closefile(f, nl);
-@@ -1433,7 +1464,7 @@ pthread_t main_tid;
+@@ -1433,7 +1466,7 @@ pthread_t main_tid;
  extern int sock_signal;
  int main(int argc, char *argv[])
  {
@@ -1530,18 +1541,15 @@ index e6e2254..bafbf8b 100755
  	thread_name = "main";
  	set_options(argc, argv);
 diff --git a/minisatip.h b/minisatip.h
-index a242532..55cd5e5 100644
+index a242532..9f1fbad 100644
 --- a/minisatip.h
 +++ b/minisatip.h
-@@ -8,9 +8,9 @@
- #include "utils.h"
+@@ -10,7 +10,7 @@
  
- 
--#define VERSION_BUILD "4"
-+#define VERSION_BUILD "5"
+ #define VERSION_BUILD "4"
  #define CC(a,b,c) #a b #c
 -#define VERSION CC(0.7.,VERSION_BUILD,)
-+#define VERSION CC(0.7.,VERSION_BUILD,-axe204)
++#define VERSION CC(0.7.,VERSION_BUILD,-axe205)
  
  void set_options (int argc, char *argv[]);
  
@@ -1554,7 +1562,7 @@ index a242532..55cd5e5 100644
  	int nopm;
  	int max_pids;
 diff --git a/satipc.c b/satipc.c
-index c16f5ef..e08d80f 100755
+index f08deb6..df3b191 100755
 --- a/satipc.c
 +++ b/satipc.c
 @@ -130,7 +130,7 @@ int satipc_reply(sockets * s)
@@ -1644,7 +1652,7 @@ index c16f5ef..e08d80f 100755
  	int pos;
  	int rtsp_len;
  	int tmp_len = 0;
-@@ -620,7 +616,7 @@ int satipc_tcp_read(int socket, void *buf, int len, sockets *ss, int *rb)
+@@ -621,7 +617,7 @@ int satipc_tcp_read(int socket, void *buf, int len, sockets *ss, int *rb)
  			*rb = pos;
  
  		}
@@ -1653,7 +1661,7 @@ index c16f5ef..e08d80f 100755
  		{
  			unsigned char *nlnl, *cl;
  			int bytes, icl = 0;
-@@ -630,7 +626,7 @@ int satipc_tcp_read(int socket, void *buf, int len, sockets *ss, int *rb)
+@@ -631,7 +627,7 @@ int satipc_tcp_read(int socket, void *buf, int len, sockets *ss, int *rb)
  				LOG("%s: skipped %d bytes", __FUNCTION__, skipped_bytes);
  				skipped_bytes = 0;
  			}
@@ -1662,7 +1670,7 @@ index c16f5ef..e08d80f 100755
  //			LOG("found RTSP nlnl %d, len %d", nlnl - rtsp, sip->tcp_len);
  			if(nlnl > sip->tcp_data + sip->tcp_len)
  			{
-@@ -638,13 +634,13 @@ int satipc_tcp_read(int socket, void *buf, int len, sockets *ss, int *rb)
+@@ -639,13 +635,13 @@ int satipc_tcp_read(int socket, void *buf, int len, sockets *ss, int *rb)
  				nlnl = NULL;
  				sip->tcp_data[sip->tcp_size + 1] = 0;
  			}
@@ -1678,7 +1686,7 @@ index c16f5ef..e08d80f 100755
  				nlnl += icl;
  			}
  			if (!nlnl)
-@@ -821,7 +817,6 @@ int http_request(adapter *ad, char *url, char *method)
+@@ -822,7 +818,6 @@ int http_request(adapter *ad, char *url, char *method)
  
  	session[0] = 0;
  	sid[0] = 0;
@@ -1686,7 +1694,7 @@ index c16f5ef..e08d80f 100755
  	remote_socket = sip->use_tcp ? ad->dvr : ad->fe;
  
  	if (!sip->option_no_setup && !method && sip->sent_transport == 0)
-@@ -1041,7 +1036,6 @@ void satipc_commit(adapter *ad)
+@@ -1042,7 +1037,6 @@ void satipc_commit(adapter *ad)
  
  	if (send_apids)
  	{
@@ -1735,7 +1743,7 @@ index 6891c27..139fc60 100755
  		}
  		else
 diff --git a/stream.c b/stream.c
-index 374488a..2b559cb 100755
+index 345ad4c..70f3f58 100755
 --- a/stream.c
 +++ b/stream.c
 @@ -47,7 +47,7 @@
@@ -1794,7 +1802,7 @@ index 374488a..2b559cb 100755
  	uint64_t rtime = getTick();
  
  	if (s->rlen % DVB_FRAME != 0)
-@@ -1078,10 +1080,21 @@ int calculate_bw(sockets *s)
+@@ -1080,10 +1082,21 @@ int calculate_bw(sockets *s)
  		tbw += bw;
  		if (!reads)
  			reads = 1;
@@ -1818,7 +1826,7 @@ index 374488a..2b559cb 100755
  		bw = 0;
  		failed_writes = 0;
  		nsecs = 0;
-@@ -1303,8 +1316,7 @@ int get_stream_rport(int s_id)
+@@ -1305,8 +1318,7 @@ int get_stream_rport(int s_id)
  char* get_stream_pids(int s_id, char *dest, int max_size)
  {
  	int len = 0;
@@ -1828,7 +1836,7 @@ index 374488a..2b559cb 100755
  	streams *s = get_sid_nw(s_id);
  	adapter *ad;
  	dest[0] = 0;
-@@ -1348,10 +1360,10 @@ _symbols stream_sym[] =
+@@ -1350,10 +1362,10 @@ _symbols stream_sym[] =
  	{ "st_useragent", VAR_AARRAY_STRING, st, 1, MAX_STREAMS, offsetof(
  				streams, useragent) },
  	{ "st_rhost", VAR_FUNCTION_STRING, (void *) &get_stream_rhost,
@@ -1857,7 +1865,7 @@ index 05e9f09..15414e2 100644
 +
  #endif
 diff --git a/utils.c b/utils.c
-index 953ebe1..9c1913b 100755
+index b7cb28a..57b6bcb 100755
 --- a/utils.c
 +++ b/utils.c
 @@ -199,12 +199,10 @@ int setItemTimeout(int64_t key, int tmout)
@@ -2086,39 +2094,6 @@ index 953ebe1..9c1913b 100755
  	return rv;
  }
  
-@@ -1294,14 +1412,14 @@ void hexdump (char *desc, void *addr, int len) {
- 		if ((i % 16) == 0) {
- 			// Just don't print ASCII for the zeroth line.
- 			if (i != 0)
--				pos += sprintf (buf + pos, "  %s\n", buff);
-+				pos += sprintf ((char *)buf + pos, "  %s\n", buff);
- 
- 			// Output the offset.
--			pos += sprintf (buf + pos, "  %04x ", i);
-+			pos += sprintf ((char *)buf + pos, "  %04x ", i);
- 		}
- 
- 		// Now the hex code for the specific character.
--		pos += sprintf (buf + pos, " %02x", pc[i]);
-+		pos += sprintf ((char *)buf + pos, " %02x", pc[i]);
- 
- 		// And store a printable ASCII character for later.
- 		if ((pc[i] < 0x20) || (pc[i] > 0x7e))
-@@ -1313,12 +1431,12 @@ void hexdump (char *desc, void *addr, int len) {
- 
- 	// Pad out last line if not exactly 16 characters.
- 	while ((i % 16) != 0) {
--		pos += sprintf (buf + pos, "   ");
-+		pos += sprintf ((char *)buf + pos, "   ");
- 		i++;
- 	}
- 
- 	// And print the final ASCII bit.
--	pos += sprintf (buf + pos, "  %s\n", buff);
-+	pos += sprintf ((char *)buf + pos, "  %s\n", buff);
- 	if(!desc)
- 		LOG("\n%s", buf)
- 		else
 diff --git a/utils.h b/utils.h
 index 109eff9..4619511 100755
 --- a/utils.h
