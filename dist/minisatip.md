@@ -9,17 +9,17 @@ the physical F-type connector on the box have numering 1-4.
 NOTE: Some options identifiers were changed between minisatip5 and minisatip7:
 
 minisatip7 | minisatip5/minisatip | description
------------|----------------------|-------------------------
+-----------|----------------------|-----------------------------------
 -7         | -L                   | tuner linking
--9         | -X                   | unicable input
+-9         | -X                   | unicable input (-S for minisatip8)
 -W         | -P                   | AXE power
 -8         | -Z                   | quattro hiband mode
 
 other AXE specific option | decription
---------------------------|---------------------
+--------------------------|----------------------------------------
 -Q                        | quattro mode
 -A                        | free inputs
--M                        | skip MPEG-TS packets (up to minisatip/8)
+-M                        | skip MPEG-TS packets (up to minisatip8)
 
 Standard DiseqC timing and setup
 --------------------------------
@@ -155,6 +155,8 @@ control the standard LNBs/diseqc equipment.
 
 
 ### Multiple unicable groups
+
+For minisatip8 use -S argument.
 
 You may connect multiple unicable LNBs through multiple coaxial
 wires to the box. In this case, it is necessary to tell which tuners
