@@ -1,4 +1,4 @@
-BUILD=14
+BUILD=15
 VERSION=$(shell date +%Y%m%d%H%M)-$(BUILD)
 CPUS=4
 CURDIR=$(shell pwd)
@@ -33,10 +33,11 @@ KMODULES = drivers/usb/serial/cp210x.ko \
 MINISATIP_COMMIT=54df9348e7bd7e6075f54f1b93ec4ad36429abe0
 MINISATIP5_COMMIT=67e88c2d743d6df9c4a96aad772414169f61b764
 MINISATIP7_COMMIT=d22ba0dfe3c706c3ab6ad86486d8a9e913080f7e
+MINISATIP8_COMMIT=07b4dd8e606b0e27761f1531c83386f1e5b4b2d0
 
 BUSYBOX=busybox-1.26.2
 
-DROPBEAR=dropbear-2016.74
+DROPBEAR=dropbear-2017.75
 DROPBEAR_SBIN_FILES=dropbear
 DROPBEAR_BIN_FILES=dbclient dropbearconvert dropbearkey scp
 
@@ -79,7 +80,7 @@ MULTICAST_RTP_PACKAGE_NAME=multicast-rtp-1
 TVHEADEND_COMMIT=master
 
 # 10663 10937 11234
-OSCAM_REV=11384
+OSCAM_REV=11398
 
 define GIT_CLONE
 	@mkdir -p apps/host
@@ -124,6 +125,7 @@ CPIO_SRCS += ethtool
 CPIO_SRCS += minisatip
 CPIO_SRCS += minisatip5
 CPIO_SRCS += minisatip7
+CPIO_SRCS += minisatip8
 CPIO_SRCS += oscam
 CPIO_SRCS += tools/axehelper
 CPIO_SRCS += nfsutils
@@ -155,6 +157,8 @@ fs.cpio: $(CPIO_SRCS)
 	  $(foreach f,$(notdir $(wildcard apps/minisatip5/html/*)), -e "apps/minisatip5/html/$f:usr/share/minisatip/html/$f") \
 	  -e "apps/minisatip7/minisatip:sbin/minisatip7" \
 	  $(foreach f,$(notdir $(wildcard apps/minisatip7/html/*)), -e "apps/minisatip7/html/$f:usr/share/minisatip7/html/$f") \
+	  -e "apps/minisatip8/minisatip:sbin/minisatip8" \
+	  $(foreach f,$(notdir $(wildcard apps/minisatip8/html/*)), -e "apps/minisatip8/html/$f:usr/share/minisatip8/html/$f") \
 	  -e "apps/$(NANO)/src/nano:usr/bin/nano" \
 	  -e "apps/mtd-utils/nandwrite:usr/sbin/nandwrite2" \
 	  -e "apps/oscam-svn/Distribution/oscam-1.20-unstable_svn$(OSCAM_REV)-sh4-linux:sbin/oscamd"
@@ -355,7 +359,7 @@ minisatip5-clean:
 
 apps/minisatip7/axe.h: patches/minisatip7-axe.patch
 	rm -rf apps/minisatip7
-	$(call GIT_CLONE,https://github.com/catalinii/minisatip.git,minisatip7,$(MINISATIP7_COMMIT))
+	$(call GIT_CLONE,https://github.com/perexg/minisatip.git,minisatip7,$(MINISATIP7_COMMIT))
 	cd apps/minisatip7; patch -p1 < ../../patches/minisatip7-axe.patch
 
 apps/minisatip7/minisatip: apps/minisatip7/axe.h
@@ -378,26 +382,58 @@ minisatip7-clean:
 	rm -rf apps/minisatip7
 
 #
+# minisatip8
+#
+
+apps/minisatip8/axe.h: patches/minisatip8-axe.patch
+	rm -rf apps/minisatip8
+	$(call GIT_CLONE,https://github.com/catalinii/minisatip.git,minisatip8,$(MINISATIP8_COMMIT))
+	cd apps/minisatip8; patch -p1 < ../../patches/minisatip8-axe.patch
+
+apps/minisatip8/minisatip: apps/minisatip8/src/axe.h
+	cd apps/minisatip8 && ./configure \
+		--enable-axe \
+		--disable-dvbca \
+		--disable-dvbapi \
+		--disable-dvbcsa \
+		--disable-dvbaes \
+		--disable-netceiver
+	make -C apps/minisatip8 \
+	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+	  EXTRA_CFLAGS="-O2 -I$(CURDIR)/kernel/include"
+
+.PHONY: minisatip8
+minisatip8: apps/minisatip8/minisatip
+
+.PHONY: minisatip8-clean
+minisatip8-clean:
+	rm -rf apps/minisatip8
+
+#
 # minisatip package
 #
 
-dist/packages/minisatip-$(VERSION).tar.gz: minisatip minisatip5 minisatip7
+dist/packages/minisatip-$(VERSION).tar.gz: minisatip minisatip5 minisatip7 minisatip8
 	rm -rf fs/usr/share/minisatip
 	mkdir -p fs/usr/share/minisatip/icons/ \
 		 fs/usr/share/minisatip/html/ \
-		 fs/usr/share/minisatip7/html/
+		 fs/usr/share/minisatip7/html/ \
+		 fs/usr/share/minisatip8/html/
 	install -m 755 apps/minisatip/minisatip fs/sbin/minisatip
 	install -m 644 apps/minisatip/icons/* fs/usr/share/minisatip/icons/
 	install -m 755 apps/minisatip5/minisatip fs/sbin/minisatip5
 	install -m 644 apps/minisatip5/html/* fs/usr/share/minisatip/html/
 	install -m 755 apps/minisatip7/minisatip fs/sbin/minisatip7
 	install -m 644 apps/minisatip7/html/* fs/usr/share/minisatip7/html/
+	install -m 755 apps/minisatip8/minisatip fs/sbin/minisatip8
+	install -m 644 apps/minisatip8/html/* fs/usr/share/minisatip7/html8
 	tar cvz -C fs -f dist/packages/minisatip-$(VERSION).tar.gz \
 		sbin/minisatip \
 		sbin/minisatip5 \
 		usr/share/minisatip/icons \
 		usr/share/minisatip/html \
-		usr/share/minisatip7/html
+		usr/share/minisatip7/html \
+		usr/share/minisatip8/html
 	ls -la dist/packages/minisatip*
 
 .PHONY: minisatip-package
@@ -576,7 +612,7 @@ apps/$(NANO)/configure:
 	$(call WGET,$(NANO_DOWNLOAD),apps/$(NANO_FILENAME))
 	tar -C apps -xzf apps/$(NANO_FILENAME)
 
-apps/$(NANO)/nano: apps/$(NANO)/configure
+apps/$(NANO)/src/nano: apps/$(NANO)/configure
 	cd apps/$(NANO) && \
 	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
 	  CFLAGS="-O2" \
@@ -587,7 +623,7 @@ apps/$(NANO)/nano: apps/$(NANO)/configure
 	make -C apps/$(NANO)
 
 .PHONY: nano
-nano: apps/$(NANO)/nano
+nano: apps/$(NANO)/src/nano
 
 #
 # python3-host

@@ -66,8 +66,14 @@ DROPBEAR="yes"
 #
 # minisatip 0.7
 #
-MINISATIP7="yes"
-MINISATIP7_OPTS=""
+#MINISATIP7="yes"
+#MINISATIP7_OPTS=""
+
+#
+# minisatip 0.8
+#
+MINISATIP8="yes"
+MINISATIP8_OPTS=""
 
 #
 # inetd (httpd,ftpd)

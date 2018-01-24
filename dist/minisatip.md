@@ -19,7 +19,7 @@ other AXE specific option | decription
 --------------------------|---------------------
 -Q                        | quattro mode
 -A                        | free inputs
--M                        | skip MPEG-TS packets
+-M                        | skip MPEG-TS packets (up to minisatip/8)
 
 Standard DiseqC timing and setup
 --------------------------------
