@@ -1,7 +1,16 @@
 diff --git a/src/adapter.c b/src/adapter.c
-index 0baf965..86e6da5 100644
+index 0baf965..99ff0a6 100644
 --- a/src/adapter.c
 +++ b/src/adapter.c
+@@ -515,7 +515,7 @@ int getAdaptersCount()
+ 		tuner_t2 = tt2;
+ 		if (!opts.force_cadapter)
+ 			tuner_c = tc;
+-		if (!opts.force_cadapter)
++		if (!opts.force_tadapter)
+ 			tuner_t = tt;
+ 		tuner_at = tat;
+ 		tuner_ac = tac;
 @@ -881,7 +881,6 @@ int tune(int aid, int sid)
  {
  	adapter *ad = get_adapter(aid);
@@ -20,7 +29,7 @@ index 0baf965..86e6da5 100644
  		if ((!p || p->flags == 3) && (!p_all || p_all->flags == 3)) // add pid 0 if not explicitly added
  		{
 diff --git a/src/minisatip.c b/src/minisatip.c
-index 5f369ff..d1594cc 100644
+index 5f369ff..909072a 100644
 --- a/src/minisatip.c
 +++ b/src/minisatip.c
 @@ -112,6 +112,7 @@ int rtsp, http, si, si1, ssdp1;
@@ -65,7 +74,7 @@ index 5f369ff..d1594cc 100644
  	{
  		//              printf("options %d %c %s\n",opt,opt,optarg);
  		switch (opt)
-@@ -700,6 +704,15 @@ void set_options(int argc, char *argv[])
+@@ -700,6 +704,16 @@ void set_options(int argc, char *argv[])
  			break;
  		}
  
@@ -76,6 +85,7 @@ index 5f369ff..d1594cc 100644
 +				opts.tcp_max_pack = 7;
 +			else if (opts.tcp_max_pack > 697)
 +                                opts.tcp_max_pack = 697;
++                        break;
 +		}
 +
  		case DVBS2_ADAPTERS_OPT:

@@ -39,9 +39,6 @@ mount -t nfsd nfsd /proc/fs/nfsd
 # sysctl.conf
 sysctl -q -p
 
-# start syslogd
-syslogd -C256
-
 # config/data storage
 mkdir -p /mnt/data
 mount -t jffs2 /dev/mtdblock4 /mnt/data/
@@ -62,6 +59,9 @@ fi
 
 # load config
 test -r /etc/sysconfig/config && . /etc/sysconfig/config
+
+# start syslogd
+syslogd -C256 $SYSLOGD_OPTS
 
 # loopback
 ifconfig lo 127.0.0.1 netmask 255.255.255.0

@@ -385,7 +385,7 @@ minisatip7-clean:
 # minisatip8
 #
 
-apps/minisatip8/axe.h: patches/minisatip8-axe.patch
+apps/minisatip8/src/axe.h: patches/minisatip8-axe.patch
 	rm -rf apps/minisatip8
 	$(call GIT_CLONE,https://github.com/catalinii/minisatip.git,minisatip8,$(MINISATIP8_COMMIT))
 	cd apps/minisatip8; patch -p1 < ../../patches/minisatip8-axe.patch

@@ -2,7 +2,7 @@
 # SATIP AXE firmware configuration
 #
 
-CFGVER="12"
+CFGVER="14"
 HOSTNAME="satip-axe"
 KMODULES="drivers/usb/serial/cp210x.ko drivers/usb/serial/pl2303.ko drivers/usb/serial/ftdi_sio.ko"
 
@@ -40,6 +40,11 @@ IPV4="dhcp"
 # ntpd
 #
 NTPD_OPTS="-p 0.pool.ntp.org"
+
+#
+# syslogd
+#
+#SYSLOGD_OPTS="-R 192.168.1.1:514"
 
 #
 # telnetd
