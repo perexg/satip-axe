@@ -1,5 +1,5 @@
 diff --git a/src/axe.c b/src/axe.c
-index 9383d7c..e999a53 100644
+index 52e8dad..1578a51 100644
 --- a/src/axe.c
 +++ b/src/axe.c
 @@ -48,7 +48,7 @@
@@ -11,6 +11,17 @@ index 9383d7c..e999a53 100644
  int send_jess(adapter *ad, int fd, int freq, int pos, int pol, int hiband, diseqc *d);
  int send_unicable(adapter *ad, int fd, int freq, int pos, int pol, int hiband, diseqc *d);
  int send_diseqc(adapter *ad, int fd, int pos, int pos_change, int pol, int hiband, diseqc *d);
+@@ -669,8 +669,8 @@ fe_delivery_system_t axe_delsys(int aid, int fd, fe_delivery_system_t *sys)
+ 
+ void axe_get_signal(adapter *ad)
+ {
+-	uint16_t strength = 0, snr = 0, tmp;
+-	uint32_t status = 0, ber = 0;
++	int strength = 0, snr = 0, tmp;
++	int status = 0, ber = 0;
+ 	get_signal(ad, &status, &ber, &strength, &snr);
+ 
+ 	strength = strength * 240 / 24000;
 @@ -819,9 +819,11 @@ void free_axe_input(adapter *ad)
  
  	for (aid = 0; aid < 4; aid++)
@@ -26,10 +37,10 @@ index 9383d7c..e999a53 100644
  }
  
 diff --git a/src/minisatip.c b/src/minisatip.c
-index 0f47290..909072a 100644
+index 0cd9b0b..c9be9c4 100644
 --- a/src/minisatip.c
 +++ b/src/minisatip.c
-@@ -551,7 +551,7 @@ void set_options(int argc, char *argv[])
+@@ -552,7 +552,7 @@ void set_options(int argc, char *argv[])
  #endif
  #ifdef AXE
  	opts.no_threads = 1;
@@ -39,23 +50,23 @@ index 0f47290..909072a 100644
  #else
  #define AXE_OPTS ""
 diff --git a/src/minisatip.h b/src/minisatip.h
-index 3797f5a..0d73411 100644
+index 6512250..7d41be7 100644
 --- a/src/minisatip.h
 +++ b/src/minisatip.h
 @@ -9,7 +9,7 @@
  
- #define VERSION_BUILD "15"
+ #define VERSION_BUILD "16"
  #define CC(a, b, c) #a b #c
 -#define VERSION CC(0.7., VERSION_BUILD, )
-+#define VERSION CC(0.7., VERSION_BUILD, -axe207)
++#define VERSION CC(0.7., VERSION_BUILD, -axe208)
  
  void set_options(int argc, char *argv[]);
  
 diff --git a/src/stream.c b/src/stream.c
-index 35102f4..c85a2d6 100644
+index bde2992..8443a4f 100644
 --- a/src/stream.c
 +++ b/src/stream.c
-@@ -973,7 +973,7 @@ int process_dmx(sockets *s)
+@@ -987,7 +987,7 @@ int process_dmx(sockets *s)
  #endif
  
  	rlen = ad->rlen;
