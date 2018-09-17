@@ -46,7 +46,9 @@ renew|bound)
     echo "nameserver $i" >> $RESOLV_CONF
   done
   # kill always ntpd
-  killall -9 ntpd 2> /dev/null
+  if test -r /var/run/ntpd.pid; then
+    kill -9 $(cat /var/run/ntpd.pid) 2> /dev/null
+  fi
   # notify satip init script
   echo "ok" | nc 127.0.0.1 999 2> /dev/null
   sleep 0.5
