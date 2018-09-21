@@ -4,5 +4,10 @@ while test ! -f /tmp/nontpd; do
   NTPD_OPTS=""
   test -r /etc/sysconfig/config && . /etc/sysconfig/config
   test -z "$NTPD_OPTS" && NTPD_OPTS="-p 0.pool.ntp.org"
+  i=0
+  while test ! -f /etc/resolv.conf -a $i -le 100; do
+    sleep 0.2
+    i=$(expr $i + 1)
+  done
   /usr/sbin/ntpd -n -I eth0 $NTPD_OPTS
 done
