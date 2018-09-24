@@ -1,7 +1,25 @@
 diff --git a/src/adapter.c b/src/adapter.c
-index e034e3e..e1d11a5 100644
+index e034e3e..f7727b8 100644
 --- a/src/adapter.c
 +++ b/src/adapter.c
+@@ -550,7 +550,7 @@ int getAdaptersCount()
+ 		memset(&fe_map, -1, sizeof(fe_map));
+ 
+ 		k = 0;
+-		for (i = 0; i < sizeof(order); i++)
++		for (i = 0; i < ARRAY_SIZE(order); i++)
+ 		{
+ 			int sys = order[i];
+ 			for (j = 0; j < ifes[sys]; j++)
+@@ -676,7 +676,7 @@ int get_free_adapter(transponder *tp)
+ 
+ 	adapter *ad = a[0];
+ 
+-	if ((fe > 0) && (fe <= sizeof(fe_map)) && (fe_map[fe - 1] >= 0))
++	if ((fe > 0) && (fe <= ARRAY_SIZE(fe_map)) && (fe_map[fe - 1] >= 0))
+ 	{
+ 		fe = fe_map[fe - 1];
+ 		ad = a[fe];
 @@ -878,7 +878,7 @@ int update_pids(int aid)
  			if (dp)
  				dump_pids(aid);
@@ -28,8 +46,194 @@ index e034e3e..e1d11a5 100644
  		}
  	if (ad->commit)
  		ad->commit(ad);
+@@ -906,7 +907,9 @@ int update_pids(int aid)
+ 
+ void post_tune(adapter *ad)
+ {
++#if !defined(DISABLE_PMT) || !defined(DISABLE_T2MI)
+ 	int aid = ad->id;
++#endif
+ #ifndef DISABLE_PMT
+ 	SPid *p = find_pid(aid, 0);
+ 	SPid *p_all = find_pid(aid, 8192);
+@@ -1066,7 +1069,7 @@ void mark_pids_deleted(int aid, int sid, char *pids) //pids==NULL -> delete all
+ 		pids ? pids : "NULL");
+ 	if (pids)
+ 	{
+-		la = split(arg, pids, MAX_PIDS, ',');
++		la = split(arg, pids, ARRAY_SIZE(arg), ',');
+ 		for (i = 0; i < la; i++)
+ 		{
+ 			pid = map_int(arg[i], NULL);
+@@ -1146,7 +1149,7 @@ int mark_pids_add(int sid, int aid, char *pids)
+ 	LOG("adding pids to adapter %d, sid %d, pids=%s", aid, sid,
+ 		pids ? pids : "NULL");
+ 
+-	la = split(arg, pids, MAX_PIDS, ',');
++	la = split(arg, pids, ARRAY_SIZE(arg), ',');
+ 	for (i = 0; i < la; i++)
+ 	{
+ 		pid = map_intd(arg[i], NULL, -1);
+@@ -1242,7 +1245,7 @@ int set_adapter_parameters(int aid, int sid, transponder *tp)
+ 	{
+ 		char *arg[64];
+ 		int i, la;
+-		la = split(arg, ad->tp.x_pmt, 64, ',');
++		la = split(arg, ad->tp.x_pmt, ARRAY_SIZE(arg), ',');
+ 		for (i = 0; i < la; i++)
+ 		{
+ 			int pmt = map_int(arg[i], NULL);
+@@ -1436,12 +1439,12 @@ void set_disable(int i, int v)
+ void enable_adapters(char *o)
+ {
+ 	int i, la, st, end, j;
+-	char buf[100], *arg[20], *sep;
++	char buf[1000], *arg[40], *sep;
+ 	for (i = 0; i < MAX_ADAPTERS; i++)
+ 		set_disable(i, 1);
+ 	SAFE_STRCPY(buf, o);
+ 
+-	la = split(arg, buf, sizeof(arg), ',');
++	la = split(arg, buf, ARRAY_SIZE(arg), ',');
+ 	for (i = 0; i < la; i++)
+ 	{
+ 		sep = strchr(arg[i], '-');
+@@ -1463,10 +1466,10 @@ void enable_adapters(char *o)
+ void set_unicable_adapters(char *o, int type)
+ {
+ 	int i, la, a_id, slot, freq, pin, o13v;
+-	char buf[100], *arg[20], *sep1, *sep2, *sep3;
++	char buf[1000], *arg[40], *sep1, *sep2, *sep3;
+ 	adapter *ad;
+ 	SAFE_STRCPY(buf, o);
+-	la = split(arg, buf, sizeof(arg), ',');
++	la = split(arg, buf, ARRAY_SIZE(arg), ',');
+ 	for (i = 0; i < la; i++)
+ 	{
+ 		a_id = map_intd(arg[i], NULL, -1);
+@@ -1504,10 +1507,10 @@ void set_unicable_adapters(char *o, int type)
+ void set_diseqc_adapters(char *o)
+ {
+ 	int i, la, a_id, fast, committed_no, uncommitted_no;
+-	char buf[100], *arg[20], *sep1, *sep2;
++	char buf[1000], *arg[40], *sep1, *sep2;
+ 	adapter *ad;
+ 	SAFE_STRCPY(buf, o);
+-	la = split(arg, buf, sizeof(arg), ',');
++	la = split(arg, buf, ARRAY_SIZE(arg), ',');
+ 	for (i = 0; i < la; i++)
+ 	{
+ 		if (arg[i] && arg[i][0] == '*')
+@@ -1567,10 +1570,10 @@ void set_diseqc_adapters(char *o)
+ void set_diseqc_multi(char *o)
+ {
+ 	int i, la, a_id, position;
+-	char buf[100], *arg[20], *sep1;
++	char buf[1000], *arg[40], *sep1;
+ 	adapter *ad;
+ 	SAFE_STRCPY(buf, o);
+-	la = split(arg, buf, sizeof(arg), ',');
++	la = split(arg, buf, ARRAY_SIZE(arg), ',');
+ 	for (i = 0; i < la; i++)
+ 	{
+ 		if (arg[i] && arg[i][0] == '*')
+@@ -1619,10 +1622,10 @@ void set_diseqc_multi(char *o)
+ void set_lnb_adapters(char *o)
+ {
+ 	int i, la, a_id, lnb_low, lnb_high, lnb_switch;
+-	char buf[100], *arg[20], *sep1, *sep2, *sep3;
++	char buf[1000], *arg[40], *sep1, *sep2, *sep3;
+ 	adapter *ad;
+ 	SAFE_STRCPY(buf, o);
+-	la = split(arg, buf, sizeof(arg), ',');
++	la = split(arg, buf, ARRAY_SIZE(arg), ',');
+ 	for (i = 0; i < la; i++)
+ 	{
+ 		if (arg[i] && arg[i][0] == '*')
+@@ -1692,11 +1695,11 @@ void set_diseqc_timing(char *o)
+ 	int i, la, a_id;
+ 	int before_cmd, after_cmd, after_repeated_cmd;
+ 	int after_switch, after_burst, after_tone;
+-	char buf[2000], *arg[20];
++	char buf[2000], *arg[40];
+ 	char *sep1, *sep2, *sep3, *sep4, *sep5, *sep6;
+ 	adapter *ad;
+ 	SAFE_STRCPY(buf, o);
+-	la = split(arg, buf, sizeof(arg), ',');
++	la = split(arg, buf, ARRAY_SIZE(arg), ',');
+ 	for (i = 0; i < la; i++)
+ 	{
+ 		if (arg[i] && arg[i][0] == '*')
+@@ -1773,10 +1776,10 @@ void set_diseqc_timing(char *o)
+ void set_slave_adapters(char *o)
+ {
+ 	int i, j, la, a_id, a_id2, master = 0;
+-	char buf[100], *arg[20], *sep, *sep2;
++	char buf[1000], *arg[40], *sep, *sep2;
+ 	adapter *ad;
+ 	SAFE_STRCPY(buf, o);
+-	la = split(arg, buf, sizeof(arg), ',');
++	la = split(arg, buf, ARRAY_SIZE(arg), ',');
+ 	for (i = 0; i < la; i++)
+ 	{
+ 		a_id = map_intd(arg[i], NULL, -1);
+@@ -1826,13 +1829,13 @@ void set_timeout_adapters(char *o)
+ {
+ 	int i, j, la, a_id, a_id2;
+ 	int timeout = opts.adapter_timeout / 1000;
+-	char buf[100], *arg[20], *sep;
++	char buf[1000], *arg[40], *sep;
+ 	adapter *ad;
+ 	SAFE_STRCPY(buf, o);
+ 	sep = strchr(buf, ':');
+ 	if (sep)
+ 		timeout = map_intd(sep + 1, NULL, timeout);
+-	la = split(arg, buf, sizeof(arg), ',');
++	la = split(arg, buf, ARRAY_SIZE(arg), ',');
+ 	if (arg[0] && (arg[0][0] == '*'))
+ 	{
+ 		opts.adapter_timeout = timeout * 1000;
+@@ -1876,10 +1879,10 @@ extern char *fe_delsys[];
+ void set_adapters_delsys(char *o)
+ {
+ 	int i, la, a_id, ds;
+-	char buf[100], *arg[20], *sep;
++	char buf[1000], *arg[40], *sep;
+ 	adapter *ad;
+ 	SAFE_STRCPY(buf, o);
+-	la = split(arg, buf, sizeof(arg), ',');
++	la = split(arg, buf, ARRAY_SIZE(arg), ',');
+ 	for (i = 0; i < la; i++)
+ 	{
+ 		a_id = map_intd(arg[i], NULL, -1);
+@@ -1916,10 +1919,10 @@ void set_adapters_delsys(char *o)
+ void set_adapter_dmxsource(char *o)
+ {
+ 	int i, j, la, st, end, fd;
+-	char buf[100], *arg[20], *sep, *seps;
++	char buf[1000], *arg[40], *sep, *seps;
+ 	adapter *ad;
+ 	SAFE_STRCPY(buf, o);
+-	la = split(arg, buf, sizeof(arg), ',');
++	la = split(arg, buf, ARRAY_SIZE(arg), ',');
+ 	for (i = 0; i < la; i++)
+ 	{
+ 		sep = strchr(arg[i], '-');
+@@ -1956,10 +1959,10 @@ void set_signal_multiplier(char *o)
+ {
+ 	int i, la, a_id;
+ 	float strength_multiplier, snr_multiplier;
+-	char buf[100], *arg[20], *sep1, *sep2;
++	char buf[1000], *arg[40], *sep1, *sep2;
+ 	adapter *ad;
+ 	SAFE_STRCPY(buf, o);
+-	la = split(arg, buf, sizeof(arg), ',');
++	la = split(arg, buf, ARRAY_SIZE(arg), ',');
+ 	for (i = 0; i < la; i++)
+ 	{
+ 		if (arg[i] && arg[i][0] == '*')
 diff --git a/src/axe.c b/src/axe.c
-index 52e8dad..1578a51 100644
+index 52e8dad..cbe1855 100644
 --- a/src/axe.c
 +++ b/src/axe.c
 @@ -48,7 +48,7 @@
@@ -41,7 +245,235 @@ index 52e8dad..1578a51 100644
  int send_jess(adapter *ad, int fd, int freq, int pos, int pol, int hiband, diseqc *d);
  int send_unicable(adapter *ad, int fd, int freq, int pos, int pol, int hiband, diseqc *d);
  int send_diseqc(adapter *ad, int fd, int pos, int pos_change, int pol, int hiband, diseqc *d);
-@@ -669,8 +669,8 @@ fe_delivery_system_t axe_delsys(int aid, int fd, fe_delivery_system_t *sys)
+@@ -210,7 +210,7 @@ static inline int extra_quattro(int input, int diseqc, int *equattro)
+ 	return *equattro;
+ }
+ 
+-adapter *use_adapter(int input)
++adapter *axe_use_adapter(int input)
+ {
+ 	int input2 = input < 4 ? input : -1;
+ 	adapter *ad = get_configured_adapter(input2);
+@@ -229,11 +229,33 @@ adapter *use_adapter(int input)
+ 	return ad;
+ }
+ 
+-int tune_check(adapter *ad, int pol, int hiband, int diseqc)
++int axe_get_hiband(transponder *tp, diseqc *diseqc_param)
+ {
++	if (tp->pol > 2 && diseqc_param->lnb_circular > 0)
++		return 0;
++	if (tp->freq < diseqc_param->lnb_switch)
++		return 0;
++	return 1;
++}
++
++int axe_get_freq(transponder *tp, diseqc *diseqc_param)
++{
++	int freq = tp->freq;
++
++	if (tp->pol > 2 && diseqc_param->lnb_circular > 0)
++		return (freq - diseqc_param->lnb_circular);
++	if (freq < diseqc_param->lnb_switch)
++		return (freq - diseqc_param->lnb_low);
++	return (freq - diseqc_param->lnb_high);
++}
++
++int axe_tune_check(adapter *ad, transponder *tp, diseqc *diseqc_param, int diseqc)
++{
++	int pol = tp->pol;
++	int hiband = axe_get_hiband(tp, diseqc_param);
+ 	LOGM("axe: tune check for adapter %d, pol %d/%d, hiband %d/%d, diseqc %d/%d",
+ 		 ad->id, ad->old_pol, pol, ad->old_hiband, hiband, ad->old_diseqc, diseqc);
+-	if (ad->old_pol != pol)
++	if (ad->old_pol != tp->pol)
+ 		return 0;
+ 	if (ad->old_hiband != hiband)
+ 		return 0;
+@@ -249,33 +271,25 @@ int axe_setup_switch(adapter *ad)
+ {
+ 	int frontend_fd = ad->fe;
+ 	transponder *tp = &ad->tp;
++	diseqc *diseqc_param = &tp->diseqc_param;
+ 
+-	int hiband = 0;
++	int hiband;
++	int freq;
+ 	int diseqc = (tp->diseqc > 0) ? tp->diseqc - 1 : 0;
+-	int freq = tp->freq;
+ 	int pol = (tp->pol - 1) & 1;
+ 
+-	if (tp->pol > 2 && tp->diseqc_param.lnb_circular > 0)
+-	{
+-		freq = (freq - tp->diseqc_param.lnb_circular);
+-		hiband = 0;
+-	}
+-	else if (freq < tp->diseqc_param.lnb_switch)
+-	{
+-		freq = (freq - tp->diseqc_param.lnb_low);
+-		hiband = 0;
+-	}
+-	else
+-	{
+-		freq = (freq - tp->diseqc_param.lnb_high);
+-		hiband = 1;
+-	}
+-
+ 	adapter *ad2, *adm;
+ 	int input = 0, aid, pos = 0, equattro = 0, master = -1;
+ 
+-	if (tp->diseqc_param.switch_type != SWITCH_UNICABLE &&
+-		tp->diseqc_param.switch_type != SWITCH_JESS)
++	/* this is a new tune, so clear all adapter<->input mappings */
++	for (aid = 0; aid < 4; aid++)
++	{
++		ad2 = a[aid];
++		ad2->axe_used &= ~(1 << ad->id);
++	}
++
++	if (diseqc_param->switch_type != SWITCH_UNICABLE &&
++		diseqc_param->switch_type != SWITCH_JESS)
+ 	{
+ 		input = ad->id;
+ 		if (!opts.quattro || extra_quattro(input, diseqc, &equattro))
+@@ -298,7 +312,7 @@ int axe_setup_switch(adapter *ad)
+ 						continue;
+ 					if ((ad2->axe_used & ~(1 << ad->id)) == 0)
+ 						continue;
+-					if (!tune_check(ad2, pol, hiband, pos))
++					if (!axe_tune_check(ad2, tp, &ad2->diseqc_param, pos))
+ 						continue;
+ 					break;
+ 				}
+@@ -327,7 +341,7 @@ int axe_setup_switch(adapter *ad)
+ 				}
+ 				diseqc = pos;
+ 				master = aid;
+-				adm = use_adapter(master);
++				adm = axe_use_adapter(master);
+ 				if (adm == NULL)
+ 				{
+ 					LOG("axe_fe: unknown master adapter for input %d", input);
+@@ -337,7 +351,7 @@ int axe_setup_switch(adapter *ad)
+ 			else
+ 			{
+ 				master = (ad->master_source >= 0) ? ad->master_source : ad->pa;
+-				adm = use_adapter(master);
++				adm = axe_use_adapter(master);
+ 				if (adm == NULL)
+ 				{
+ 					LOG("axe_fe: unknown master adapter for input %d", input);
+@@ -357,7 +371,7 @@ int axe_setup_switch(adapter *ad)
+ 						if (ad2->sid_cnt > 0)
+ 							break;
+ 					}
+-					if (adm != ad && aid < 4 && !tune_check(adm, pol, hiband, diseqc))
++					if (adm != ad && aid < 4 && !axe_tune_check(adm, tp, &adm->diseqc_param, diseqc))
+ 					{
+ 						LOG("unable to use slave adapter %d (master %d)", input, adm->pa);
+ 						return 0;
+@@ -368,10 +382,13 @@ int axe_setup_switch(adapter *ad)
+ 			if (master >= 0)
+ 			{
+ 				input = master;
+-				if (!tune_check(adm, pol, hiband, diseqc))
++				diseqc_param = &adm->diseqc_param;
++				hiband = axe_get_hiband(tp, diseqc_param);
++				freq = axe_get_freq(tp, diseqc_param);
++				if (!axe_tune_check(adm, tp, diseqc_param, diseqc))
+ 				{
+ 					send_diseqc(adm, adm->fe2, diseqc, adm->old_diseqc != diseqc,
+-								pol, hiband, &tp->diseqc_param);
++								pol, hiband, diseqc_param);
+ 					adm->old_pol = pol;
+ 					adm->old_hiband = hiband;
+ 					adm->old_diseqc = diseqc;
+@@ -381,6 +398,7 @@ int axe_setup_switch(adapter *ad)
+ 		}
+ 		else if (opts.quattro)
+ 		{
++			hiband = axe_get_hiband(tp, diseqc_param);
+ 			if (opts.quattro_hiband == 1 && hiband)
+ 			{
+ 				LOG("axe_fe: hiband is not allowed for quattro config (adapter %d)", input);
+@@ -392,17 +410,19 @@ int axe_setup_switch(adapter *ad)
+ 				return 0;
+ 			}
+ 			input = ((hiband ^ 1) << 1) | (pol ^ 1);
+-			adm = use_adapter(input);
++			adm = axe_use_adapter(input);
+ 			if (adm == NULL)
+ 			{
+ 				LOG("axe_fe: unknown master adapter %d", input);
+ 				return 0;
+ 			}
+ 			adm->old_diseqc = diseqc = 0;
+-			if (!tune_check(adm, pol, hiband, 0))
++			diseqc_param = &adm->diseqc_param;
++			hiband = axe_get_hiband(tp, diseqc_param);
++			freq = axe_get_freq(tp, diseqc_param);
++			if (!axe_tune_check(adm, tp, diseqc_param, 0))
+ 			{
+-				send_diseqc(adm, adm->fe2, 0, 0, pol, hiband,
+-							&tp->diseqc_param);
++				send_diseqc(adm, adm->fe2, 0, 0, pol, hiband, diseqc_param);
+ 				adm->old_pol = pol;
+ 				adm->old_hiband = hiband;
+ 				adm->old_diseqc = 0;
+@@ -414,9 +434,15 @@ int axe_setup_switch(adapter *ad)
+ 	else
+ 	{
+ 		aid = ad->id & 3;
+-		input = ad->master_source < 0 ? 0 : ad->master_source; //opts.axe_unicinp[aid];
++		if (diseqc_param->switch_type == SWITCH_UNICABLE ||
++			diseqc_param->switch_type == SWITCH_JESS)
++		{
++			input = ad->dmx_source < 0 ? 0 : ad->dmx_source;
++		} else {
++			input = ad->master_source < 0 ? 0 : ad->master_source;
++		}
+ 		frontend_fd = ad->fe;
+-		ad = use_adapter(input);
++		ad = axe_use_adapter(input);
+ 		if (ad == NULL)
+ 		{
+ 			LOGM("axe setup: unable to find adapter %d", input);
+@@ -429,17 +455,20 @@ int axe_setup_switch(adapter *ad)
+ 			ad->id, input, ad->fe, ad->fe2);
+ 	}
+ 
+-	if (tp->diseqc_param.switch_type == SWITCH_UNICABLE)
++	hiband = axe_get_hiband(tp, diseqc_param);
++	freq = axe_get_freq(tp, diseqc_param);
++	
++	if (diseqc_param->switch_type == SWITCH_UNICABLE)
+ 	{
+ 		freq = send_unicable(ad, ad->fe2, freq / 1000, diseqc,
+-							 pol, hiband, &tp->diseqc_param);
++							 pol, hiband, diseqc_param);
+ 	}
+-	else if (tp->diseqc_param.switch_type == SWITCH_JESS)
++	else if (diseqc_param->switch_type == SWITCH_JESS)
+ 	{
+ 		freq = send_jess(ad, ad->fe2, freq / 1000, diseqc,
+-						 pol, hiband, &tp->diseqc_param);
++						 pol, hiband, diseqc_param);
+ 	}
+-	else if (tp->diseqc_param.switch_type == SWITCH_SLAVE)
++	else if (diseqc_param->switch_type == SWITCH_SLAVE)
+ 	{
+ 		LOG("FD %d (%d) is a slave adapter", frontend_fd);
+ 	}
+@@ -447,7 +476,7 @@ int axe_setup_switch(adapter *ad)
+ 	{
+ 		if (ad->old_pol != pol || ad->old_hiband != hiband || ad->old_diseqc != diseqc)
+ 			send_diseqc(ad, frontend_fd, diseqc, ad->old_diseqc != diseqc, pol,
+-						hiband, &tp->diseqc_param);
++						hiband, diseqc_param);
+ 		else
+ 			LOGM("Skip sending diseqc commands since "
+ 				 "the switch position doesn't need to be changed: "
+@@ -669,8 +698,8 @@ fe_delivery_system_t axe_delsys(int aid, int fd, fe_delivery_system_t *sys)
  
  void axe_get_signal(adapter *ad)
  {
@@ -52,7 +484,7 @@ index 52e8dad..1578a51 100644
  	get_signal(ad, &status, &ber, &strength, &snr);
  
  	strength = strength * 240 / 24000;
-@@ -819,9 +819,11 @@ void free_axe_input(adapter *ad)
+@@ -819,9 +848,11 @@ void free_axe_input(adapter *ad)
  
  	for (aid = 0; aid < 4; aid++)
  	{
@@ -66,8 +498,49 @@ index 52e8dad..1578a51 100644
  	}
  }
  
+@@ -829,11 +860,11 @@ void free_axe_input(adapter *ad)
+ void set_link_adapters(char *o)
+ {
+ 	int i, la, a_id, b_id;
+-	char buf[100], *arg[20], *sep1;
++	char buf[1000], *arg[40], *sep1;
+ 
+ 	strncpy(buf, o, sizeof(buf) - 1);
+ 	buf[sizeof(buf) - 1] = '\0';
+-	la = split(arg, buf, sizeof(arg), ',');
++	la = split(arg, buf, ARRAY_SIZE(arg), ',');
+ 	for (i = 0; i < la; i++)
+ 	{
+ 		a_id = map_intd(arg[i], NULL, -1);
+@@ -857,11 +888,11 @@ void set_link_adapters(char *o)
+ void set_absolute_src(char *o)
+ {
+ 	int i, la, src, inp, pos;
+-	char buf[100], *arg[20], *inps, *poss;
++	char buf[1000], *arg[40], *inps, *poss;
+ 
+ 	strncpy(buf, o, sizeof(buf) - 1);
+ 	buf[sizeof(buf) - 1] = '\0';
+-	la = split(arg, buf, sizeof(arg), ',');
++	la = split(arg, buf, ARRAY_SIZE(arg), ',');
+ 	for (i = 0; i < la; i++)
+ 	{
+ 		inps = strchr(arg[i], ':');
+diff --git a/src/dvb.c b/src/dvb.c
+index 5184c4d..f3b6ac3 100644
+--- a/src/dvb.c
++++ b/src/dvb.c
+@@ -192,7 +192,7 @@ int detect_dvb_parameters(char *s, transponder *tp)
+ 		init_dvb_parameters(tp);
+ 
+ 	LOG("detect_dvb_parameters (S)-> %s", s);
+-	la = split(arg, s, 20, '&');
++	la = split(arg, s, ARRAY_SIZE(arg), '&');
+ 
+ 	for (i = 0; i < la; i++)
+ 	{
 diff --git a/src/minisatip.c b/src/minisatip.c
-index 0cd9b0b..c9be9c4 100644
+index 0cd9b0b..a35ef19 100644
 --- a/src/minisatip.c
 +++ b/src/minisatip.c
 @@ -552,7 +552,7 @@ void set_options(int argc, char *argv[])
@@ -79,8 +552,35 @@ index 0cd9b0b..c9be9c4 100644
  #define AXE_OPTS "7:QW:8:A:"
  #else
  #define AXE_OPTS ""
+@@ -614,7 +614,7 @@ void set_options(int argc, char *argv[])
+ 			int i;
+ 			memset(buf, 0, sizeof(buf));
+ 			strncpy(buf, optarg, sizeof(buf) - 1);
+-			int la = split(arg, buf, 50, ',');
++			int la = split(arg, buf, ARRAY_SIZE(arg), ',');
+ 			for (i = 0; i < la; i++)
+ 			{
+ 				int level = map_intd(arg[i], loglevels, -1);
+@@ -1046,7 +1046,7 @@ int read_rtsp(sockets *s)
+ 		return 0;
+ 	}
+ 
+-	la = split(arg, (char *)s->buf, 50, ' ');
++	la = split(arg, (char *)s->buf, ARRAY_SIZE(arg), ' ');
+ 	cseq = 0;
+ 	if (la < 2)
+ 		LOG_AND_RETURN(0,
+@@ -1311,7 +1311,7 @@ int read_http(sockets *s)
+ 	LOG("read HTTP from %d sid: %d: ", s->sock, s->sid);
+ 	LOGM("%s", s->buf);
+ 
+-	split(arg, (char *)s->buf, 50, ' ');
++	split(arg, (char *)s->buf, ARRAY_SIZE(arg), ' ');
+ 	//      LOG("args: %s -> %s -> %s",arg[0],arg[1],arg[2]);
+ 	if (strncmp(arg[0], "GET", 3) && strncmp(arg[0], "POST", 4) && !is_head)
+ 		REPLY_AND_RETURN(503);
 diff --git a/src/minisatip.h b/src/minisatip.h
-index 6512250..9cb8715 100644
+index 6512250..59067f0 100644
 --- a/src/minisatip.h
 +++ b/src/minisatip.h
 @@ -9,7 +9,7 @@
@@ -88,14 +588,63 @@ index 6512250..9cb8715 100644
  #define VERSION_BUILD "16"
  #define CC(a, b, c) #a b #c
 -#define VERSION CC(0.7., VERSION_BUILD, )
-+#define VERSION CC(0.7., VERSION_BUILD, -axe209)
++#define VERSION CC(0.7., VERSION_BUILD, -axe210)
  
  void set_options(int argc, char *argv[]);
  
+diff --git a/src/satipc.c b/src/satipc.c
+index 24c82ff..38df122 100644
+--- a/src/satipc.c
++++ b/src/satipc.c
+@@ -176,7 +176,7 @@ int satipc_reply(sockets *s)
+ 		sip->option_no_option = 1;
+ 	}
+ 
+-	la = split(arg, (char *)s->buf, 100, ' ');
++	la = split(arg, (char *)s->buf, ARRAY_SIZE(arg), ' ');
+ 	rc = map_int(arg[1], NULL);
+ 
+ 	if (sip->option_no_session && sip->last_cmd == RTSP_OPTIONS && !sess && sip->session[0])
+@@ -1288,7 +1288,7 @@ void find_satip_adapter(adapter **a)
+ 		return;
+ 	char satip_servers[strlen(opts.satip_servers) + 10];
+ 	strcpy(satip_servers, opts.satip_servers);
+-	la = split(arg, satip_servers, 50, ',');
++	la = split(arg, satip_servers, ARRAY_SIZE(arg), ',');
+ 
+ 	for (i = 0; i < la; i++)
+ 	{
+@@ -1420,7 +1420,7 @@ void satip_getxml_data(char *data, int len, void *opaque, Shttp_client *h)
+ 		eos = strchr(sep, '<');
+ 		if (eos)
+ 			*eos = 0;
+-		la = split(arg, sep, MAX_DVBAPI_SYSTEMS, ',');
++		la = split(arg, sep, ARRAY_SIZE(arg), ',');
+ 		for (i = 0; i < la; i++)
+ 		{
+ 			int ds = map_intd(arg[i], satip_delsys, -1);
+@@ -1474,7 +1474,7 @@ int satip_getxml(void *x)
+ 	memset(satip_xml, 0, sizeof(satip_xml));
+ 	memset(sxd, 0, sizeof(sxd));
+ 	strncpy(satip_xml, opts.satip_xml, sizeof(satip_xml) - 1);
+-	la = split(arg, satip_xml, MAX_SATIP_XML, ',');
++	la = split(arg, satip_xml, ARRAY_SIZE(arg), ',');
+ 	for (i = 0; i < la; i++)
+ 	{
+ 		SAFE_STRCPY(sxd[i].url, arg[i]);
 diff --git a/src/stream.c b/src/stream.c
-index bde2992..8443a4f 100644
+index bde2992..f587e93 100644
 --- a/src/stream.c
 +++ b/src/stream.c
+@@ -422,7 +422,7 @@ int decode_transport(sockets *s, char *arg, char *default_rtp, int start_rtp)
+ 			return 0;
+ 		}
+ 
+-		l = split(arg2, arg, 10, ';');
++		l = split(arg2, arg, ARRAY_SIZE(arg2), ';');
+ 	}
+ 	//      LOG("arg2 %s %s %s",arg2[0],arg2[1],arg2[2]);
+ 	memset(&p, 0, sizeof(p));
 @@ -987,7 +987,7 @@ int process_dmx(sockets *s)
  #endif
  
@@ -105,3 +654,16 @@ index bde2992..8443a4f 100644
  
  	if (ad->sid_cnt == 1 && ad->master_sid >= 0 && !packet_no_sid) // we have just 1 stream, do not check the pids, send everything to the destination
  	{
+diff --git a/src/utils.h b/src/utils.h
+index 1c9aa0d..c184668 100644
+--- a/src/utils.h
++++ b/src/utils.h
+@@ -263,6 +263,8 @@ static inline int get_index_hash(void *p, int max, int struct_size, uint32_t key
+ 
+ typedef ssize_t (*mywritev)(int fd, const struct iovec *io, int len);
+ 
++#define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
++
+ #ifdef TESTING
+ 
+ #define writev(a, b, c) _writev(a, b, c)
