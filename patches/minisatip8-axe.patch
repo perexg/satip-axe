@@ -233,7 +233,7 @@ index e034e3e..f7727b8 100644
  	{
  		if (arg[i] && arg[i][0] == '*')
 diff --git a/src/axe.c b/src/axe.c
-index 52e8dad..cbe1855 100644
+index 52e8dad..b3fe35e 100644
 --- a/src/axe.c
 +++ b/src/axe.c
 @@ -48,7 +48,7 @@
@@ -254,7 +254,7 @@ index 52e8dad..cbe1855 100644
  {
  	int input2 = input < 4 ? input : -1;
  	adapter *ad = get_configured_adapter(input2);
-@@ -229,11 +229,33 @@ adapter *use_adapter(int input)
+@@ -229,8 +229,30 @@ adapter *use_adapter(int input)
  	return ad;
  }
  
@@ -281,15 +281,11 @@ index 52e8dad..cbe1855 100644
 +
 +int axe_tune_check(adapter *ad, transponder *tp, diseqc *diseqc_param, int diseqc)
 +{
-+	int pol = tp->pol;
++	int pol = (tp->pol - 1) & 1;
 +	int hiband = axe_get_hiband(tp, diseqc_param);
  	LOGM("axe: tune check for adapter %d, pol %d/%d, hiband %d/%d, diseqc %d/%d",
  		 ad->id, ad->old_pol, pol, ad->old_hiband, hiband, ad->old_diseqc, diseqc);
--	if (ad->old_pol != pol)
-+	if (ad->old_pol != tp->pol)
- 		return 0;
- 	if (ad->old_hiband != hiband)
- 		return 0;
+ 	if (ad->old_pol != pol)
 @@ -249,33 +271,25 @@ int axe_setup_switch(adapter *ad)
  {
  	int frontend_fd = ad->fe;
@@ -580,7 +576,7 @@ index 0cd9b0b..a35ef19 100644
  	if (strncmp(arg[0], "GET", 3) && strncmp(arg[0], "POST", 4) && !is_head)
  		REPLY_AND_RETURN(503);
 diff --git a/src/minisatip.h b/src/minisatip.h
-index 6512250..59067f0 100644
+index 6512250..1725565 100644
 --- a/src/minisatip.h
 +++ b/src/minisatip.h
 @@ -9,7 +9,7 @@
@@ -588,7 +584,7 @@ index 6512250..59067f0 100644
  #define VERSION_BUILD "16"
  #define CC(a, b, c) #a b #c
 -#define VERSION CC(0.7., VERSION_BUILD, )
-+#define VERSION CC(0.7., VERSION_BUILD, -axe210)
++#define VERSION CC(0.7., VERSION_BUILD, -axe211)
  
  void set_options(int argc, char *argv[]);
  
