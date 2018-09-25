@@ -1,6 +1,6 @@
---- Makefile.orig	2017-05-03 16:45:40.962475569 +0200
-+++ Makefile	2017-05-03 16:48:52.644079190 +0200
-@@ -618,7 +618,7 @@
+--- Makefile.orig	2018-09-25 11:01:33.853198226 +0200
++++ Makefile	2018-09-25 11:07:57.416371544 +0200
+@@ -587,7 +587,7 @@
  	    *) quiet="";; \
  	esac; \
  	$(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' \
@@ -9,7 +9,7 @@
  		$(PYTHON_FOR_BUILD) $(srcdir)/setup.py $$quiet build
  
  # Build static library
-@@ -728,17 +728,19 @@
+@@ -697,6 +697,8 @@
  ############################################################################
  # Importlib
  
@@ -18,30 +18,35 @@
  Programs/_freeze_importlib.o: Programs/_freeze_importlib.c Makefile
  
  Programs/_freeze_importlib: Programs/_freeze_importlib.o $(LIBRARY_OBJS_OMIT_FROZEN)
- 	$(LINKCC) $(PY_LDFLAGS) -o $@ Programs/_freeze_importlib.o $(LIBRARY_OBJS_OMIT_FROZEN) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
- 
- Python/importlib_external.h: # $(srcdir)/Lib/importlib/_bootstrap_external.py Programs/_freeze_importlib
+@@ -706,12 +708,12 @@
+ regen-importlib: Programs/_freeze_importlib
+ 	# Regenerate Python/importlib_external.h
+ 	# from Lib/importlib/_bootstrap_external.py using _freeze_importlib
 -	./Programs/_freeze_importlib \
 +	$(FREEZE_IMPORTLIB) \
- 	    $(srcdir)/Lib/importlib/_bootstrap_external.py Python/importlib_external.h
- 
- Python/importlib.h: # $(srcdir)/Lib/importlib/_bootstrap.py Programs/_freeze_importlib
+ 	    $(srcdir)/Lib/importlib/_bootstrap_external.py \
+ 	    $(srcdir)/Python/importlib_external.h
+ 	# Regenerate Python/importlib.h from Lib/importlib/_bootstrap.py
+ 	# using _freeze_importlib
 -	./Programs/_freeze_importlib \
 +	$(FREEZE_IMPORTLIB) \
- 	    $(srcdir)/Lib/importlib/_bootstrap.py Python/importlib.h
+ 	    $(srcdir)/Lib/importlib/_bootstrap.py \
+ 	    $(srcdir)/Python/importlib.h
  
+@@ -778,11 +780,8 @@
  
-@@ -805,9 +807,6 @@
- $(GRAMMAR_C): # $(GRAMMAR_H)
- 	touch $(GRAMMAR_C)
+ $(IO_OBJS): $(IO_H)
  
 -$(PGEN): $(PGENOBJS)
 -		$(CC) $(OPT) $(PY_LDFLAGS) $(PGENOBJS) $(LIBS) -o $(PGEN)
 -
- Parser/grammar.o:	$(srcdir)/Parser/grammar.c \
- 				$(srcdir)/Include/token.h \
- 				$(srcdir)/Include/grammar.h
-@@ -1620,7 +1619,7 @@
+ .PHONY: regen-grammar
+-regen-grammar: $(PGEN)
++regen-grammar:
+ 	# Regenerate Include/graminit.h and Python/graminit.c
+ 	# from Grammar/Grammar using pgen
+ 	@$(MKDIR_P) Include
+@@ -1625,7 +1624,7 @@
  	rm -rf $(COVERAGE_REPORT)
  
  clobber: clean profile-removal
