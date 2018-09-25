@@ -2,6 +2,7 @@
 #
 # Tiny SAT>IP client which activates multicast streaming.
 #
+# Use command line parameters of
 # Create /etc/sysconfig/multicast file with syntax:
 #
 # <mport>:<satip-params>
@@ -9,12 +10,12 @@
 # You can modify this file when the program is active and
 # reload the configuration using the SIGHUP signal.
 #
-# Example:
+# Configuration Example:
 #
-# # Channel 1 on multicast port 5554, using first tuner (fe=1)
-# 5554:fe=1&src=1&freq=12525&sr=27500&\
-#      msys=dvbs&mtype=qpsk&pol=v&fec=34&\
-#      pids=0,1,16,17,18,52,57,100,104,165,299,1029,3002,3003
+# # Channel 1 on multicast port 5554, using first orbital position
+# 5554:src=1&freq=11347&pol=v&ro=0.35&msys=dvbs2&\
+#      mtype=8psk&plts=on&sr=22000&fec=23&\
+#      pids=0,17,18,6600,6610,6620,6630
 #
 # The SAT>IP parameters should match the SAT>IP specification:
 #   http://www.satip.info/resources
@@ -23,27 +24,100 @@
 # option -r <ipv4_mcast> or --remote-rtp <ipv4_mcast>. By default,
 # this address is 239.255.255.250.
 #
+# Command-line example:
+#
+# ./multicast-rtp \
+#   -s 192.168.1.100:554 -d 239.0.0.1 -p 5554 \
+#   -u "src=1&freq=11347&pol=v&ro=0.35&msys=dvbs2&mtype=8psk&plts=on&sr=22000&fec=23&pids=0,17,18,6600,6610,6620,6630"
+#
+# Note: The SAT>IP server needs to support "target" spoofing
+# and multicast address as "unicast" (minisatip project does it)
+#
 
 import os
 import signal
 import functools
 import asyncio
 import syslog
+import argparse,sys
+import signal
 
-VERSION='0.1'
+VERSION='0.2'
+SYSLOG=False
 SERVER='127.0.0.1:554'
-CONFIG='/etc/sysconfig/multicast'
-SYSLOG=True
-if not os.path.exists('/etc/init.d/axe-settings'):
-  SERVER='gssbox1:554'
-  CONFIG='multicast'
-  SYSLOG=False
+CONFIG=''
+REQUEST=''
+TARGET_ADDR=''
+TARGET_PORT=0
+USE_CONFIG=True
+QUIET=False
+
+#
+# Command line parameters
+#
+
+parser = argparse.ArgumentParser(description='Request multicast streaming from a SAT>IP server.')
+parser.add_argument('-q', '--quiet', dest='quiet',
+  action='store_true',
+  help='quiet display option')
+parser.add_argument('-l', '--syslog', dest='syslog',
+  action='store_true',
+  help='enable System LOG')
+parser.add_argument('-s', '--server', dest='server',
+  required=True,
+  help='server to connect')
+parser.add_argument('-d', '--destination', dest='addr',
+  default='',
+  help='target address  (Note: Only if server accept it!)')
+parser.add_argument('-p', '--port', dest='port', type=int,
+  default=10000,
+  help='target port  (default: 10000)')
+group = parser.add_mutually_exclusive_group(required=True)
+group.add_argument('-u', '--uri', dest='uri',
+  default='',
+  help='URI to request')
+group.add_argument('-c', '--config', dest='config',
+  default='/etc/sysconfig/multicast',
+  help='config file with static multicast streams  (default: /etc/sysconfig/multicast)')
+
+args = parser.parse_args()
+
+SYSLOG = args.syslog
+
+if args.port > 0 and args.port < 65536 :
+  TARGET_PORT = args.port
+else :
+  parser.print_help()
+  sys.exit()
+
+if len(args.server) > 0 :
+  SERVER = args.server
+else :
+  parser.print_help()
+  sys.exit()
+
+if len(args.uri) > 0 :
+  REQUEST = args.uri
+elif len(args.config) > 0 :
+  CONFIG = args.config
+else :
+  parser.print_help()
+  sys.exit()
+
+TARGET_ADDR = args.addr
+QUIET = args.quiet
+
+if len(REQUEST) > 0 :
+  USE_CONFIG = False
 
 #
 #
 #
+
 
 def log(msg):
+  if QUIET :
+    return
   if SYSLOG:
     syslog.syslog(msg)
   else:
@@ -80,14 +154,19 @@ class RTSP_Protocol:
       s = 'rtsp://%s:%d/?%s' % (peer[0], peer[1], self.params)
       log('%d (open): %s' % (self.mport, s))
       msg = 'SETUP ' + s + ' RTSP/1.0\r\n'
-      msg += 'Transport: RTP/AVP;multicast;port=%d-%d\r\n' % (self.mport, self.mport + 1)
+      if len(REQUEST) > 0 :
+        msg += 'Transport: RTP/AVP;unicast;destination=%s;client_port=%d-%d\r\n' % (TARGET_ADDR, self.mport, self.mport + 1)
+      else :
+        msg += 'Transport: RTP/AVP;multicast;port=%d-%d\r\n' % (self.mport, self.mport + 1)
       msg += 'CSeq: 1\r\n\r\n'
+      log(' -----> : %s' % msg)
       transport.write(msg.encode())
       self.action = 'PLAY'
 
   def data_received(self, data):
     if not self.transport:
       return
+    log(' <----- : %s' % data)
     lines = data.decode("utf-8").splitlines()
     if lines[0] != 'RTSP/1.0 200 OK':
       return self.retry()
@@ -131,6 +210,10 @@ class RTSP_Protocol:
       self.cseq = 2
     elif self.action == 'OPTIONS' and self.cseq == 2:
       log('%d (play): OK' % self.mport)
+    elif self.action == 'TEARDOWN':
+      log('%d (close): OK' % self.mport)
+      self.retry()
+      return
 
   def options(self):
     if not self.transport:
@@ -143,6 +226,19 @@ class RTSP_Protocol:
       msg += 'CSeq: %d\r\n\r\n' % self.cseq
       self.transport.write(msg.encode())
       self.client.loop.call_at(loop.time() + self.timeout/2, self.options)
+
+  def teardown(self):
+    self.action = 'TEARDOWN'
+    if not self.transport:
+      return
+    peer = self.transport._sock.getpeername()
+    log('%d (teardown): Session %s, streamID %d' % (self.mport, self.session, self.streamID))
+    self.cseq += 1
+    msg = 'TEARDOWN rtsp://%s:%d/stream=%d RTSP/1.0\r\n' % (peer[0], peer[1], self.streamID)
+    msg += 'Session: %s\r\n' % self.session
+    msg += 'CSeq: %d\r\n\r\n' % self.cseq
+    self.transport.write(msg.encode())
+    self.client.loop.call_at(loop.time() + 1, self.retry)
 
   def eof_received(self):
     self.connection_lost(None)
@@ -159,7 +255,7 @@ class RTSP_Protocol:
 
   def fatal(self):
     if self.transport:
-      self.transport.close()
+      self.teardown()
     self.client.protocol = None
     self.client.fatal()
 
@@ -195,7 +291,7 @@ class RTSP_Client:
     log("Remove multicast client: %s" % self.params)
     self.dead = True
     if self.protocol:
-      self.protocol.fatal()
+      self.protocol.teardown()
     self.clients.remove_client(self)
 
 #
@@ -207,8 +303,12 @@ class RTSP_Clients:
   def __init__(self, loop):
     self.loop = loop
     self.clients = []
-    self.parse_config_file()
-    hupfcn = lambda: self.parse_config_file()
+    if USE_CONFIG :
+      self.parse_config_file()
+      hupfcn = lambda: self.parse_config_file()
+    else :
+      self.parse_request()
+      hupfcn = lambda: self.parse_request()
     loop.add_signal_handler(signal.SIGHUP,
                             functools.partial(hupfcn))
 
@@ -223,6 +323,23 @@ class RTSP_Clients:
         c.deleteme = False
         return
     self.clients.append(RTSP_Client(self, params))
+
+  async def close_all(self):
+    for c in self.clients:
+      c.fatal()
+
+  def parse_request(self):
+    # mark clients
+    for c in self.clients:
+      c.deleteme = True
+    # parse command line
+    l = str(TARGET_PORT) + ':' + REQUEST
+    #print("parse_request: " + l)
+    self.add_client(l)
+    # remove marked clients
+    for c in self.clients:
+      if c.deleteme:
+        self.remove_client(c)
 
   def parse_config_file(self):
     # mark clients
@@ -251,17 +368,43 @@ class RTSP_Clients:
         self.remove_client(c)
 
 #
-# configuration file
+# configuration
 #
 
 if SYSLOG:
   syslog.openlog('multicast-rtp', 0, syslog.LOG_LOCAL7)
+
+silent = QUIET
+if QUIET :
+  QUIET = False
 log('Version %s' % VERSION)
+log('SERVER: %s' % SERVER)
+log('CONFIG: %s' % CONFIG)
+log('TARGET: %s:%d' % (TARGET_ADDR, TARGET_PORT))
+log('REQUEST: %s' % REQUEST)
+log('------------')
+if silent :
+  log(' Start.')
+  QUIET = True
+
 loop = asyncio.get_event_loop()
+loop.add_signal_handler(signal.SIGTERM, signal.getsignal(signal.SIGINT))
+
 clients = RTSP_Clients(loop)
+
 try:
     loop.run_forever()
+except (KeyboardInterrupt, SystemExit) as e:
+##  Send TEARDOWN before exit!
+    log(' Closing.')
+    loop.run_until_complete(clients.close_all())
+    loop.run_until_complete(asyncio.sleep(1.0))
+except:
+    print('*******')
 finally:
+    QUIET = False
+    log(' Stop.')
     loop.close()
 if SYSLOG:
   syslog.closelog()
+sys.exit(0)
