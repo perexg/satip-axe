@@ -11,7 +11,7 @@ NOTE: Some options identifiers were changed between minisatip5 and minisatip7:
 minisatip7,8 | minisatip5/minisatip | description
 -------------|----------------------|-----------------------------------
 -7           | -L                   | tuner linking
--9           | -X                   | unicable input (-S for minisatip8)
+-9           | -X                   | unicable input
 -W           | -P                   | AXE power
 -8           | -Z                   | quattro hiband mode
 
