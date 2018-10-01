@@ -79,6 +79,7 @@ Customization:
   - if /etc/sysconfig/profile script exists, it is executed at login
   - writeable ftp - copy /etc/inetd.conf to /etc/sysconfig/inetd.conf and
     add -w argument to the ftpd daemon
+  - flash drives are automounted on /media
 
 httpd:
 ------
@@ -200,6 +201,11 @@ Notes:
   - the original firmware uses fw1-nand0 flash region (32M)
   - the satip-axe firmware uses fw2-nand0 flash region (32M)
   - data block is named data-nand0 - uses rest of flash
+  - the original firmware provides a web interface for administration, the
+    satip-axe uses local files for configuration.
+  - the original firmware provides a DLNA server. Within satip-axe the http
+    server can be used to provide for example channels maps in the form of
+    .m3u files
 
 Disclaimer:
 -----------
