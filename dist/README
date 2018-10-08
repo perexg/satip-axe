@@ -251,6 +251,7 @@ History:
 --------
 
 satip-axe-2018 - ??
+  - moved the releases (firmware files) to github
   - added minisatip8
     - updated minisatip code (latest minisatip 0.7.16)
     - note that some options were removed (-M) or added (-2)
