@@ -14,6 +14,8 @@
 
 #define STV6120_1 (0xc0 >> 1)
 #define STV6120_2 (0xc6 >> 1)
+#define STV0900_1 (0xd0 >> 1)
+#define STV0900_2 (0xd2 >> 1)
 
 extern int (*i2c_transfer_mangle)(struct i2c_adapter *adap, struct i2c_msg *msg, int num);
 int i2c_transfer2(struct i2c_adapter *adap, struct i2c_msg *msg, int num);
@@ -22,17 +24,34 @@ static struct i2c_adapter *i2c_adapter0;
 static int i2c_mangle_enable = 1;
 static int i2c_mangle_debug = 0;
 static int stv6120_gain = 8;
+static int stv0900_mis[4] = { -1, -1, -1, -1 };
+static int stv0900_pls[4] = { -1, -1, -1, -1 };
 
 static void i2c_transfer_axe_dump(struct i2c_msg *msgs, int num)
 {
+	struct i2c_msg *m;
 	int ret;
+	u8 *b;
 
 	for (ret = 0; ret < num; ret++) {
+		m = msgs + ret;
+		b = m->buf;
 		printk("i2c master_xfer[%d] %c, addr=0x%02x, "
-			"len=%d%s, flags=0x%x\n", ret, (msgs[ret].flags & I2C_M_RD)
-			? 'R' : 'W', msgs[ret].addr, msgs[ret].len,
-			(msgs[ret].flags & I2C_M_RECV_LEN) ? "+" : "",
-			msgs[ret].flags);
+			"len=%d%s, flags=0x%04x, "
+			"data[%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x]\n",
+			ret,
+			(m->flags & I2C_M_RD) ? 'R' : 'W',
+			m->addr, m->len,
+			(m->flags & I2C_M_RECV_LEN) ? "+" : "",
+			m->flags,
+			m->len > 0 ? b[0] : 0,
+			m->len > 1 ? b[1] : 0,
+			m->len > 2 ? b[2] : 0,
+			m->len > 3 ? b[3] : 0,
+			m->len > 4 ? b[4] : 0,
+			m->len > 5 ? b[5] : 0,
+			m->len > 6 ? b[6] : 0,
+			m->len > 7 ? b[7] : 0);
 	}
 }
 
@@ -48,7 +67,60 @@ static void mangle(u8 *dst, struct i2c_msg *m, int i, int val, int shift, int ma
 		m->buf = dst;
 }
 
-static void i2c_transfer_axe_mangle(struct i2c_msg *msgs, int num)
+#define REG_SET3(b, b1, b2, b3) \
+	b[0] = b1, b[1] = b2, b[2] = b3
+
+static void demod_set_pls_and_msi(struct i2c_adapter *adap, struct i2c_msg *src, int p)
+{
+	struct i2c_msg m[6];
+	u8 buf[6][3];
+	int num, r, mis, idx = p ? 1 : 0;
+	u32 pls;
+	u8 iaddr = p ? 0xf3 : 0xf5;
+
+	switch (src->addr) {
+	case STV0900_1: idx += 0; break;
+	case STV0900_2: idx += 2; break;
+	default: return;
+	}
+
+	mis = stv0900_mis[idx];
+	if (mis >= 0 && mis <= 255) {
+		/* PDELCTRL1 - enable filter */
+		REG_SET3(buf[0], iaddr, 0x50, 0x20);
+		/* ISIENTRY */
+		REG_SET3(buf[1], iaddr, 0x5e, mis);
+		/* ISIBITENA */
+		REG_SET3(buf[2], iaddr, 0x5f, 0xff);
+		/* set GOLD PLS code */
+		pls = stv0900_pls[idx];
+		iaddr--;
+		REG_SET3(buf[3], iaddr, 0xae, pls); /* PLROOT0 */
+		REG_SET3(buf[4], iaddr, 0xad, pls >> 8); /* PLROOT1 */
+		REG_SET3(buf[5], iaddr, 0xac, 0x04 | ((pls >> 16) & 3)); /* PLROOT3 */
+		num = 6;
+		if (i2c_mangle_debug & 4)
+			printk("i2c idx=%d: pls=%d mis=%d\n", idx, pls, mis);
+	} else {
+		/* PDELCTRL1 - disable filter */
+		REG_SET3(buf[0], iaddr, 0x50, 0x00);
+		num = 1;
+		if (i2c_mangle_debug & 4)
+			printk("i2c idx=%d: disable mis filter\n", idx);
+	}
+	for (r = 0; r < num; r++) {
+		m[r] = *src;
+		m[r].len = 3;
+		m[r].buf = buf[r];
+	}
+	if (i2c_mangle_debug & 1)
+		i2c_transfer_axe_dump(m, num);
+	r = i2c_transfer2(adap, m, num);
+	if (r < 0)
+		printk("i2c mangle demod pls and msi error! (%d)\n", r);
+}
+
+static void i2c_transfer_axe_mangle(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
 {
 	static u8 mbuf[4][32];
 	struct i2c_msg *m;
@@ -58,10 +130,17 @@ static void i2c_transfer_axe_mangle(struct i2c_msg *msgs, int num)
 		m = msgs + ret;
 		if (m->len < 1 || (m->flags & I2C_M_RD) != 0)
 			continue;
-		if (m->addr == STV6120_1 || m->addr == STV6120_2)
+		if (m->addr == STV6120_1 || m->addr == STV6120_2) {
 			for (r = m->buf[0], i = 1; i < m->len; i++, r++)
 				if (r == 0x01 || r == 0x0b)
 					mangle(mbuf[ret], m, i, stv6120_gain, 0, 0x0f);
+		} else if (m->addr == STV0900_1 || m->addr == STV0900_2) {
+			/* inject pls/mis settings before CARCFG register update */
+			if (m->flags == 0 && m->len == 3 &&
+			    (m->buf[0] == 0xf2 || m->buf[0] == 0xf4) &&
+			    m->buf[1] == 0x38 && m->buf[2] == 0x46)
+				demod_set_pls_and_msi(adap, m, m->buf[0] == 0xf2);
+		}
 	}
 }
 
@@ -71,7 +150,7 @@ static int i2c_transfer_axe(struct i2c_adapter *adap, struct i2c_msg *msgs, int 
 		if (i2c_mangle_debug & 1)
 			i2c_transfer_axe_dump(msgs, num);
 		if (i2c_mangle_enable)
-			i2c_transfer_axe_mangle(msgs, num);
+			i2c_transfer_axe_mangle(adap, msgs, num);
 	}
 	return i2c_transfer2(adap, msgs, num);
 }
@@ -140,6 +219,166 @@ static DEVICE_ATTR(stv6120_gain, 0644,
 		   stv6120_gain_show,
 		   stv6120_gain_store);
 
+static ssize_t stv0900_mis1_show
+  (struct device *dev, struct device_attribute *attr, char *page)
+{
+	return sprintf(page, "%i\n", stv0900_mis[0]);
+}
+
+static ssize_t stv0900_mis1_store
+  (struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	int val = 0;
+	if (sscanf(buf, "%i", &val) != 1)
+		return -EINVAL;
+	stv0900_mis[0] = val;
+	return count;
+}
+
+static DEVICE_ATTR(stv0900_mis1, 0644,
+		   stv0900_mis1_show,
+		   stv0900_mis1_store);
+
+static ssize_t stv0900_mis2_show
+  (struct device *dev, struct device_attribute *attr, char *page)
+{
+	return sprintf(page, "%i\n", stv0900_mis[1]);
+}
+
+static ssize_t stv0900_mis2_store
+  (struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	int val = 0;
+	if (sscanf(buf, "%i", &val) != 1)
+		return -EINVAL;
+	stv0900_mis[1] = val;
+	return count;
+}
+
+static DEVICE_ATTR(stv0900_mis2, 0644,
+		   stv0900_mis2_show,
+		   stv0900_mis2_store);
+
+static ssize_t stv0900_mis3_show
+  (struct device *dev, struct device_attribute *attr, char *page)
+{
+	return sprintf(page, "%i\n", stv0900_mis[2]);
+}
+
+static ssize_t stv0900_mis3_store
+  (struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	int val = 0;
+	if (sscanf(buf, "%i", &val) != 1)
+		return -EINVAL;
+	stv0900_mis[2] = val;
+	return count;
+}
+
+static DEVICE_ATTR(stv0900_mis3, 0644,
+		   stv0900_mis3_show,
+		   stv0900_mis3_store);
+
+static ssize_t stv0900_mis4_show
+  (struct device *dev, struct device_attribute *attr, char *page)
+{
+	return sprintf(page, "%i\n", stv0900_mis[3]);
+}
+
+static ssize_t stv0900_mis4_store
+  (struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	int val = 0;
+	if (sscanf(buf, "%i", &val) != 1)
+		return -EINVAL;
+	stv0900_mis[3] = val;
+	return count;
+}
+
+static DEVICE_ATTR(stv0900_mis4, 0644,
+		   stv0900_mis4_show,
+		   stv0900_mis4_store);
+
+static ssize_t stv0900_pls1_show
+  (struct device *dev, struct device_attribute *attr, char *page)
+{
+	return sprintf(page, "%i\n", stv0900_pls[0]);
+}
+
+static ssize_t stv0900_pls1_store
+  (struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	int val = 0;
+	if (sscanf(buf, "%i", &val) != 1)
+		return -EINVAL;
+	stv0900_pls[0] = val;
+	return count;
+}
+
+static DEVICE_ATTR(stv0900_pls1, 0644,
+		   stv0900_pls1_show,
+		   stv0900_pls1_store);
+
+static ssize_t stv0900_pls2_show
+  (struct device *dev, struct device_attribute *attr, char *page)
+{
+	return sprintf(page, "%i\n", stv0900_pls[1]);
+}
+
+static ssize_t stv0900_pls2_store
+  (struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	int val = 0;
+	if (sscanf(buf, "%i", &val) != 1)
+		return -EINVAL;
+	stv0900_pls[1] = val;
+	return count;
+}
+
+static DEVICE_ATTR(stv0900_pls2, 0644,
+		   stv0900_pls2_show,
+		   stv0900_pls2_store);
+
+static ssize_t stv0900_pls3_show
+  (struct device *dev, struct device_attribute *attr, char *page)
+{
+	return sprintf(page, "%i\n", stv0900_pls[2]);
+}
+
+static ssize_t stv0900_pls3_store
+  (struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	int val = 0;
+	if (sscanf(buf, "%i", &val) != 1)
+		return -EINVAL;
+	stv0900_pls[2] = val;
+	return count;
+}
+
+static DEVICE_ATTR(stv0900_pls3, 0644,
+		   stv0900_pls3_show,
+		   stv0900_pls3_store);
+
+static ssize_t stv0900_pls4_show
+  (struct device *dev, struct device_attribute *attr, char *page)
+{
+	return sprintf(page, "%i\n", stv0900_pls[3]);
+}
+
+static ssize_t stv0900_pls4_store
+  (struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	int val = 0;
+	if (sscanf(buf, "%i", &val) != 1)
+		return -EINVAL;
+	stv0900_pls[3] = val;
+	return count;
+}
+
+static DEVICE_ATTR(stv0900_pls4, 0644,
+		   stv0900_pls4_show,
+		   stv0900_pls4_store);
+
 static void sysfs_create_entries(void)
 {
 	struct kobject *kobj = &i2c_adapter0->dev.kobj;
@@ -147,6 +386,14 @@ static void sysfs_create_entries(void)
 	sysfs_create_file(kobj, &dev_attr_i2c_mangle_enable.attr);
 	sysfs_create_file(kobj, &dev_attr_i2c_mangle_debug.attr);
 	sysfs_create_file(kobj, &dev_attr_stv6120_gain.attr);
+	sysfs_create_file(kobj, &dev_attr_stv0900_mis1.attr);
+	sysfs_create_file(kobj, &dev_attr_stv0900_mis2.attr);
+	sysfs_create_file(kobj, &dev_attr_stv0900_mis3.attr);
+	sysfs_create_file(kobj, &dev_attr_stv0900_mis4.attr);
+	sysfs_create_file(kobj, &dev_attr_stv0900_pls1.attr);
+	sysfs_create_file(kobj, &dev_attr_stv0900_pls2.attr);
+	sysfs_create_file(kobj, &dev_attr_stv0900_pls3.attr);
+	sysfs_create_file(kobj, &dev_attr_stv0900_pls4.attr);
 }
 
 static void sysfs_remove_entries(void)
@@ -156,6 +403,14 @@ static void sysfs_remove_entries(void)
 	sysfs_remove_file(kobj, &dev_attr_i2c_mangle_enable.attr);
 	sysfs_remove_file(kobj, &dev_attr_i2c_mangle_debug.attr);
 	sysfs_remove_file(kobj, &dev_attr_stv6120_gain.attr);
+	sysfs_remove_file(kobj, &dev_attr_stv0900_mis1.attr);
+	sysfs_remove_file(kobj, &dev_attr_stv0900_mis2.attr);
+	sysfs_remove_file(kobj, &dev_attr_stv0900_mis3.attr);
+	sysfs_remove_file(kobj, &dev_attr_stv0900_mis4.attr);
+	sysfs_remove_file(kobj, &dev_attr_stv0900_pls1.attr);
+	sysfs_remove_file(kobj, &dev_attr_stv0900_pls2.attr);
+	sysfs_remove_file(kobj, &dev_attr_stv0900_pls3.attr);
+	sysfs_remove_file(kobj, &dev_attr_stv0900_pls4.attr);
 }
 
 /*
