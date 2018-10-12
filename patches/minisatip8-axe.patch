@@ -397,7 +397,7 @@ index e034e3e..9862114 100644
  		{"ad_master", VAR_AARRAY_UINT8, a, 1, MAX_ADAPTERS, offsetof(adapter, master_sid)},
  		{"ad_sidcount", VAR_AARRAY_UINT8, a, 1, MAX_ADAPTERS, offsetof(adapter, sid_cnt)},
 diff --git a/src/axe.c b/src/axe.c
-index 52e8dad..57ba3a6 100644
+index 52e8dad..466f699 100644
 --- a/src/axe.c
 +++ b/src/axe.c
 @@ -48,7 +48,7 @@
@@ -418,7 +418,7 @@ index 52e8dad..57ba3a6 100644
  	len = strlen(b = s);
  	while (len > 0)
  	{
-@@ -152,6 +154,49 @@ void axe_post_init(adapter *ad)
+@@ -152,6 +154,54 @@ void axe_post_init(adapter *ad)
  	sockets_setread(ad->sock, axe_read);
  }
  
@@ -453,6 +453,7 @@ index 52e8dad..57ba3a6 100644
 +	static int isi[4] = { -2, -2, -2, -2 };
 +	static int pls_code[4] = { -2, -2, -2, -2 };
 +	int v;
++	LOGM("axe: isi %d pls %d mode %d\n", tp->plp_isi, tp->pls_code, tp->pls_mode);
 +	if (tp->plp_isi != isi[ad->pa]) {
 +		v = tp->plp_isi < 0 ? -1 : (tp->plp_isi & 0xff);
 +		axe_stv0900_i2c_4("mis", ad->pa, v);
@@ -460,6 +461,10 @@ index 52e8dad..57ba3a6 100644
 +	}
 +	if (tp->pls_code != pls_code[ad->pa]) {
 +		v = tp->pls_code < 0 ? 0 : (tp->pls_code & 0x3ffff);
++		if (tp->pls_mode == PLS_MODE_GOLD)
++			v |= 0x40000;
++		else if (tp->pls_mode == PLS_MODE_COMBO)
++			v |= 0x80000; /* really? */
 +		axe_stv0900_i2c_4("pls", ad->pa, v);
 +		pls_code[ad->pa] = tp->pls_code;
 +	}
@@ -468,7 +473,7 @@ index 52e8dad..57ba3a6 100644
  void axe_wakeup(void *_ad, int fe_fd, int voltage)
  {
  	int i, mask;
-@@ -210,7 +255,7 @@ static inline int extra_quattro(int input, int diseqc, int *equattro)
+@@ -210,7 +260,7 @@ static inline int extra_quattro(int input, int diseqc, int *equattro)
  	return *equattro;
  }
  
@@ -477,13 +482,13 @@ index 52e8dad..57ba3a6 100644
  {
  	int input2 = input < 4 ? input : -1;
  	adapter *ad = get_configured_adapter(input2);
-@@ -229,8 +274,30 @@ adapter *use_adapter(int input)
+@@ -229,8 +279,30 @@ adapter *use_adapter(int input)
  	return ad;
  }
  
 -int tune_check(adapter *ad, int pol, int hiband, int diseqc)
 +int axe_get_hiband(transponder *tp, diseqc *diseqc_param)
-+{
+ {
 +	if (tp->pol > 2 && diseqc_param->lnb_circular > 0)
 +		return 0;
 +	if (tp->freq < diseqc_param->lnb_switch)
@@ -503,13 +508,13 @@ index 52e8dad..57ba3a6 100644
 +}
 +
 +int axe_tune_check(adapter *ad, transponder *tp, diseqc *diseqc_param, int diseqc)
- {
++{
 +	int pol = (tp->pol - 1) & 1;
 +	int hiband = axe_get_hiband(tp, diseqc_param);
  	LOGM("axe: tune check for adapter %d, pol %d/%d, hiband %d/%d, diseqc %d/%d",
  		 ad->id, ad->old_pol, pol, ad->old_hiband, hiband, ad->old_diseqc, diseqc);
  	if (ad->old_pol != pol)
-@@ -249,33 +316,25 @@ int axe_setup_switch(adapter *ad)
+@@ -249,33 +321,25 @@ int axe_setup_switch(adapter *ad)
  {
  	int frontend_fd = ad->fe;
  	transponder *tp = &ad->tp;
@@ -555,7 +560,7 @@ index 52e8dad..57ba3a6 100644
  	{
  		input = ad->id;
  		if (!opts.quattro || extra_quattro(input, diseqc, &equattro))
-@@ -298,7 +357,7 @@ int axe_setup_switch(adapter *ad)
+@@ -298,7 +362,7 @@ int axe_setup_switch(adapter *ad)
  						continue;
  					if ((ad2->axe_used & ~(1 << ad->id)) == 0)
  						continue;
@@ -564,7 +569,7 @@ index 52e8dad..57ba3a6 100644
  						continue;
  					break;
  				}
-@@ -327,7 +386,7 @@ int axe_setup_switch(adapter *ad)
+@@ -327,7 +391,7 @@ int axe_setup_switch(adapter *ad)
  				}
  				diseqc = pos;
  				master = aid;
@@ -573,7 +578,7 @@ index 52e8dad..57ba3a6 100644
  				if (adm == NULL)
  				{
  					LOG("axe_fe: unknown master adapter for input %d", input);
-@@ -337,7 +396,7 @@ int axe_setup_switch(adapter *ad)
+@@ -337,7 +401,7 @@ int axe_setup_switch(adapter *ad)
  			else
  			{
  				master = (ad->master_source >= 0) ? ad->master_source : ad->pa;
@@ -582,7 +587,7 @@ index 52e8dad..57ba3a6 100644
  				if (adm == NULL)
  				{
  					LOG("axe_fe: unknown master adapter for input %d", input);
-@@ -357,7 +416,7 @@ int axe_setup_switch(adapter *ad)
+@@ -357,7 +421,7 @@ int axe_setup_switch(adapter *ad)
  						if (ad2->sid_cnt > 0)
  							break;
  					}
@@ -591,7 +596,7 @@ index 52e8dad..57ba3a6 100644
  					{
  						LOG("unable to use slave adapter %d (master %d)", input, adm->pa);
  						return 0;
-@@ -368,10 +427,13 @@ int axe_setup_switch(adapter *ad)
+@@ -368,10 +432,13 @@ int axe_setup_switch(adapter *ad)
  			if (master >= 0)
  			{
  				input = master;
@@ -607,7 +612,7 @@ index 52e8dad..57ba3a6 100644
  					adm->old_pol = pol;
  					adm->old_hiband = hiband;
  					adm->old_diseqc = diseqc;
-@@ -381,6 +443,7 @@ int axe_setup_switch(adapter *ad)
+@@ -381,6 +448,7 @@ int axe_setup_switch(adapter *ad)
  		}
  		else if (opts.quattro)
  		{
@@ -615,7 +620,7 @@ index 52e8dad..57ba3a6 100644
  			if (opts.quattro_hiband == 1 && hiband)
  			{
  				LOG("axe_fe: hiband is not allowed for quattro config (adapter %d)", input);
-@@ -392,17 +455,19 @@ int axe_setup_switch(adapter *ad)
+@@ -392,17 +460,19 @@ int axe_setup_switch(adapter *ad)
  				return 0;
  			}
  			input = ((hiband ^ 1) << 1) | (pol ^ 1);
@@ -639,7 +644,7 @@ index 52e8dad..57ba3a6 100644
  				adm->old_pol = pol;
  				adm->old_hiband = hiband;
  				adm->old_diseqc = 0;
-@@ -414,9 +479,15 @@ int axe_setup_switch(adapter *ad)
+@@ -414,9 +484,15 @@ int axe_setup_switch(adapter *ad)
  	else
  	{
  		aid = ad->id & 3;
@@ -657,7 +662,7 @@ index 52e8dad..57ba3a6 100644
  		if (ad == NULL)
  		{
  			LOGM("axe setup: unable to find adapter %d", input);
-@@ -429,17 +500,20 @@ int axe_setup_switch(adapter *ad)
+@@ -429,17 +505,20 @@ int axe_setup_switch(adapter *ad)
  			ad->id, input, ad->fe, ad->fe2);
  	}
  
@@ -683,7 +688,7 @@ index 52e8dad..57ba3a6 100644
  	{
  		LOG("FD %d (%d) is a slave adapter", frontend_fd);
  	}
-@@ -447,7 +521,7 @@ int axe_setup_switch(adapter *ad)
+@@ -447,7 +526,7 @@ int axe_setup_switch(adapter *ad)
  	{
  		if (ad->old_pol != pol || ad->old_hiband != hiband || ad->old_diseqc != diseqc)
  			send_diseqc(ad, frontend_fd, diseqc, ad->old_diseqc != diseqc, pol,
@@ -692,37 +697,44 @@ index 52e8dad..57ba3a6 100644
  		else
  			LOGM("Skip sending diseqc commands since "
  				 "the switch position doesn't need to be changed: "
-@@ -545,7 +619,10 @@ int axe_tune(int aid, transponder *tp)
+@@ -545,7 +624,11 @@ int axe_tune(int aid, transponder *tp)
  		ADD_PROP(DTV_SYMBOL_RATE, tp->sr)
  		ADD_PROP(DTV_INNER_FEC, tp->fec)
  #if DVBAPIVERSION >= 0x0502
 -		ADD_PROP(DTV_STREAM_ID, tp->plp)
-+		ADD_PROP(DTV_STREAM_ID, tp->plp_isi)
++		if (tp->plp_isi >= 0)
++			ADD_PROP(DTV_STREAM_ID, tp->plp_isi & 0xFF)
 +#endif
 +#if DVBAPIVERSION >= 0x050b /* 5.11 */
 +		ADD_PROP(DTV_SCRAMBLING_SEQUENCE_INDEX, tp->pls_code)
  #endif
  
  		LOG("tuning to %d(%d) pol: %s (%d) sr:%d fec:%s delsys:%s mod:%s rolloff:%s pilot:%s, ts clear=%jd, ts pol=%jd",
-@@ -569,7 +646,7 @@ int axe_tune(int aid, transponder *tp)
+@@ -569,7 +652,8 @@ int axe_tune(int aid, transponder *tp)
  		ADD_PROP(DTV_TRANSMISSION_MODE, tp->tmode)
  		ADD_PROP(DTV_HIERARCHY, HIERARCHY_AUTO)
  #if DVBAPIVERSION >= 0x0502
 -		ADD_PROP(DTV_STREAM_ID, tp->plp & 0xFF)
-+		ADD_PROP(DTV_STREAM_ID, tp->plp_isi & 0xFF)
++		if (tp->plp_isi >= 0)
++			ADD_PROP(DTV_STREAM_ID, tp->plp_isi & 0xFF)
  #endif
  
  		LOG(
-@@ -588,7 +665,7 @@ int axe_tune(int aid, transponder *tp)
+@@ -588,7 +672,12 @@ int axe_tune(int aid, transponder *tp)
  		freq = freq * 1000;
  		ADD_PROP(DTV_SYMBOL_RATE, tp->sr)
  #if DVBAPIVERSION >= 0x0502
 -		ADD_PROP(DTV_STREAM_ID, ((tp->ds & 0xFF) << 8) | (tp->plp & 0xFF))
-+		ADD_PROP(DTV_STREAM_ID, ((tp->ds & 0xFF) << 8) | (tp->plp_isi & 0xFF))
++		if (tp->plp_isi >= 0) {
++			int v = tp->plp_isi & 0xFF;
++			if (tp->ds >= 0)
++				v |= (tp->ds & 0xFF) << 8;
++			ADD_PROP(DTV_STREAM_ID, v);
++		}
  #endif
  		// valid for DD DVB-C2 devices
  
-@@ -617,6 +694,8 @@ int axe_tune(int aid, transponder *tp)
+@@ -617,6 +706,8 @@ int axe_tune(int aid, transponder *tp)
  			break;
  	}
  
@@ -731,7 +743,7 @@ index 52e8dad..57ba3a6 100644
  	if ((ioctl(fd_frontend, FE_SET_PROPERTY, &p)) == -1)
  		if (ioctl(fd_frontend, FE_SET_PROPERTY, &p) == -1)
  		{
-@@ -669,8 +748,8 @@ fe_delivery_system_t axe_delsys(int aid, int fd, fe_delivery_system_t *sys)
+@@ -669,8 +760,8 @@ fe_delivery_system_t axe_delsys(int aid, int fd, fe_delivery_system_t *sys)
  
  void axe_get_signal(adapter *ad)
  {
@@ -742,7 +754,7 @@ index 52e8dad..57ba3a6 100644
  	get_signal(ad, &status, &ber, &strength, &snr);
  
  	strength = strength * 240 / 24000;
-@@ -819,9 +898,11 @@ void free_axe_input(adapter *ad)
+@@ -819,9 +910,11 @@ void free_axe_input(adapter *ad)
  
  	for (aid = 0; aid < 4; aid++)
  	{
@@ -756,7 +768,7 @@ index 52e8dad..57ba3a6 100644
  	}
  }
  
-@@ -829,11 +910,11 @@ void free_axe_input(adapter *ad)
+@@ -829,11 +922,11 @@ void free_axe_input(adapter *ad)
  void set_link_adapters(char *o)
  {
  	int i, la, a_id, b_id;
@@ -770,7 +782,7 @@ index 52e8dad..57ba3a6 100644
  	for (i = 0; i < la; i++)
  	{
  		a_id = map_intd(arg[i], NULL, -1);
-@@ -857,11 +938,11 @@ void set_link_adapters(char *o)
+@@ -857,11 +950,11 @@ void set_link_adapters(char *o)
  void set_absolute_src(char *o)
  {
  	int i, la, src, inp, pos;
@@ -785,20 +797,40 @@ index 52e8dad..57ba3a6 100644
  	{
  		inps = strchr(arg[i], ':');
 diff --git a/src/dvb.c b/src/dvb.c
-index 5184c4d..1171f54 100644
+index 5184c4d..fd2b6cf 100644
 --- a/src/dvb.c
 +++ b/src/dvb.c
-@@ -177,7 +177,8 @@ int detect_dvb_parameters(char *s, transponder *tp)
+@@ -120,6 +120,10 @@ char *fe_pol[] =
+ 	{"none", "v", "h", "r", "l",
+ 	 NULL};
+ 
++char *fe_pls_mode[] =
++	{"root", "gold", "combo",
++	 NULL};
++
+ #define make_func(a)                           \
+ 	char *get_##a(int i)                       \
+ 	{                                          \
+@@ -142,6 +146,7 @@ make_func(gi);
+ make_func(specinv);
+ make_func(inversion);
+ make_func(pol);
++make_func(pls_mode);
+ 
+ #define INVALID_URL(a) \
+ 	{                  \
+@@ -177,7 +182,9 @@ int detect_dvb_parameters(char *s, transponder *tp)
  	tp->diseqc = -1;
  	tp->c2tft = -1;
  	tp->ds = -1;
 -	tp->plp = -1;
 +	tp->plp_isi = -1;
++	tp->pls_mode = -1;
 +	tp->pls_code = -1;
  
  	tp->pids = tp->apids = tp->dpids = tp->x_pmt = NULL;
  
-@@ -192,7 +193,7 @@ int detect_dvb_parameters(char *s, transponder *tp)
+@@ -192,7 +199,7 @@ int detect_dvb_parameters(char *s, transponder *tp)
  		init_dvb_parameters(tp);
  
  	LOG("detect_dvb_parameters (S)-> %s", s);
@@ -807,7 +839,7 @@ index 5184c4d..1171f54 100644
  
  	for (i = 0; i < la; i++)
  	{
-@@ -228,8 +229,11 @@ int detect_dvb_parameters(char *s, transponder *tp)
+@@ -228,8 +235,13 @@ int detect_dvb_parameters(char *s, transponder *tp)
  			tp->c2tft = map_int(arg[i] + 6, NULL);
  		if (strncmp("ds=", arg[i], 3) == 0)
  			tp->ds = map_int(arg[i] + 3, NULL);
@@ -816,12 +848,25 @@ index 5184c4d..1171f54 100644
 +		if (strncmp("plp=", arg[i], 4) == 0 ||
 +		    strncmp("isi=", arg[i], 4) == 0)
 +			tp->plp_isi = map_int(arg[i] + 4, NULL);
++		if (strncmp("plsm=", arg[i], 5) == 0)
++			tp->pls_mode = map_int(arg[i] + 5, fe_pls_mode);
 +		if (strncmp("plsc=", arg[i], 5) == 0)
 +			tp->pls_code = map_int(arg[i] + 5, NULL);
  
  		if (strncmp("x_pmt=", arg[i], 6) == 0)
  			tp->x_pmt = arg[i] + 6;
-@@ -323,8 +327,10 @@ void copy_dvb_parameters(transponder *s, transponder *d)
+@@ -275,6 +287,10 @@ void init_dvb_parameters(transponder *tp)
+ 	tp->mtype = QAM_AUTO;
+ 	tp->plts = PILOT_AUTO;
+ 	tp->fec = FEC_AUTO;
++	tp->ds = TP_VALUE_NOT_ENABLED;
++	tp->plp_isi = TP_VALUE_NOT_ENABLED;
++	tp->pls_mode = TP_VALUE_NOT_ENABLED;
++	tp->pls_code = 1;
+ }
+ 
+ void copy_dvb_parameters(transponder *s, transponder *d)
+@@ -323,8 +339,12 @@ void copy_dvb_parameters(transponder *s, transponder *d)
  		d->c2tft = s->c2tft;
  	if (s->ds != -1)
  		d->ds = s->ds;
@@ -829,12 +874,14 @@ index 5184c4d..1171f54 100644
 -		d->plp = s->plp;
 +	if (s->plp_isi != -1)
 +		d->plp_isi = s->plp_isi;
++	if (s->pls_mode != -1)
++		d->pls_mode = s->pls_mode;
 +	if (s->pls_code != -1)
 +		d->pls_code = s->pls_code;
  
  	d->x_pmt = s->x_pmt;
  	d->apids = s->apids;
-@@ -506,7 +512,9 @@ int send_diseqc(adapter *ad, int fd, int pos, int pos_change, int pol, int hiban
+@@ -506,7 +526,9 @@ int send_diseqc(adapter *ad, int fd, int pos, int pos_change, int pol, int hiban
  		posu = pos / 4;
  	}
  
@@ -844,7 +891,7 @@ index 5184c4d..1171f54 100644
  	uncmd.msg[3] = 0xf0 | (posu & 0x0f);
  
  	LOGM("send_diseqc fd %d, pos = %d (c %d u %d), pol = %d, hiband = %d",
-@@ -554,12 +562,13 @@ int send_unicable(adapter *ad, int fd, int freq, int pos, int pol, int hiband, d
+@@ -554,12 +576,13 @@ int send_unicable(adapter *ad, int fd, int freq, int pos, int pol, int hiband, d
  {
  	struct dvb_diseqc_master_cmd cmd =
  		{
@@ -859,41 +906,70 @@ index 5184c4d..1171f54 100644
  	cmd.msg[3] = ((t & 0x0300) >> 8) | (d->uslot << 5) | (pos ? 0x10 : 0) | (hiband ? 4 : 0) | (pol ? 8 : 0);
  	cmd.msg[4] = t & 0xff;
  
-@@ -825,7 +834,10 @@ int dvb_tune(int aid, transponder *tp)
+@@ -825,7 +848,11 @@ int dvb_tune(int aid, transponder *tp)
  		ADD_PROP(DTV_PILOT, tp->plts)
  		ADD_PROP(DTV_ROLLOFF, tp->ro)
  #if DVBAPIVERSION >= 0x0502
 -		ADD_PROP(DTV_STREAM_ID, tp->plp)
-+		ADD_PROP(DTV_STREAM_ID, tp->plp_isi)
++		if (tp->plp_isi >= 0)
++			ADD_PROP(DTV_STREAM_ID, tp->plp_isi)
 +#endif
 +#if DVBAPIVERSION >= 0x050b /* 5.11 */
 +		ADD_PROP(DTV_SCRAMBLING_SEQUENCE_INDEX, tp->pls_code)
  #endif
  
  #ifdef USE_DVBAPI3
-@@ -856,7 +868,7 @@ int dvb_tune(int aid, transponder *tp)
+@@ -856,7 +883,8 @@ int dvb_tune(int aid, transponder *tp)
  		ADD_PROP(DTV_TRANSMISSION_MODE, tp->tmode)
  		ADD_PROP(DTV_HIERARCHY, HIERARCHY_AUTO)
  #if DVBAPIVERSION >= 0x0502
 -		ADD_PROP(DTV_STREAM_ID, tp->plp & 0xFF)
-+		ADD_PROP(DTV_STREAM_ID, tp->plp_isi & 0xFF)
++		if (tp->plp_isi >= 0)
++			ADD_PROP(DTV_STREAM_ID, tp->plp_isi & 0xFF)
  #endif
  
  // old DVBAPI version 3
-@@ -894,7 +906,7 @@ int dvb_tune(int aid, transponder *tp)
+@@ -894,7 +922,12 @@ int dvb_tune(int aid, transponder *tp)
  		freq = freq * 1000;
  		ADD_PROP(DTV_SYMBOL_RATE, tp->sr)
  #if DVBAPIVERSION >= 0x0502
 -		ADD_PROP(DTV_STREAM_ID, ((tp->ds & 0xFF) << 8) | (tp->plp & 0xFF))
-+		ADD_PROP(DTV_STREAM_ID, ((tp->ds & 0xFF) << 8) | (tp->plp_isi & 0xFF))
++		if (tp->plp_isi >= 0) {
++			int v = tp->plp_isi & 0xFF;
++			if (tp->ds >= 0)
++				v |= (tp->ds & 0xFF) << 8;
++			ADD_PROP(DTV_STREAM_ID, v);
++		}
  #endif
  		// valid for DD DVB-C2 devices
  
 diff --git a/src/dvb.h b/src/dvb.h
-index 9830487..21622dc 100644
+index 9830487..b9fd223 100644
 --- a/src/dvb.h
 +++ b/src/dvb.h
-@@ -189,12 +189,14 @@ typedef struct diseqc
+@@ -143,6 +143,12 @@ typedef enum fe_modulation {
+ } fe_modulation_t;
+ #endif
+ 
++typedef enum fe_pls_mode {
++	PLS_MODE_ROOT,
++	PLS_MODE_GOLD,
++	PLS_MODE_COMBO,
++} fe_pls_mode_t;
++
+ #if DVBAPIVERSION < 0x0505
+ #define DTV_ENUM_DELSYS 44
+ #define SYS_DVBC_ANNEX_A SYS_DVBC_ANNEX_AC
+@@ -182,6 +188,8 @@ typedef enum fe_modulation {
+ #define MIN_FRQ_DVBS 950000
+ #define MAX_FRQ_DVBS 2150000
+ 
++#define TP_VALUE_NOT_ENABLED (-255)
++
+ typedef struct diseqc
+ {
+ #define SWITCH_UNICABLE 1
+@@ -189,12 +197,14 @@ typedef struct diseqc
  #define SWITCH_SLAVE 3
  	int switch_type;
  	/* parameters */
@@ -914,7 +990,7 @@ index 9830487..21622dc 100644
  	/* timing */
  	int before_cmd;
  	int after_cmd;
-@@ -232,10 +234,10 @@ typedef struct struct_transponder
+@@ -232,10 +242,11 @@ typedef struct struct_transponder
  
  	diseqc diseqc_param;
  
@@ -925,10 +1001,19 @@ index 9830487..21622dc 100644
 +	int c2tft;	// DVB-C2
 +	int ds;		// DVB-C2 (data slice)
 +	int plp_isi;	// DVB-T2/DVB-S2
++	int pls_mode;   // DVB-S2
 +	int pls_code;   // DVB-S2
  
  	char *apids, *pids, *dpids, *x_pmt;
  } transponder;
+@@ -279,6 +290,7 @@ char *get_gi(int i);
+ char *get_specinv(int i);
+ char *get_pol(int i);
+ char *get_inversion(int i);
++char *get_pls_mode(int i);
+ 
+ extern char *fe_delsys[];
+ extern char *fe_fec[];
 diff --git a/src/minisatip.c b/src/minisatip.c
 index 0cd9b0b..884f14c 100644
 --- a/src/minisatip.c
@@ -987,7 +1072,7 @@ index 0cd9b0b..884f14c 100644
  	if (strncmp(arg[0], "GET", 3) && strncmp(arg[0], "POST", 4) && !is_head)
  		REPLY_AND_RETURN(503);
 diff --git a/src/minisatip.h b/src/minisatip.h
-index 6512250..af22d77 100644
+index 6512250..520de73 100644
 --- a/src/minisatip.h
 +++ b/src/minisatip.h
 @@ -9,7 +9,7 @@
@@ -995,7 +1080,7 @@ index 6512250..af22d77 100644
  #define VERSION_BUILD "16"
  #define CC(a, b, c) #a b #c
 -#define VERSION CC(0.7., VERSION_BUILD, )
-+#define VERSION CC(0.7., VERSION_BUILD, -axe212)
++#define VERSION CC(0.7., VERSION_BUILD, -axe214)
  
  void set_options(int argc, char *argv[]);
  
@@ -1008,7 +1093,7 @@ index 6512250..af22d77 100644
  	int diseqc_uncommitted_no;
  	int diseqc_before_cmd;
 diff --git a/src/satipc.c b/src/satipc.c
-index 24c82ff..46ecb90 100644
+index 24c82ff..e748048 100644
 --- a/src/satipc.c
 +++ b/src/satipc.c
 @@ -176,7 +176,7 @@ int satipc_reply(sockets *s)
@@ -1020,34 +1105,43 @@ index 24c82ff..46ecb90 100644
  	rc = map_int(arg[1], NULL);
  
  	if (sip->option_no_session && sip->last_cmd == RTSP_OPTIONS && !sess && sip->session[0])
-@@ -807,6 +807,8 @@ void get_s2_url(adapter *ad, char *url)
+@@ -807,6 +807,12 @@ void get_s2_url(adapter *ad, char *url)
  	FILL("&fec=%s", tp->fec, FEC_AUTO, get_fec(tp->fec));
  	FILL("&ro=%s", ro, ROLLOFF_AUTO, get_rolloff(ro));
  	FILL("&plts=%s", plts, PILOT_AUTO, get_pilot(plts));
-+	FILL("&isi=%d", tp->plp_isi, 0, tp->plp_isi);
-+	FILL("&plsc=%d", tp->pls_code, -1, tp->pls_code);
++	if (tp->plp_isi >= 0)
++		FILL("&isi=%d", tp->plp_isi, 0, tp->plp_isi);
++	if (tp->pls_mode >= 0)
++		FILL("&plsm=%s", tp->pls_mode, -1, get_pls_mode(tp->pls_mode));
++	if (tp->pls_code >= 0)
++		FILL("&plsc=%d", tp->pls_code, -1, tp->pls_code);
  	url[len] = 0;
  	return;
  }
-@@ -831,7 +833,7 @@ void get_c2_url(adapter *ad, char *url)
+@@ -831,7 +837,8 @@ void get_c2_url(adapter *ad, char *url)
  	FILL("&specinv=%d", tp->inversion, INVERSION_AUTO, tp->inversion);
  	FILL("&t2id=%d", tp->t2id, 0, tp->t2id);
  	FILL("&sm=%d", tp->sm, 0, tp->sm);
 -	FILL("&plp=%d", tp->plp, 0, tp->plp);
-+	FILL("&plp=%d", tp->plp_isi, 0, tp->plp_isi);
++	if (tp->plp_isi >= 0)
++		FILL("&plp=%d", tp->plp_isi, 0, tp->plp_isi);
  	url[len] = 0;
  	return;
  }
-@@ -855,7 +857,7 @@ void get_t2_url(adapter *ad, char *url)
+@@ -854,8 +861,10 @@ void get_t2_url(adapter *ad, char *url)
+ 	FILL("&tmode=%s", tp->tmode, TRANSMISSION_MODE_AUTO, get_tmode(tp->tmode));
  	FILL("&specinv=%d", tp->inversion, INVERSION_AUTO, tp->inversion);
  	FILL("&c2tft=%d", tp->c2tft, 0, tp->c2tft);
- 	FILL("&ds=%d", tp->ds, 0, tp->ds);
+-	FILL("&ds=%d", tp->ds, 0, tp->ds);
 -	FILL("&plp=%d", tp->plp, 0, tp->plp);
-+	FILL("&plp=%d", tp->plp_isi, 0, tp->plp_isi);
++	if (tp->ds >= 0)
++		FILL("&ds=%d", tp->ds, 0, tp->ds);
++	if (tp->plp_isi >= 0)
++		FILL("&plp=%d", tp->plp_isi, 0, tp->plp_isi);
  	url[len] = 0;
  	return;
  }
-@@ -1288,7 +1290,7 @@ void find_satip_adapter(adapter **a)
+@@ -1288,7 +1297,7 @@ void find_satip_adapter(adapter **a)
  		return;
  	char satip_servers[strlen(opts.satip_servers) + 10];
  	strcpy(satip_servers, opts.satip_servers);
@@ -1056,7 +1150,7 @@ index 24c82ff..46ecb90 100644
  
  	for (i = 0; i < la; i++)
  	{
-@@ -1420,7 +1422,7 @@ void satip_getxml_data(char *data, int len, void *opaque, Shttp_client *h)
+@@ -1420,7 +1429,7 @@ void satip_getxml_data(char *data, int len, void *opaque, Shttp_client *h)
  		eos = strchr(sep, '<');
  		if (eos)
  			*eos = 0;
@@ -1065,7 +1159,7 @@ index 24c82ff..46ecb90 100644
  		for (i = 0; i < la; i++)
  		{
  			int ds = map_intd(arg[i], satip_delsys, -1);
-@@ -1474,7 +1476,7 @@ int satip_getxml(void *x)
+@@ -1474,7 +1483,7 @@ int satip_getxml(void *x)
  	memset(satip_xml, 0, sizeof(satip_xml));
  	memset(sxd, 0, sizeof(sxd));
  	strncpy(satip_xml, opts.satip_xml, sizeof(satip_xml) - 1);
