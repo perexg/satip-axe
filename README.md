@@ -6,7 +6,9 @@ A firmware with minisatip for Inverto IDL-400s/Grundig GSS.BOX/Telestar Digibit 
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](http://paypal.me/perex)
 
 The firmware contains various versions of [minisatip](https://github.com/catalinii/minisatip)
-which is tuned to get the best performance on this hardware.
+which is tuned to get the best performance on this hardware. There are many extensions for
+the complex hobby satellite reception (like free input mode - use any tuner with any physical input,
+DVB-S2 multistream support etc.).
 
 There is no DLNA server, but there is HTTP and FTP server to server for
 example m3u playlists to clients.
