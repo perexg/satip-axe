@@ -250,13 +250,14 @@ Bugs:
 History:
 --------
 
-satip-axe-2018 - ??
+satip-axe-2018 (build15) - ??
   - moved the releases (firmware files) to github
   - added minisatip8
     - updated minisatip code (latest minisatip 0.7.16)
     - note that some options were removed (-M) or added (-2)
     - follow /etc/config.default and this file
     - fixed reported VDR problem (issue #108)
+    - added DVB-S2 multistream support
   - fixed the improper tuner release problem for complex diseqc settings
     where one input is used by multiple tuners (minisatip7 and minisatip8)
   - added SYSLOGD_OPTS to pass extra options to syslog
