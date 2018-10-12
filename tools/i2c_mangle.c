@@ -70,7 +70,7 @@ static void mangle(u8 *dst, struct i2c_msg *m, int i, int val, int shift, int ma
 #define REG_SET3(b, b1, b2, b3) \
 	b[0] = b1, b[1] = b2, b[2] = b3
 
-static void demod_set_pls_and_msi(struct i2c_adapter *adap, struct i2c_msg *src, int p)
+static void demod_set_pls_and_mis(struct i2c_adapter *adap, struct i2c_msg *src, int p)
 {
 	struct i2c_msg m[6];
 	u8 buf[6][3];
@@ -117,7 +117,7 @@ static void demod_set_pls_and_msi(struct i2c_adapter *adap, struct i2c_msg *src,
 		i2c_transfer_axe_dump(m, num);
 	r = i2c_transfer2(adap, m, num);
 	if (r < 0)
-		printk("i2c mangle demod pls and msi error! (%d)\n", r);
+		printk("i2c mangle demod pls and mis error! (%d)\n", r);
 }
 
 static void i2c_transfer_axe_mangle(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
@@ -139,7 +139,7 @@ static void i2c_transfer_axe_mangle(struct i2c_adapter *adap, struct i2c_msg *ms
 			if (m->flags == 0 && m->len == 3 &&
 			    (m->buf[0] == 0xf2 || m->buf[0] == 0xf4) &&
 			    m->buf[1] == 0x38 && m->buf[2] == 0x46)
-				demod_set_pls_and_msi(adap, m, m->buf[0] == 0xf2);
+				demod_set_pls_and_mis(adap, m, m->buf[0] == 0xf2);
 		}
 	}
 }
