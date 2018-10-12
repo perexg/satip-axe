@@ -92,19 +92,25 @@ static void demod_set_pls_and_mis(struct i2c_adapter *adap, struct i2c_msg *src,
 		REG_SET3(buf[1], iaddr, 0x5e, mis);
 		/* ISIBITENA */
 		REG_SET3(buf[2], iaddr, 0x5f, 0xff);
-		/* set GOLD PLS code */
+		/* set PLS code and mode (upper three bits) */
 		pls = stv0900_pls[idx];
-		iaddr--;
-		REG_SET3(buf[3], iaddr, 0xae, pls); /* PLROOT0 */
-		REG_SET3(buf[4], iaddr, 0xad, pls >> 8); /* PLROOT1 */
-		REG_SET3(buf[5], iaddr, 0xac, 0x04 | ((pls >> 16) & 3)); /* PLROOT3 */
+		REG_SET3(buf[3], iaddr-1, 0xae, pls); /* PLROOT0 */
+		REG_SET3(buf[4], iaddr-1, 0xad, pls >> 8); /* PLROOT1 */
+		REG_SET3(buf[5], iaddr-1, 0xac, (pls >> 16) & 0x0f); /* PLROOT3 */
 		num = 6;
 		if (i2c_mangle_debug & 4)
 			printk("i2c idx=%d: pls=%d mis=%d\n", idx, pls, mis);
 	} else {
+		/* SWRST */
+		REG_SET3(buf[0], iaddr, 0x72, 0xd1);
 		/* PDELCTRL1 - disable filter */
-		REG_SET3(buf[0], iaddr, 0x50, 0x00);
-		num = 1;
+		REG_SET3(buf[1], iaddr, 0x50, 0x00);
+		/* set PLS code to 1 and mode to ROOT */
+		REG_SET3(buf[2], iaddr-1, 0xae, 1); /* PLROOT0 */
+		REG_SET3(buf[3], iaddr-1, 0xad, 0); /* PLROOT1 */
+		REG_SET3(buf[4], iaddr-1, 0xac, 0); /* PLROOT3 */
+
+		num = 5;
 		if (i2c_mangle_debug & 4)
 			printk("i2c idx=%d: disable mis filter\n", idx);
 	}
@@ -135,11 +141,11 @@ static void i2c_transfer_axe_mangle(struct i2c_adapter *adap, struct i2c_msg *ms
 				if (r == 0x01 || r == 0x0b)
 					mangle(mbuf[ret], m, i, stv6120_gain, 0, 0x0f);
 		} else if (m->addr == STV0900_1 || m->addr == STV0900_2) {
-			/* inject pls/mis settings before CARCFG register update */
+			/* inject pls/mis settings before TSCFGH path merger reset */
 			if (m->flags == 0 && m->len == 3 &&
-			    (m->buf[0] == 0xf2 || m->buf[0] == 0xf4) &&
-			    m->buf[1] == 0x38 && m->buf[2] == 0x46)
-				demod_set_pls_and_mis(adap, m, m->buf[0] == 0xf2);
+			    (m->buf[0] == 0xf3 || m->buf[0] == 0xf5) &&
+			    m->buf[1] == 0x72 && m->buf[2] == 0xd1)
+				demod_set_pls_and_mis(adap, m, m->buf[0] == 0xf3);
 		}
 	}
 }
@@ -147,10 +153,10 @@ static void i2c_transfer_axe_mangle(struct i2c_adapter *adap, struct i2c_msg *ms
 static int i2c_transfer_axe(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
 {
 	if (adap == i2c_adapter0) {
-		if (i2c_mangle_debug & 1)
-			i2c_transfer_axe_dump(msgs, num);
 		if (i2c_mangle_enable)
 			i2c_transfer_axe_mangle(adap, msgs, num);
+		if (i2c_mangle_debug & 1)
+			i2c_transfer_axe_dump(msgs, num);
 	}
 	return i2c_transfer2(adap, msgs, num);
 }
