@@ -25,7 +25,7 @@ static int i2c_mangle_enable = 1;
 static int i2c_mangle_debug = 0;
 static int stv6120_gain = 8;
 static int stv0900_mis[4] = { -1, -1, -1, -1 };
-static int stv0900_pls[4] = { 1, 1, 1, 1 };
+static int stv0900_pls[4] = { 1, 1, 1, 1 }; /* ROOT code 1 is equal to GOLD code 0 */
 
 static void i2c_transfer_axe_dump(struct i2c_msg *msgs, int num)
 {
