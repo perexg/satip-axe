@@ -25,7 +25,7 @@ static int i2c_mangle_enable = 1;
 static int i2c_mangle_debug = 0;
 static int stv6120_gain = 8;
 static int stv0900_mis[4] = { -1, -1, -1, -1 };
-static int stv0900_pls[4] = { -1, -1, -1, -1 };
+static int stv0900_pls[4] = { 1, 1, 1, 1 };
 
 static void i2c_transfer_axe_dump(struct i2c_msg *msgs, int num)
 {
@@ -67,14 +67,14 @@ static void mangle(u8 *dst, struct i2c_msg *m, int i, int val, int shift, int ma
 		m->buf = dst;
 }
 
-#define REG_SET3(b, b1, b2, b3) \
-	b[0] = b1, b[1] = b2, b[2] = b3
+#define REG_SET3(b1, b2, b3) \
+	do { buf[num][0] = b1; buf[num][1] = b2; buf[num][2] = b3; num++; } while (0)
 
 static void demod_set_pls_and_mis(struct i2c_adapter *adap, struct i2c_msg *src, int p)
 {
 	struct i2c_msg m[6];
 	u8 buf[6][3];
-	int num, r, mis, idx = p ? 1 : 0;
+	int num = 0, r, mis, idx = p ? 1 : 0;
 	u32 pls;
 	u8 iaddr = p ? 0xf3 : 0xf5;
 
@@ -87,33 +87,27 @@ static void demod_set_pls_and_mis(struct i2c_adapter *adap, struct i2c_msg *src,
 	mis = stv0900_mis[idx];
 	if (mis >= 0 && mis <= 255) {
 		/* PDELCTRL1 - enable filter */
-		REG_SET3(buf[0], iaddr, 0x50, 0x20);
+		REG_SET3(iaddr, 0x50, 0x20);
 		/* ISIENTRY */
-		REG_SET3(buf[1], iaddr, 0x5e, mis);
+		REG_SET3(iaddr, 0x5e, mis);
 		/* ISIBITENA */
-		REG_SET3(buf[2], iaddr, 0x5f, 0xff);
-		/* set PLS code and mode (upper three bits) */
-		pls = stv0900_pls[idx];
-		REG_SET3(buf[3], iaddr-1, 0xae, pls); /* PLROOT0 */
-		REG_SET3(buf[4], iaddr-1, 0xad, pls >> 8); /* PLROOT1 */
-		REG_SET3(buf[5], iaddr-1, 0xac, (pls >> 16) & 0x0f); /* PLROOT3 */
-		num = 6;
-		if (i2c_mangle_debug & 4)
-			printk("i2c idx=%d: pls=%d mis=%d\n", idx, pls, mis);
+		REG_SET3(iaddr, 0x5f, 0xff);
 	} else {
 		/* SWRST */
-		REG_SET3(buf[0], iaddr, 0x72, 0xd1);
+		REG_SET3(iaddr, 0x72, 0xd1);
 		/* PDELCTRL1 - disable filter */
-		REG_SET3(buf[1], iaddr, 0x50, 0x00);
-		/* set PLS code to 1 and mode to ROOT */
-		REG_SET3(buf[2], iaddr-1, 0xae, 1); /* PLROOT0 */
-		REG_SET3(buf[3], iaddr-1, 0xad, 0); /* PLROOT1 */
-		REG_SET3(buf[4], iaddr-1, 0xac, 0); /* PLROOT3 */
-
-		num = 5;
-		if (i2c_mangle_debug & 4)
-			printk("i2c idx=%d: disable mis filter\n", idx);
+		REG_SET3(iaddr, 0x50, 0x00);
 	}
+
+	/* set PLS code and mode (upper three bits) */
+	pls = stv0900_pls[idx];
+	REG_SET3(iaddr-1, 0xae, pls);			/* PLROOT0 */
+	REG_SET3(iaddr-1, 0xad, pls >> 8);		/* PLROOT1 */
+	REG_SET3(iaddr-1, 0xac, (pls >> 16) & 0x0f);	/* PLROOT3 */
+	if (i2c_mangle_debug & 4)
+		printk("i2c idx=%d: pls=%d mode=%d mis=%d\n", idx,
+			pls & 0x3ffff, (pls >> 18) & 3, mis);
+
 	for (r = 0; r < num; r++) {
 		m[r] = *src;
 		m[r].len = 3;
