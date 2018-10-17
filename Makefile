@@ -37,7 +37,7 @@ MINISATIP8_COMMIT=8e2362435cc8c5e0babc3e7ca67570c7f7dd03c5
 
 BUSYBOX=busybox-1.26.2
 
-DROPBEAR=dropbear-2018.76
+DROPBEAR=dropbear-2017.75
 DROPBEAR_SBIN_FILES=dropbear
 DROPBEAR_BIN_FILES=dbclient dropbearconvert dropbearkey scp
 
