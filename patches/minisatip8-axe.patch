@@ -32,7 +32,7 @@ index 8812322..519f3da 100755
  					myTable += "<td class='dt-right'>" + state['ad_axe_pktc'][i] + " </td>";
  					myTable += "<td class='dt-right'>" + state['ad_axe_ccerr'][i] + " </td>";
 diff --git a/src/adapter.c b/src/adapter.c
-index e034e3e..9862114 100644
+index e034e3e..42a98b3 100644
 --- a/src/adapter.c
 +++ b/src/adapter.c
 @@ -75,6 +75,7 @@ adapter *adapter_alloc()
@@ -97,7 +97,16 @@ index e034e3e..9862114 100644
  #ifndef DISABLE_PMT
  	SPid *p = find_pid(aid, 0);
  	SPid *p_all = find_pid(aid, 8192);
-@@ -1066,7 +1070,7 @@ void mark_pids_deleted(int aid, int sid, char *pids) //pids==NULL -> delete all
+@@ -947,6 +951,8 @@ int tune(int aid, int sid)
+ 		ad->status = -1;
+ 		ad->status_cnt = 0;
+ 		ad->wait_new_stream = 1;
++		ad->strength = 0;
++		ad->snr = 0;
+ 		flush_data = 1;
+ 		ad->is_t2mi = 0;
+ 		if (ad->restart_when_tune)
+@@ -1066,7 +1072,7 @@ void mark_pids_deleted(int aid, int sid, char *pids) //pids==NULL -> delete all
  		pids ? pids : "NULL");
  	if (pids)
  	{
@@ -106,7 +115,7 @@ index e034e3e..9862114 100644
  		for (i = 0; i < la; i++)
  		{
  			pid = map_int(arg[i], NULL);
-@@ -1146,7 +1150,7 @@ int mark_pids_add(int sid, int aid, char *pids)
+@@ -1146,7 +1152,7 @@ int mark_pids_add(int sid, int aid, char *pids)
  	LOG("adding pids to adapter %d, sid %d, pids=%s", aid, sid,
  		pids ? pids : "NULL");
  
@@ -115,7 +124,7 @@ index e034e3e..9862114 100644
  	for (i = 0; i < la; i++)
  	{
  		pid = map_intd(arg[i], NULL, -1);
-@@ -1165,11 +1169,11 @@ int compare_tunning_parameters(int aid, transponder *tp)
+@@ -1165,11 +1171,11 @@ int compare_tunning_parameters(int aid, transponder *tp)
  	if (!ad)
  		return -1;
  
@@ -132,7 +141,7 @@ index e034e3e..9862114 100644
  
  		return 1;
  
-@@ -1196,11 +1200,11 @@ int set_adapter_parameters(int aid, int sid, transponder *tp)
+@@ -1196,11 +1202,11 @@ int set_adapter_parameters(int aid, int sid, transponder *tp)
  		{
  			mutex_unlock(&ad->mutex);
  			LOG(
@@ -148,7 +157,7 @@ index e034e3e..9862114 100644
  			return -1;
  		}
  		ad->do_tune = 1;
-@@ -1242,7 +1246,7 @@ int set_adapter_parameters(int aid, int sid, transponder *tp)
+@@ -1242,7 +1248,7 @@ int set_adapter_parameters(int aid, int sid, transponder *tp)
  	{
  		char *arg[64];
  		int i, la;
@@ -157,7 +166,38 @@ index e034e3e..9862114 100644
  		for (i = 0; i < la; i++)
  		{
  			int pmt = map_int(arg[i], NULL);
-@@ -1346,7 +1350,7 @@ describe_adapter(int sid, int aid, char *dad, int ld)
+@@ -1316,16 +1322,20 @@ describe_adapter(int sid, int aid, char *dad, int ld)
+ 
+ 	if (use_ad)
+ 	{
+-		strength = ad->strength;
+-		snr = ad->snr;
+-		if (snr > 15)
+-			snr = snr >> 4;
+-		status = (ad->status & FE_HAS_LOCK) > 0;
+-
+-		if (strength > 255 || strength < 0)
+-			strength = 1;
+-		if (snr > 15 || snr < 0)
+-			snr = 1;
++		if (ad->status == -1) {
++			status = strength = snr = 0;
++		} else {
++			strength = ad->strength;
++			snr = ad->snr;
++			if (snr > 15)
++				snr = snr >> 4;
++			status = (ad->status & FE_HAS_LOCK) > 0;
++
++			if (strength > 255 || strength < 0)
++				strength = 1;
++			if (snr > 15 || snr < 0)
++				snr = 1;
++		}
+ 	}
+ 	if (t->sys == 0)
+ 		len = snprintf(dad, ld, "ver=1.0;src=1;tuner=%d,0,0,0,0,,,,,,,;pids=",
+@@ -1346,7 +1356,7 @@ describe_adapter(int sid, int aid, char *dad, int ld)
  					 ad ? ad->tp.fe : aid + 1, strength, status, snr,
  					 (double)t->freq / 1000.0, t->bw / 1000000, get_delsys(t->sys),
  					 get_tmode(t->tmode), get_modulation(t->mtype),
@@ -166,7 +206,7 @@ index e034e3e..9862114 100644
  	else
  		len =
  			snprintf(dad, ld,
-@@ -1354,7 +1358,7 @@ describe_adapter(int sid, int aid, char *dad, int ld)
+@@ -1354,7 +1364,7 @@ describe_adapter(int sid, int aid, char *dad, int ld)
  					 ad ? ad->tp.fe : aid + 1, strength, status, snr,
  					 (double)t->freq / 1000, get_delsys(t->sys),
  					 get_modulation(t->mtype), t->sr / 1000, t->c2tft, t->ds,
@@ -175,7 +215,7 @@ index e034e3e..9862114 100644
  
  	if (use_ad)
  		len += strlen(get_stream_pids(sid, dad + len, ld - len));
-@@ -1436,12 +1440,12 @@ void set_disable(int i, int v)
+@@ -1436,12 +1446,12 @@ void set_disable(int i, int v)
  void enable_adapters(char *o)
  {
  	int i, la, st, end, j;
@@ -190,7 +230,7 @@ index e034e3e..9862114 100644
  	for (i = 0; i < la; i++)
  	{
  		sep = strchr(arg[i], '-');
-@@ -1463,10 +1467,10 @@ void enable_adapters(char *o)
+@@ -1463,10 +1473,10 @@ void enable_adapters(char *o)
  void set_unicable_adapters(char *o, int type)
  {
  	int i, la, a_id, slot, freq, pin, o13v;
@@ -203,7 +243,7 @@ index e034e3e..9862114 100644
  	for (i = 0; i < la; i++)
  	{
  		a_id = map_intd(arg[i], NULL, -1);
-@@ -1503,11 +1507,11 @@ void set_unicable_adapters(char *o, int type)
+@@ -1503,11 +1513,11 @@ void set_unicable_adapters(char *o, int type)
  
  void set_diseqc_adapters(char *o)
  {
@@ -218,7 +258,7 @@ index e034e3e..9862114 100644
  	for (i = 0; i < la; i++)
  	{
  		if (arg[i] && arg[i][0] == '*')
-@@ -1531,8 +1535,28 @@ void set_diseqc_adapters(char *o)
+@@ -1531,8 +1541,28 @@ void set_diseqc_adapters(char *o)
  
  		if (!sep1 || !sep2)
  			continue;
@@ -249,7 +289,7 @@ index e034e3e..9862114 100644
  		committed_no = map_intd(sep1 + 1, NULL, -1);
  		uncommitted_no = map_intd(sep2 + 1, NULL, -1);
  		if (committed_no < 0 || uncommitted_no < 0)
-@@ -1541,12 +1565,14 @@ void set_diseqc_adapters(char *o)
+@@ -1541,12 +1571,14 @@ void set_diseqc_adapters(char *o)
  		if (ad)
  		{
  			ad->diseqc_param.fast = fast;
@@ -264,7 +304,7 @@ index e034e3e..9862114 100644
  			opts.diseqc_committed_no = committed_no;
  			opts.diseqc_uncommitted_no = uncommitted_no;
  			int j;
-@@ -1554,23 +1580,24 @@ void set_diseqc_adapters(char *o)
+@@ -1554,23 +1586,24 @@ void set_diseqc_adapters(char *o)
  				if (a[j])
  				{
  					a[j]->diseqc_param.fast = fast;
@@ -293,7 +333,7 @@ index e034e3e..9862114 100644
  	for (i = 0; i < la; i++)
  	{
  		if (arg[i] && arg[i][0] == '*')
-@@ -1619,10 +1646,10 @@ void set_diseqc_multi(char *o)
+@@ -1619,10 +1652,10 @@ void set_diseqc_multi(char *o)
  void set_lnb_adapters(char *o)
  {
  	int i, la, a_id, lnb_low, lnb_high, lnb_switch;
@@ -306,7 +346,7 @@ index e034e3e..9862114 100644
  	for (i = 0; i < la; i++)
  	{
  		if (arg[i] && arg[i][0] == '*')
-@@ -1692,11 +1719,11 @@ void set_diseqc_timing(char *o)
+@@ -1692,11 +1725,11 @@ void set_diseqc_timing(char *o)
  	int i, la, a_id;
  	int before_cmd, after_cmd, after_repeated_cmd;
  	int after_switch, after_burst, after_tone;
@@ -320,7 +360,7 @@ index e034e3e..9862114 100644
  	for (i = 0; i < la; i++)
  	{
  		if (arg[i] && arg[i][0] == '*')
-@@ -1773,10 +1800,10 @@ void set_diseqc_timing(char *o)
+@@ -1773,10 +1806,10 @@ void set_diseqc_timing(char *o)
  void set_slave_adapters(char *o)
  {
  	int i, j, la, a_id, a_id2, master = 0;
@@ -333,7 +373,7 @@ index e034e3e..9862114 100644
  	for (i = 0; i < la; i++)
  	{
  		a_id = map_intd(arg[i], NULL, -1);
-@@ -1826,13 +1853,13 @@ void set_timeout_adapters(char *o)
+@@ -1826,13 +1859,13 @@ void set_timeout_adapters(char *o)
  {
  	int i, j, la, a_id, a_id2;
  	int timeout = opts.adapter_timeout / 1000;
@@ -349,7 +389,7 @@ index e034e3e..9862114 100644
  	if (arg[0] && (arg[0][0] == '*'))
  	{
  		opts.adapter_timeout = timeout * 1000;
-@@ -1876,10 +1903,10 @@ extern char *fe_delsys[];
+@@ -1876,10 +1909,10 @@ extern char *fe_delsys[];
  void set_adapters_delsys(char *o)
  {
  	int i, la, a_id, ds;
@@ -362,7 +402,7 @@ index e034e3e..9862114 100644
  	for (i = 0; i < la; i++)
  	{
  		a_id = map_intd(arg[i], NULL, -1);
-@@ -1916,10 +1943,10 @@ void set_adapters_delsys(char *o)
+@@ -1916,10 +1949,10 @@ void set_adapters_delsys(char *o)
  void set_adapter_dmxsource(char *o)
  {
  	int i, j, la, st, end, fd;
@@ -375,7 +415,7 @@ index e034e3e..9862114 100644
  	for (i = 0; i < la; i++)
  	{
  		sep = strchr(arg[i], '-');
-@@ -1956,10 +1983,10 @@ void set_signal_multiplier(char *o)
+@@ -1956,10 +1989,10 @@ void set_signal_multiplier(char *o)
  {
  	int i, la, a_id;
  	float strength_multiplier, snr_multiplier;
@@ -388,7 +428,52 @@ index e034e3e..9862114 100644
  	for (i = 0; i < la; i++)
  	{
  		if (arg[i] && arg[i][0] == '*')
-@@ -2193,6 +2220,7 @@ _symbols adapters_sym[] =
+@@ -2030,24 +2063,28 @@ int delsys_match(adapter *ad, int del_sys)
+ 
+ int signal_thread(sockets *s)
+ {
+-	int i;
++	int i, status;
+ 	int64_t ts, ctime;
+ 	adapter *ad;
+-	for (i = 0; i < MAX_ADAPTERS; i++)
+-		if ((ad = get_adapter_nw(i)) && ad->get_signal && (ad->fe > 0) && ad->tp.freq && (ad->status_cnt++ > 0) // make sure the kernel has updated the status
+-			&& (!opts.no_threads || (ad->status < 0)))
+-
+-		{
+-			int status = ad->status;
+-			ts = getTick();
+-			ad->get_signal(ad);
+-			ctime = getTick();
+-			if (status == -1 || (opts.log & DEFAULT_LOG))
+-				LOG(
+-					"get_signal%s took %jd ms for adapter %d handle %d (status: %d, ber: %d, strength:%d, snr: %d, force scan %d)",
+-					(ad->new_gs == 1) ? "_new" : "", ctime - ts, ad->id, ad->fe,
+-					ad->status, ad->ber, ad->strength, ad->snr, opts.force_scan);
+-		}
++	for (i = 0; i < MAX_ADAPTERS; i++) {
++		if ((ad = get_adapter_nw(i)) == NULL || ad->get_signal == NULL)
++			continue;
++		if (ad->fe <= 0 || ad->tp.freq <= 0)
++			continue;
++		status = ad->status;
++		if (ad->status_cnt++ <= 0) // make sure the kernel has updated the status
++			continue;
++		if (opts.no_threads && !ad->fast_status && status >= 0)
++			continue;
++		ts = getTick();
++		ad->get_signal(ad);
++		ctime = getTick();
++		if (status == -1 || (opts.log & DEFAULT_LOG))
++			LOG(
++				"get_signal%s took %jd ms for adapter %d handle %d (status: %d, ber: %d, strength:%d, snr: %d, force scan %d)",
++				(ad->new_gs == 1) ? "_new" : "", ctime - ts, ad->id, ad->fe,
++				ad->status, ad->ber, ad->strength, ad->snr, opts.force_scan);
++	}
+ 	return 0;
+ }
+ 
+@@ -2193,6 +2230,7 @@ _symbols adapters_sym[] =
  		{"ad_sr", VAR_AARRAY_INT, a, 1. / 1000, MAX_ADAPTERS, offsetof(adapter, tp.sr)},
  		{"ad_bw", VAR_AARRAY_INT, a, 1. / 1000, MAX_ADAPTERS, offsetof(adapter, tp.bw)},
  		{"ad_diseqc", VAR_AARRAY_INT, a, 1, MAX_ADAPTERS, offsetof(adapter, tp.diseqc)},
@@ -396,8 +481,21 @@ index e034e3e..9862114 100644
  		{"ad_fe", VAR_AARRAY_INT, a, 1, MAX_ADAPTERS, offsetof(adapter, fe)},
  		{"ad_master", VAR_AARRAY_UINT8, a, 1, MAX_ADAPTERS, offsetof(adapter, master_sid)},
  		{"ad_sidcount", VAR_AARRAY_UINT8, a, 1, MAX_ADAPTERS, offsetof(adapter, sid_cnt)},
+diff --git a/src/adapter.h b/src/adapter.h
+index d1c3ec8..9ea412c 100644
+--- a/src/adapter.h
++++ b/src/adapter.h
+@@ -58,7 +58,7 @@ typedef struct struct_adapter
+ 	int64_t rtime;
+ 	int64_t last_sort;
+ 	int new_gs;
+-	int status, status_cnt;
++	int status, status_cnt, fast_status;
+ 	int dmx_source;
+ 	int master_source;
+ 	int is_fbc;
 diff --git a/src/axe.c b/src/axe.c
-index 52e8dad..466f699 100644
+index 52e8dad..e618c46 100644
 --- a/src/axe.c
 +++ b/src/axe.c
 @@ -48,7 +48,7 @@
@@ -453,7 +551,7 @@ index 52e8dad..466f699 100644
 +	static int isi[4] = { -2, -2, -2, -2 };
 +	static int pls_code[4] = { -2, -2, -2, -2 };
 +	int v;
-+	LOGM("axe: isi %d pls %d mode %d\n", tp->plp_isi, tp->pls_code, tp->pls_mode);
++	LOGM("axe: isi %d pls %d mode %d", tp->plp_isi, tp->pls_code, tp->pls_mode);
 +	if (tp->plp_isi != isi[ad->pa]) {
 +		v = tp->plp_isi < 0 ? -1 : (tp->plp_isi & 0xff);
 +		axe_stv0900_i2c_4("mis", ad->pa, v);
@@ -461,7 +559,7 @@ index 52e8dad..466f699 100644
 +	}
 +	if (tp->pls_code != pls_code[ad->pa]) {
 +		v = tp->pls_code < 0 ? 0 : (tp->pls_code & 0x3ffff);
-+		if (tp->pls_mode == PLS_MODE_GOLD)
++		if (tp->pls_mode == PLS_MODE_GOLD || tp->pls_mode < 0)
 +			v |= 0x40000;
 +		else if (tp->pls_mode == PLS_MODE_COMBO)
 +			v |= 0x80000; /* really? */
@@ -706,7 +804,7 @@ index 52e8dad..466f699 100644
 +			ADD_PROP(DTV_STREAM_ID, tp->plp_isi & 0xFF)
 +#endif
 +#if DVBAPIVERSION >= 0x050b /* 5.11 */
-+		ADD_PROP(DTV_SCRAMBLING_SEQUENCE_INDEX, tp->pls_code)
++		ADD_PROP(DTV_SCRAMBLING_SEQUENCE_INDEX, pls_scrambling_index(tp))
  #endif
  
  		LOG("tuning to %d(%d) pol: %s (%d) sr:%d fec:%s delsys:%s mod:%s rolloff:%s pilot:%s, ts clear=%jd, ts pol=%jd",
@@ -754,7 +852,15 @@ index 52e8dad..466f699 100644
  	get_signal(ad, &status, &ber, &strength, &snr);
  
  	strength = strength * 240 / 24000;
-@@ -819,9 +910,11 @@ void free_axe_input(adapter *ad)
+@@ -792,6 +883,7 @@ void find_axe_adapter(adapter **a)
+ 				ad->get_signal = (Device_signal)axe_get_signal;
+ 				ad->wakeup = (Device_wakeup)axe_wakeup;
+ 				ad->type = ADAPTER_DVB;
++				ad->fast_status = 1;
+ 				close(fd);
+ 				na++;
+ 				a_count = na; // update adapter counter
+@@ -819,9 +911,11 @@ void free_axe_input(adapter *ad)
  
  	for (aid = 0; aid < 4; aid++)
  	{
@@ -768,7 +874,7 @@ index 52e8dad..466f699 100644
  	}
  }
  
-@@ -829,11 +922,11 @@ void free_axe_input(adapter *ad)
+@@ -829,11 +923,11 @@ void free_axe_input(adapter *ad)
  void set_link_adapters(char *o)
  {
  	int i, la, a_id, b_id;
@@ -782,7 +888,7 @@ index 52e8dad..466f699 100644
  	for (i = 0; i < la; i++)
  	{
  		a_id = map_intd(arg[i], NULL, -1);
-@@ -857,11 +950,11 @@ void set_link_adapters(char *o)
+@@ -857,11 +951,11 @@ void set_link_adapters(char *o)
  void set_absolute_src(char *o)
  {
  	int i, la, src, inp, pos;
@@ -797,7 +903,7 @@ index 52e8dad..466f699 100644
  	{
  		inps = strchr(arg[i], ':');
 diff --git a/src/dvb.c b/src/dvb.c
-index 5184c4d..fd2b6cf 100644
+index 5184c4d..aee0c75 100644
 --- a/src/dvb.c
 +++ b/src/dvb.c
 @@ -120,6 +120,10 @@ char *fe_pol[] =
@@ -855,18 +961,17 @@ index 5184c4d..fd2b6cf 100644
  
  		if (strncmp("x_pmt=", arg[i], 6) == 0)
  			tp->x_pmt = arg[i] + 6;
-@@ -275,6 +287,10 @@ void init_dvb_parameters(transponder *tp)
+@@ -275,6 +287,9 @@ void init_dvb_parameters(transponder *tp)
  	tp->mtype = QAM_AUTO;
  	tp->plts = PILOT_AUTO;
  	tp->fec = FEC_AUTO;
-+	tp->ds = TP_VALUE_NOT_ENABLED;
-+	tp->plp_isi = TP_VALUE_NOT_ENABLED;
-+	tp->pls_mode = TP_VALUE_NOT_ENABLED;
-+	tp->pls_code = 1;
++	tp->ds = TP_VALUE_UNSET;
++	tp->plp_isi = TP_VALUE_UNSET;
++	tp->pls_mode = TP_VALUE_UNSET;
  }
  
  void copy_dvb_parameters(transponder *s, transponder *d)
-@@ -323,8 +339,12 @@ void copy_dvb_parameters(transponder *s, transponder *d)
+@@ -323,8 +338,12 @@ void copy_dvb_parameters(transponder *s, transponder *d)
  		d->c2tft = s->c2tft;
  	if (s->ds != -1)
  		d->ds = s->ds;
@@ -881,7 +986,7 @@ index 5184c4d..fd2b6cf 100644
  
  	d->x_pmt = s->x_pmt;
  	d->apids = s->apids;
-@@ -506,7 +526,9 @@ int send_diseqc(adapter *ad, int fd, int pos, int pos_change, int pol, int hiban
+@@ -506,7 +525,9 @@ int send_diseqc(adapter *ad, int fd, int pos, int pos_change, int pol, int hiban
  		posu = pos / 4;
  	}
  
@@ -891,7 +996,7 @@ index 5184c4d..fd2b6cf 100644
  	uncmd.msg[3] = 0xf0 | (posu & 0x0f);
  
  	LOGM("send_diseqc fd %d, pos = %d (c %d u %d), pol = %d, hiband = %d",
-@@ -554,12 +576,13 @@ int send_unicable(adapter *ad, int fd, int freq, int pos, int pol, int hiband, d
+@@ -554,12 +575,13 @@ int send_unicable(adapter *ad, int fd, int freq, int pos, int pol, int hiband, d
  {
  	struct dvb_diseqc_master_cmd cmd =
  		{
@@ -906,7 +1011,29 @@ index 5184c4d..fd2b6cf 100644
  	cmd.msg[3] = ((t & 0x0300) >> 8) | (d->uslot << 5) | (pos ? 0x10 : 0) | (hiband ? 4 : 0) | (pol ? 8 : 0);
  	cmd.msg[4] = t & 0xff;
  
-@@ -825,7 +848,11 @@ int dvb_tune(int aid, transponder *tp)
+@@ -768,6 +790,21 @@ int setup_switch(adapter *ad)
+ 		iProp++;                   \
+ 	}
+ 
++uint32_t pls_scrambling_index(transponder *tp)
++{
++	if (tp->pls_mode == PLS_MODE_ROOT) {
++		/* convert ROOT code to GOLD code */
++		uint32_t x, g;
++		for (g = 0, x = 1; g < 0x3ffff; g++)  {
++			if (tp->pls_code == x)
++				return g;
++			x = (((x ^ (x >> 7)) & 1) << 17) | (x >> 1);
++		}
++		return 0x3ffff;
++	}
++	return tp->pls_code; /* GOLD code 0 (default) */
++}
++
+ int dvb_tune(int aid, transponder *tp)
+ {
+ 	int64_t bclear, bpol;
+@@ -825,7 +862,11 @@ int dvb_tune(int aid, transponder *tp)
  		ADD_PROP(DTV_PILOT, tp->plts)
  		ADD_PROP(DTV_ROLLOFF, tp->ro)
  #if DVBAPIVERSION >= 0x0502
@@ -915,11 +1042,11 @@ index 5184c4d..fd2b6cf 100644
 +			ADD_PROP(DTV_STREAM_ID, tp->plp_isi)
 +#endif
 +#if DVBAPIVERSION >= 0x050b /* 5.11 */
-+		ADD_PROP(DTV_SCRAMBLING_SEQUENCE_INDEX, tp->pls_code)
++		ADD_PROP(DTV_SCRAMBLING_SEQUENCE_INDEX, pls_scrambling_index(tp))
  #endif
  
  #ifdef USE_DVBAPI3
-@@ -856,7 +883,8 @@ int dvb_tune(int aid, transponder *tp)
+@@ -856,7 +897,8 @@ int dvb_tune(int aid, transponder *tp)
  		ADD_PROP(DTV_TRANSMISSION_MODE, tp->tmode)
  		ADD_PROP(DTV_HIERARCHY, HIERARCHY_AUTO)
  #if DVBAPIVERSION >= 0x0502
@@ -929,7 +1056,7 @@ index 5184c4d..fd2b6cf 100644
  #endif
  
  // old DVBAPI version 3
-@@ -894,7 +922,12 @@ int dvb_tune(int aid, transponder *tp)
+@@ -894,7 +936,12 @@ int dvb_tune(int aid, transponder *tp)
  		freq = freq * 1000;
  		ADD_PROP(DTV_SYMBOL_RATE, tp->sr)
  #if DVBAPIVERSION >= 0x0502
@@ -944,7 +1071,7 @@ index 5184c4d..fd2b6cf 100644
  		// valid for DD DVB-C2 devices
  
 diff --git a/src/dvb.h b/src/dvb.h
-index 9830487..b9fd223 100644
+index 9830487..99fc8f9 100644
 --- a/src/dvb.h
 +++ b/src/dvb.h
 @@ -143,6 +143,12 @@ typedef enum fe_modulation {
@@ -964,7 +1091,7 @@ index 9830487..b9fd223 100644
  #define MIN_FRQ_DVBS 950000
  #define MAX_FRQ_DVBS 2150000
  
-+#define TP_VALUE_NOT_ENABLED (-255)
++#define TP_VALUE_UNSET (-255)
 +
  typedef struct diseqc
  {
@@ -1006,7 +1133,16 @@ index 9830487..b9fd223 100644
  
  	char *apids, *pids, *dpids, *x_pmt;
  } transponder;
-@@ -279,6 +290,7 @@ char *get_gi(int i);
+@@ -269,6 +280,8 @@ int detect_dvb_parameters(char *s, transponder *tp);
+ void init_dvb_parameters(transponder *tp);
+ void copy_dvb_parameters(transponder *s, transponder *d);
+ 
++uint32_t pls_scrambling_index(transponder *tp);
++
+ char *get_pilot(int i);
+ char *get_rolloff(int i);
+ char *get_delsys(int i);
+@@ -279,6 +292,7 @@ char *get_gi(int i);
  char *get_specinv(int i);
  char *get_pol(int i);
  char *get_inversion(int i);
@@ -1015,7 +1151,7 @@ index 9830487..b9fd223 100644
  extern char *fe_delsys[];
  extern char *fe_fec[];
 diff --git a/src/minisatip.c b/src/minisatip.c
-index 0cd9b0b..884f14c 100644
+index 0cd9b0b..20e73e3 100644
 --- a/src/minisatip.c
 +++ b/src/minisatip.c
 @@ -286,6 +286,8 @@ Help\n\
@@ -1035,16 +1171,17 @@ index 0cd9b0b..884f14c 100644
  	opts.diseqc_before_cmd = 15;
  	opts.diseqc_after_cmd = 54;
  	opts.diseqc_after_repeated_cmd = 15;
-@@ -552,7 +555,7 @@ void set_options(int argc, char *argv[])
+@@ -551,8 +554,7 @@ void set_options(int argc, char *argv[])
+ 	opts.no_threads = 1;
  #endif
  #ifdef AXE
- 	opts.no_threads = 1;
+-	opts.no_threads = 1;
 -	opts.document_root = "/usr/share/minisatip/html";
 +	opts.document_root = "/usr/share/minisatip8/html";
  #define AXE_OPTS "7:QW:8:A:"
  #else
  #define AXE_OPTS ""
-@@ -614,7 +617,7 @@ void set_options(int argc, char *argv[])
+@@ -614,7 +616,7 @@ void set_options(int argc, char *argv[])
  			int i;
  			memset(buf, 0, sizeof(buf));
  			strncpy(buf, optarg, sizeof(buf) - 1);
@@ -1053,7 +1190,7 @@ index 0cd9b0b..884f14c 100644
  			for (i = 0; i < la; i++)
  			{
  				int level = map_intd(arg[i], loglevels, -1);
-@@ -1046,7 +1049,7 @@ int read_rtsp(sockets *s)
+@@ -1046,7 +1048,7 @@ int read_rtsp(sockets *s)
  		return 0;
  	}
  
@@ -1062,7 +1199,7 @@ index 0cd9b0b..884f14c 100644
  	cseq = 0;
  	if (la < 2)
  		LOG_AND_RETURN(0,
-@@ -1311,7 +1314,7 @@ int read_http(sockets *s)
+@@ -1311,7 +1313,7 @@ int read_http(sockets *s)
  	LOG("read HTTP from %d sid: %d: ", s->sock, s->sid);
  	LOGM("%s", s->buf);
  
@@ -1072,7 +1209,7 @@ index 0cd9b0b..884f14c 100644
  	if (strncmp(arg[0], "GET", 3) && strncmp(arg[0], "POST", 4) && !is_head)
  		REPLY_AND_RETURN(503);
 diff --git a/src/minisatip.h b/src/minisatip.h
-index 6512250..520de73 100644
+index 6512250..ad12dfa 100644
 --- a/src/minisatip.h
 +++ b/src/minisatip.h
 @@ -9,7 +9,7 @@
@@ -1080,7 +1217,7 @@ index 6512250..520de73 100644
  #define VERSION_BUILD "16"
  #define CC(a, b, c) #a b #c
 -#define VERSION CC(0.7., VERSION_BUILD, )
-+#define VERSION CC(0.7., VERSION_BUILD, -axe214)
++#define VERSION CC(0.7., VERSION_BUILD, -axe215)
  
  void set_options(int argc, char *argv[]);
  
@@ -1168,6 +1305,32 @@ index 24c82ff..e748048 100644
  	for (i = 0; i < la; i++)
  	{
  		SAFE_STRCPY(sxd[i].url, arg[i]);
+diff --git a/src/socketworks.c b/src/socketworks.c
+index a6fb95e..0d0dac8 100644
+--- a/src/socketworks.c
++++ b/src/socketworks.c
+@@ -897,9 +897,10 @@ void *select_and_execute(void *arg)
+ 			sockets *ss;
+ 			lt = c_time;
+ 			i = -1;
+-			while (++i < max_sock)
+-				if ((ss = get_sockets(i)) && (ss->tid == tid) &&
+-					(((ss->timeout_ms > 0) && (lt - ss->rtime > ss->timeout_ms) && (ss->spos == ss->wpos)) || (ss->force_close)))
++			while (++i < max_sock) {
++				if ((ss = get_sockets(i)) == NULL || (ss->tid != tid))
++					continue;
++				if (((ss->timeout_ms > 0) && (lt - ss->rtime > ss->timeout_ms) && (ss->spos == ss->wpos)) || (ss->force_close))
+ 				{
+ 					if (ss->timeout && !ss->force_close)
+ 					{
+@@ -915,6 +916,7 @@ void *select_and_execute(void *arg)
+ 					else
+ 						sockets_del(i);
+ 				}
++			}
+ 		}
+ 	}
+ 
 diff --git a/src/stream.c b/src/stream.c
 index bde2992..f587e93 100644
 --- a/src/stream.c
