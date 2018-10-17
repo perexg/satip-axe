@@ -463,8 +463,6 @@ apps/$(DROPBEAR)/configure:
 	tar -C apps -xjf apps/$(DROPBEAR).tar.bz2
 
 apps/$(DROPBEAR)/dropbear: apps/$(DROPBEAR)/configure
-	@echo "#define DEFAULT_PATH \"/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin\"" \
-	  > apps/$(DROPBEAR)/localoptions.h
 	cd apps/$(DROPBEAR) && \
 	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
 	./configure \
@@ -475,6 +473,9 @@ apps/$(DROPBEAR)/dropbear: apps/$(DROPBEAR)/configure
           --disable-utmpx \
           --disable-wtmp \
           --disable-wtmpx
+	sed -e 's/DEFAULT_PATH \"\/usr\/bin:\/bin\"/DEFAULT_PATH \"\/sbin:\/usr\/sbin:\/bin:\/usr\/bin:\/usr\/local\/bin\"/g' \
+	  < apps/$(DROPBEAR)/options.h > apps/$(DROPBEAR)/options.h.2
+	mv apps/$(DROPBEAR)/options.h.2 apps/$(DROPBEAR)/options.h
 	make -C apps/$(DROPBEAR) PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp"
 
 .PHONY: dropbear
