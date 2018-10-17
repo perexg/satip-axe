@@ -250,13 +250,14 @@ Bugs:
 History:
 --------
 
-satip-axe-2018 (build15) - ??
+satip-axe-201810171851-15 - Wed Oct 17 2018
   - moved the releases (firmware files) to github
   - added minisatip8
+    - theaded mode is turned on by default (use -T to toggle)
     - updated minisatip code (latest minisatip 0.7.16)
     - note that some options were removed (-M) or added (-2)
     - follow /etc/config.default and this file
-    - fixed reported VDR problem (issue #108)
+    - fixed reported VDR problems (issue #108)
     - added DVB-S2 multistream support
   - fixed the improper tuner release problem for complex diseqc settings
     where one input is used by multiple tuners (minisatip7 and minisatip8)
@@ -264,7 +265,9 @@ satip-axe-2018 (build15) - ??
   - modified net.ipv4.tcp_wmem (issue #102)
   - increased net.core.wmem_max=12582912 , it might help to prevent
     the UDP packet loss (issue #88)
-  - fixed time sync (ntpd) issue when DHCP is used (issue #109)
+  - partly fixed time sync (ntpd) issue when DHCP is used (issue #109)
+  - upgraded python to 3.5.6 (package)
+  - upgraded oscam to rev.11434
 
 satip-axe-201705251044-14 - Wed Jun  7 2017
   - kernel modules from idl4k-1.25.0.157 (frontend + demux)
