@@ -32,7 +32,7 @@ index 8812322..519f3da 100755
  					myTable += "<td class='dt-right'>" + state['ad_axe_pktc'][i] + " </td>";
  					myTable += "<td class='dt-right'>" + state['ad_axe_ccerr'][i] + " </td>";
 diff --git a/src/adapter.c b/src/adapter.c
-index e034e3e..319591e 100644
+index e034e3e..2edf766 100644
 --- a/src/adapter.c
 +++ b/src/adapter.c
 @@ -75,6 +75,7 @@ adapter *adapter_alloc()
@@ -125,7 +125,7 @@ index e034e3e..319591e 100644
  	{
  		pid = map_intd(arg[i], NULL, -1);
 -		if (pid == -1)
-+		if (pid < 0 || pid > 8182)
++		if (pid < 0 || pid > 8192)
  			continue;
  		if (mark_pid_add(sid, aid, pid) < 0)
  			return -1;
