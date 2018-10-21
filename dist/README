@@ -250,7 +250,7 @@ Bugs:
 History:
 --------
 
-satip-axe-201810171851-15 - Wed Oct 17 2018
+satip-axe-201810211549-15 - Sun Oct 21 2018
   - moved the releases (firmware files) to github
   - added minisatip8
     - theaded mode is turned on by default (use -T to toggle)

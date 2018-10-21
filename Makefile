@@ -161,7 +161,7 @@ fs.cpio: $(CPIO_SRCS)
 	  $(foreach f,$(notdir $(wildcard apps/minisatip8/html/*)), -e "apps/minisatip8/html/$f:usr/share/minisatip8/html/$f") \
 	  -e "apps/$(NANO)/src/nano:usr/bin/nano" \
 	  -e "apps/mtd-utils/nandwrite:usr/sbin/nandwrite2" \
-	  -e "apps/oscam-svn/Distribution/oscam-1.20-unstable_svn$(OSCAM_REV)-sh4-linux:sbin/oscamd"
+	  -e "apps/oscam-svn/Distribution/oscam-1.20_svn$(OSCAM_REV)-sh4-linux:sbin/oscamd"
 
 .PHONY: fs-list
 fs-list:
