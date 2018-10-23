@@ -76,6 +76,7 @@ PYTHON3_FILENAME=$(PYTHON3).tgz
 PYTHON3_DOWNLOAD=https://www.python.org/ftp/python/$(PYTHON3_VERSION)/$(PYTHON3_FILENAME)
 
 MULTICAST_RTP_PACKAGE_NAME=multicast-rtp-2
+SENDDSQ_PACKAGE_NAME=senddsq
 
 TVHEADEND_COMMIT=master
 
@@ -730,6 +731,21 @@ apps/multicast-rtp/ok.stamp: tools/multicast-rtp
 
 .PHONY: multicast-rtp
 multicast-rtp: apps/multicast-rtp/ok.stamp
+
+#
+# senddsq
+#
+
+tools/senddsq: tools/senddsq.c
+	$(TOOLCHAIN)/bin/sh4-linux-gcc -o tools/senddsq -Wall -lrt tools/senddsq.c
+
+apps/senddsq/ok.stamp: tools/senddsq
+	cp tools/senddsq apps/senddsq/sbin
+	$(call PACKAGE,apps/senddsq,$(SENDDSQ_PACKAGE_NAME),sbin)
+	touch apps/senddsq/ok.stamp
+
+.PHONY: senddsq
+senddsq: tools/senddsq apps/senddsq/ok.stamp
 
 #
 # tvheadend
