@@ -1,0 +1,25 @@
+--- apps/busybox-1.26.2/util-linux/blkdiscard.c	2016-12-10 17:46:36.000000000 +0000
++++ apps/busybox-1.26.2/util-linux/blkdiscard.c	2019-03-03 12:56:57.041509277 +0000
+@@ -68,7 +68,7 @@
+ 	range[0] = offset;
+ 	range[1] = length;
+ 	ioctl_or_perror_and_die(fd,
+-			(opts & OPT_SECURE) ? BLKSECDISCARD : BLKDISCARD,
++			(opts & OPT_SECURE) ? BLKDISCARD : BLKDISCARD,
+ 			&range,
+ 			"%s: %s failed",
+ 			argv[0],
+--- apps/busybox-1.26.2/miscutils/nandwrite.c	2016-09-27 16:53:50.000000000 +0000
++++ apps/busybox-1.26.2/miscutils/nandwrite.c	2019-03-03 12:56:27.520549923 +0000
+@@ -53,6 +53,11 @@
+ 
+ #include "libbb.h"
+ #include <mtd/mtd-user.h>
++#include <linux/version.h>
++#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 2, 0)
++# define MTD_FILE_MODE_NORMAL MTD_MODE_NORMAL
++# define MTD_FILE_MODE_RAW MTD_MODE_RAW
++#endif
+ 
+ #define IS_NANDDUMP  (ENABLE_NANDDUMP && (!ENABLE_NANDWRITE || (applet_name[4] == 'd')))
+ #define IS_NANDWRITE (ENABLE_NANDWRITE && (!ENABLE_NANDDUMP || (applet_name[4] != 'd')))

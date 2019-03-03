@@ -447,6 +447,7 @@ minisatip-package: dist/packages/minisatip-$(VERSION).tar.gz
 apps/$(BUSYBOX)/Makefile:
 	$(call WGET,http://busybox.net/downloads/$(BUSYBOX).tar.bz2,apps/$(BUSYBOX).tar.bz2)
 	tar -C apps -xjf apps/$(BUSYBOX).tar.bz2
+	patch -p0 < patches/busybox-1.26.2.patch
 
 apps/$(BUSYBOX)/busybox: apps/$(BUSYBOX)/Makefile
 	make -C apps/$(BUSYBOX) CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux- defconfig
