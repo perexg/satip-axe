@@ -96,6 +96,9 @@ echo "Preparing to flash - killing minisatip, unmounting USB sticks"
 umount /media/*
 touch /tmp/nosatip
 killall -9 minisatip
+killall -9 minisatip5
+killall -9 minisatip7
+killall -9 minisatip8
 sync ; sync
 
 sleep 3

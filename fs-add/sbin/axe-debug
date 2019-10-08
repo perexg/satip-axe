@@ -35,6 +35,9 @@ reset)
   sleep 10
   echo "i2c_dbg_trans 0" > /proc/bus/ivo_i2c
   killall -9 minisatip
+  killall -9 minisatip5
+  killall -9 minisatip7
+  killall -9 minisatip8
   ;;
 dmxts)
   noex="AAAAAAAAAABBBBBBBBB"
