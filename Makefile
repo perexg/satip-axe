@@ -1,4 +1,4 @@
-BUILD=15
+BUILD=16
 VERSION=$(shell date +%Y%m%d%H%M)-$(BUILD)
 CPUS=4
 CURDIR=$(shell pwd)
@@ -30,7 +30,8 @@ KMODULES = drivers/usb/serial/cp210x.ko \
            drivers/usb/serial/ftdi_sio.ko \
 	   drivers/usb/serial/oti6858.ko
 
-MINISATIP_COMMIT=54df9348e7bd7e6075f54f1b93ec4ad36429abe0
+MINISATIP_COMMIT=679b7cafc3d1dc9f710da91ed71a39b96cee7a8d
+MINISATIP_VERSION=1.0.2-axe1
 MINISATIP5_COMMIT=67e88c2d743d6df9c4a96aad772414169f61b764
 MINISATIP7_COMMIT=d22ba0dfe3c706c3ab6ad86486d8a9e913080f7e
 MINISATIP8_COMMIT=8e2362435cc8c5e0babc3e7ca67570c7f7dd03c5
@@ -81,7 +82,7 @@ SENDDSQ_PACKAGE_NAME=senddsq
 TVHEADEND_COMMIT=master
 
 # 10663 10937 11234 11398
-OSCAM_REV=11434
+OSCAM_REV=11546
 
 define GIT_CLONE
 	@mkdir -p apps/host
@@ -124,7 +125,6 @@ CPIO_SRCS += busybox
 CPIO_SRCS += dropbear
 CPIO_SRCS += ethtool
 CPIO_SRCS += minisatip
-CPIO_SRCS += minisatip5
 CPIO_SRCS += minisatip7
 CPIO_SRCS += minisatip8
 CPIO_SRCS += oscam
@@ -153,9 +153,7 @@ fs.cpio: $(CPIO_SRCS)
 	  $(foreach f,$(RPCBIND_SBIN_FILES), -e "apps/$(RPCBIND)/$(f):usr/sbin/$(f)") \
 	  $(foreach f,$(NFSUTILS_SBIN_FILES), -e "apps/$(NFSUTILS)/$(f):usr/sbin/$(notdir $(f))") \
 	  -e "apps/minisatip/minisatip:sbin/minisatip" \
-	  $(foreach f,$(notdir $(wildcard apps/minisatip/icons/*)), -e "apps/minisatip/icons/$f:usr/share/minisatip/icons/$f") \
-	  -e "apps/minisatip5/minisatip:sbin/minisatip5" \
-	  $(foreach f,$(notdir $(wildcard apps/minisatip5/html/*)), -e "apps/minisatip5/html/$f:usr/share/minisatip/html/$f") \
+	  $(foreach f,$(notdir $(wildcard apps/minisatip/html/*)), -e "apps/minisatip/html/$f:usr/share/minisatip/html/$f") \
 	  -e "apps/minisatip7/minisatip:sbin/minisatip7" \
 	  $(foreach f,$(notdir $(wildcard apps/minisatip7/html/*)), -e "apps/minisatip7/html/$f:usr/share/minisatip7/html/$f") \
 	  -e "apps/minisatip8/minisatip:sbin/minisatip8" \
@@ -303,18 +301,26 @@ media-clean:
 	rm -rf apps/media
 
 #
-# minisatip
+# minisatip 1.0+
 #
 
-apps/minisatip/axe.h: patches/minisatip-axe.patch
+apps/minisatip/src/axe.h: patches/minisatip-axe.patch
 	rm -rf apps/minisatip
 	$(call GIT_CLONE,https://github.com/catalinii/minisatip.git,minisatip,$(MINISATIP_COMMIT))
 	cd apps/minisatip; patch -p1 < ../../patches/minisatip-axe.patch
 
-apps/minisatip/minisatip: apps/minisatip/axe.h
+apps/minisatip/minisatip: apps/minisatip/src/axe.h
+	cd apps/minisatip && ./configure \
+		--enable-axe \
+		--disable-dvbca \
+		--disable-dvbapi \
+		--disable-dvbcsa \
+		--disable-dvbaes \
+		--disable-netcv
 	make -C apps/minisatip \
+	  VERSION=$(MINISATIP_VERSION) \
 	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
-	  CFLAGS="-O2 -DAXE=1 -DSYS_DVBT2=16 -I$(CURDIR)/kernel/include"
+	  EXTRA_CFLAGS="-O2 -I$(CURDIR)/kernel/include -O3 -m4-300 -funroll-loops -fomit-frame-pointer -fno-tree-vectorize -funsafe-loop-optimizations -funsafe-math-optimizations"
 
 .PHONY: minisatip
 minisatip: apps/minisatip/minisatip
@@ -322,37 +328,6 @@ minisatip: apps/minisatip/minisatip
 .PHONY: minisatip-clean
 minisatip-clean:
 	rm -rf apps/minisatip
-
-#
-# minisatip5
-#
-
-apps/minisatip5/axe.h: patches/minisatip5-axe.patch
-	rm -rf apps/minisatip5
-	$(call GIT_CLONE,https://github.com/catalinii/minisatip.git,minisatip5,$(MINISATIP5_COMMIT))
-	cd apps/minisatip5; patch -p1 < ../../patches/minisatip5-axe.patch
-
-apps/minisatip5/minisatip: apps/minisatip5/axe.h
-	cd apps/minisatip5 && ./configure \
-		--disable-dvbca \
-		--disable-dvbcsa \
-		--disable-dvbaes \
-		--disable-netceiver
-	make -C apps/minisatip5 \
-	  DVBCSA= \
-	  DVBCA= \
-	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
-	  CFLAGS="-O2 -DAXE=1 -DSYS_DVBT2=16 \
-	          -DDISABLE_DVBAPI -DDISABLE_DVBCSA -DDISABLE_DVBCA \
-	          -DDISABLE_TABLES -DDISABLE_NETCVCLIENT \
-	          -I$(CURDIR)/kernel/include"
-
-.PHONY: minisatip5
-minisatip5: apps/minisatip5/minisatip
-
-.PHONY: minisatip5-clean
-minisatip5-clean:
-	rm -rf apps/minisatip5
 
 #
 # minisatip7
@@ -414,24 +389,22 @@ minisatip8-clean:
 # minisatip package
 #
 
-dist/packages/minisatip-$(VERSION).tar.gz: minisatip minisatip5 minisatip7 minisatip8
+dist/packages/minisatip-$(VERSION).tar.gz: minisatip minisatip7 minisatip8
 	rm -rf fs/usr/share/minisatip
 	mkdir -p fs/usr/share/minisatip/icons/ \
 		 fs/usr/share/minisatip/html/ \
 		 fs/usr/share/minisatip7/html/ \
 		 fs/usr/share/minisatip8/html/
 	install -m 755 apps/minisatip/minisatip fs/sbin/minisatip
-	install -m 644 apps/minisatip/icons/* fs/usr/share/minisatip/icons/
-	install -m 755 apps/minisatip5/minisatip fs/sbin/minisatip5
-	install -m 644 apps/minisatip5/html/* fs/usr/share/minisatip/html/
+	install -m 644 apps/minisatip/html/* fs/usr/share/minisatip/html/
 	install -m 755 apps/minisatip7/minisatip fs/sbin/minisatip7
 	install -m 644 apps/minisatip7/html/* fs/usr/share/minisatip7/html/
 	install -m 755 apps/minisatip8/minisatip fs/sbin/minisatip8
 	install -m 644 apps/minisatip8/html/* fs/usr/share/minisatip7/html8
 	tar cvz -C fs -f dist/packages/minisatip-$(VERSION).tar.gz \
 		sbin/minisatip \
-		sbin/minisatip5 \
-		usr/share/minisatip/icons \
+		sbin/minisatip7 \
+		sbin/minisatip8 \
 		usr/share/minisatip/html \
 		usr/share/minisatip7/html \
 		usr/share/minisatip8/html

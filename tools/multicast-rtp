@@ -64,7 +64,6 @@ parser.add_argument('-l', '--syslog', dest='syslog',
   action='store_true',
   help='enable System LOG')
 parser.add_argument('-s', '--server', dest='server',
-  required=True,
   help='server to connect')
 parser.add_argument('-d', '--destination', dest='addr',
   default='',
@@ -72,7 +71,7 @@ parser.add_argument('-d', '--destination', dest='addr',
 parser.add_argument('-p', '--port', dest='port', type=int,
   default=10000,
   help='target port  (default: 10000)')
-group = parser.add_mutually_exclusive_group(required=True)
+group = parser.add_mutually_exclusive_group()
 group.add_argument('-u', '--uri', dest='uri',
   default='',
   help='URI to request')
@@ -84,19 +83,19 @@ args = parser.parse_args()
 
 SYSLOG = args.syslog
 
-if args.port > 0 and args.port < 65536 :
+if args.port > 0 and args.port < 65536:
   TARGET_PORT = args.port
 else :
   parser.print_help()
   sys.exit()
 
-if len(args.server) > 0 :
+if args.server and len(args.server) > 0:
   SERVER = args.server
 else :
   parser.print_help()
   sys.exit()
 
-if len(args.uri) > 0 :
+if len(args.uri) > 0:
   REQUEST = args.uri
 elif len(args.config) > 0 :
   CONFIG = args.config
@@ -303,10 +302,10 @@ class RTSP_Clients:
   def __init__(self, loop):
     self.loop = loop
     self.clients = []
-    if USE_CONFIG :
+    if USE_CONFIG:
       self.parse_config_file()
       hupfcn = lambda: self.parse_config_file()
-    else :
+    else:
       self.parse_request()
       hupfcn = lambda: self.parse_request()
     loop.add_signal_handler(signal.SIGHUP,

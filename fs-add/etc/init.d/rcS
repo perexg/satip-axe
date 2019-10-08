@@ -145,6 +145,11 @@ fi
 ifconfig eth0 txqueuelen 2000 up
 route add -net 224.0.0.0 netmask 240.0.0.0 dev eth0
 
+# wake-on-lan
+if test -n "$WAKE_ON_LAN" -o $WAKE_ON_LAN = "yes" -o $WAKE_ON_LAN -gt 0; then
+  /sbin/ethtool -s eth0 wol g
+fi
+
 # unpack extra packages
 for package in /mnt/data/satip-axe/packages/*.tar.gz; do
   if test -r "$package"; then

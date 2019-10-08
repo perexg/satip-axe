@@ -37,6 +37,12 @@ IPV4="dhcp"
 #IPV4_GATEWAY="192.168.1.1"
 
 #
+# wake-on-lan activation
+#
+
+#WAKE_ON_LAN=1
+
+#
 # ntpd
 #
 NTPD_OPTS="-p 0.pool.ntp.org"
@@ -57,16 +63,10 @@ TELNETD="yes"
 DROPBEAR="yes"
 
 #
-# minisatip
+# minisatip 1.0+
 #
-#MINISATIP="yes"
-#MINISATIP_OPTS=""
-
-#
-# minisatip 0.5
-#
-#MINISATIP5="yes"
-#MINISATIP5_OPTS=""
+MINISATIP="yes"
+MINISATIP_OPTS=""
 
 #
 # minisatip 0.7
@@ -77,8 +77,8 @@ DROPBEAR="yes"
 #
 # minisatip 0.8
 #
-MINISATIP8="yes"
-MINISATIP8_OPTS=""
+#MINISATIP8="yes"
+#MINISATIP8_OPTS=""
 
 #
 # inetd (httpd,ftpd)
