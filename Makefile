@@ -552,8 +552,8 @@ apps/$(RPCBIND)/rpcbind: apps/$(LIBTIRPC)/src/.libs/libtirpc.a apps/$(RPCBIND)/c
 	cd apps/$(RPCBIND) && \
 	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
 	  CFLAGS="-O2" \
-	  TIRPC_CFLAGS="-I$(PWD)/apps/$(LIBTIRPC)/tirpc" \
-	  TIRPC_LIBS="-L$(PWD)/apps/$(LIBTIRPC)/src/.libs -Wl,-Bstatic -ltirpc -Wl,-Bdynamic" \
+	  TIRPC_CFLAGS="-I$(CURDIR)/apps/$(LIBTIRPC)/tirpc" \
+	  TIRPC_LIBS="-L$(CURDIR)/apps/$(LIBTIRPC)/src/.libs -Wl,-Bstatic -ltirpc -Wl,-Bdynamic" \
 	./configure \
 	  --host=sh4-linux \
 	  --prefix=/ \
@@ -575,8 +575,8 @@ apps/$(NFSUTILS)/utils/exportfs/exportfs: apps/$(RPCBIND)/rpcbind apps/$(NFSUTIL
 	cd apps/$(NFSUTILS) && \
 	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
 	  CFLAGS="-O2" \
-	  TIRPC_CFLAGS="-I$(PWD)/apps/$(LIBTIRPC)/tirpc" \
-	  TIRPC_LIBS="-L$(PWD)/apps/$(LIBTIRPC)/src/.libs -Wl,-Bstatic -ltirpc -Wl,-Bdynamic" \
+	  TIRPC_CFLAGS="-I$(CURDIR)/apps/$(LIBTIRPC)/tirpc" \
+	  TIRPC_LIBS="-L$(CURDIR)/apps/$(LIBTIRPC)/src/.libs -Wl,-Bstatic -ltirpc -Wl,-Bdynamic" \
 	./configure \
 	  --host=sh4-linux \
 	  --prefix=/ \
