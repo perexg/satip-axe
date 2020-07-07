@@ -43,7 +43,7 @@ DROPBEAR_BIN_FILES=dbclient dropbearconvert dropbearkey scp
 
 ETHTOOL=ethtool-3.18
 
-MTD_UTILS_COMMIT=v1.5.1
+MTD_UTILS_COMMIT=9f107132a6a073cce37434ca9cda6917dd8d866b # v1.5.1
 
 LIBTIRPC_VERSION=0.2.5
 LIBTIRPC=libtirpc-$(LIBTIRPC_VERSION)
@@ -552,8 +552,8 @@ apps/$(RPCBIND)/rpcbind: apps/$(LIBTIRPC)/src/.libs/libtirpc.a apps/$(RPCBIND)/c
 	cd apps/$(RPCBIND) && \
 	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
 	  CFLAGS="-O2" \
-	  TIRPC_CFLAGS="-I$(PWD)/apps/$(LIBTIRPC)/tirpc" \
-	  TIRPC_LIBS="-L$(PWD)/apps/$(LIBTIRPC)/src/.libs -Wl,-Bstatic -ltirpc -Wl,-Bdynamic" \
+	  TIRPC_CFLAGS="-I$(CURDIR)/apps/$(LIBTIRPC)/tirpc" \
+	  TIRPC_LIBS="-L$(CURDIR)/apps/$(LIBTIRPC)/src/.libs -Wl,-Bstatic -ltirpc -Wl,-Bdynamic" \
 	./configure \
 	  --host=sh4-linux \
 	  --prefix=/ \
@@ -575,8 +575,8 @@ apps/$(NFSUTILS)/utils/exportfs/exportfs: apps/$(RPCBIND)/rpcbind apps/$(NFSUTIL
 	cd apps/$(NFSUTILS) && \
 	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
 	  CFLAGS="-O2" \
-	  TIRPC_CFLAGS="-I$(PWD)/apps/$(LIBTIRPC)/tirpc" \
-	  TIRPC_LIBS="-L$(PWD)/apps/$(LIBTIRPC)/src/.libs -Wl,-Bstatic -ltirpc -Wl,-Bdynamic" \
+	  TIRPC_CFLAGS="-I$(CURDIR)/apps/$(LIBTIRPC)/tirpc" \
+	  TIRPC_LIBS="-L$(CURDIR)/apps/$(LIBTIRPC)/src/.libs -Wl,-Bstatic -ltirpc -Wl,-Bdynamic" \
 	./configure \
 	  --host=sh4-linux \
 	  --prefix=/ \
