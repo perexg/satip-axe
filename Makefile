@@ -1,6 +1,6 @@
 BUILD=15
 VERSION=$(shell date +%Y%m%d%H%M)-$(BUILD)
-CPUS=4
+CPUS=$(shell nproc)
 CURDIR=$(shell pwd)
 STLINUX=/opt/STM/STLinux-2.4
 TOOLPATH=$(STLINUX)/host/bin
