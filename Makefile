@@ -449,8 +449,8 @@ apps/$(BUSYBOX)/Makefile:
 	tar -C apps -xjf apps/$(BUSYBOX).tar.bz2
 
 apps/$(BUSYBOX)/busybox: apps/$(BUSYBOX)/Makefile
-	make -C apps/$(BUSYBOX) CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux- defconfig
-	make -C apps/$(BUSYBOX) CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux-
+	make -C apps/$(BUSYBOX) -j $(CPUS) CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux- defconfig
+	make -C apps/$(BUSYBOX) -j $(CPUS) CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux-
 
 .PHONY: busybox
 busybox: apps/$(BUSYBOX)/busybox
@@ -477,7 +477,7 @@ apps/$(DROPBEAR)/dropbear: apps/$(DROPBEAR)/configure
 	sed -e 's/DEFAULT_PATH \"\/usr\/bin:\/bin\"/DEFAULT_PATH \"\/sbin:\/usr\/sbin:\/bin:\/usr\/bin:\/usr\/local\/bin\"/g' \
 	  < apps/$(DROPBEAR)/options.h > apps/$(DROPBEAR)/options.h.2
 	mv apps/$(DROPBEAR)/options.h.2 apps/$(DROPBEAR)/options.h
-	make -C apps/$(DROPBEAR) PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp"
+	make -C apps/$(DROPBEAR) -j $(CPUS) PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp"
 
 .PHONY: dropbear
 dropbear: apps/$(DROPBEAR)/dropbear
@@ -497,7 +497,7 @@ apps/$(ETHTOOL)/ethtool: apps/$(ETHTOOL)/configure
 	./configure \
 	  --host=sh4-linux \
 	  --prefix=/
-	make -C apps/$(ETHTOOL)
+	make -C apps/$(ETHTOOL) -j $(CPUS)
 
 .PHONY: ethtool
 ethtool: apps/$(ETHTOOL)/ethtool
@@ -510,7 +510,7 @@ apps/mtd-utils/Makefile:
 	$(call GIT_CLONE,git://git.infradead.org/mtd-utils.git,mtd-utils,$(MTD_UTILS_COMMIT))
 
 apps/mtd-utils/nanddump: apps/mtd-utils/Makefile
-	make -C apps/mtd-utils \
+	make -C apps/mtd-utils -j $(CPUS) \
 	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
 	  CFLAGS="-O2 -I$(CURDIR)/kernel/include"
 
@@ -535,7 +535,7 @@ apps/$(LIBTIRPC)/src/.libs/libtirpc.a: apps/$(LIBTIRPC)/configure
 	  --disable-shared \
 	  --disable-gssapi \
 	  --disable-ipv6
-	make -C apps/$(LIBTIRPC)
+	make -C apps/$(LIBTIRPC) -j $(CPUS)
 
 .PHONY: libtirpc
 libtirpc: apps/$(LIBTIRPC)/src/.libs/libtirpc.a
@@ -558,7 +558,7 @@ apps/$(RPCBIND)/rpcbind: apps/$(LIBTIRPC)/src/.libs/libtirpc.a apps/$(RPCBIND)/c
 	  --host=sh4-linux \
 	  --prefix=/ \
 	  --with-systemdsystemunitdir=no
-	make -C apps/$(RPCBIND)
+	make -C apps/$(RPCBIND) -j $(CPUS)
 
 .PHONY: rpcbind
 rpcbind: apps/$(RPCBIND)/rpcbind
@@ -587,7 +587,7 @@ apps/$(NFSUTILS)/utils/exportfs/exportfs: apps/$(RPCBIND)/rpcbind apps/$(NFSUTIL
 	  --disable-ipv6 \
 	  --disable-uuid \
 	  --without-tcp-wrappers
-	make -C apps/$(NFSUTILS)
+	make -C apps/$(NFSUTILS) -j $(CPUS)
 
 .PHONY: nfsutils
 nfsutils: apps/$(NFSUTILS)/utils/exportfs/exportfs
@@ -600,7 +600,7 @@ apps/oscam-svn/config.sh:
 	cd apps && svn checkout http://www.streamboard.tv/svn/oscam/trunk oscam-svn -r $(OSCAM_REV)
 
 apps/oscam-svn/Distribution/oscam-1.20-unstable_svn$(OSCAM_REV)-sh4-linux: apps/oscam-svn/config.sh
-	make -C apps/oscam-svn CROSS_DIR=$(TOOLCHAIN)/bin/ CROSS=sh4-linux-
+	make -C apps/oscam-svn -j $(CPUS) CROSS_DIR=$(TOOLCHAIN)/bin/ CROSS=sh4-linux-
 
 .PHONY: oscam
 oscam: apps/oscam-svn/Distribution/oscam-1.20-unstable_svn$(OSCAM_REV)-sh4-linux
@@ -621,7 +621,7 @@ apps/$(NANO)/src/nano: apps/$(NANO)/configure
 	  --host=sh4-linux \
 	  --disable-utf8 \
 	  --prefix=/
-	make -C apps/$(NANO)
+	make -C apps/$(NANO) -j $(CPUS)
 
 .PHONY: nano
 nano: apps/$(NANO)/src/nano
@@ -637,7 +637,7 @@ apps/host/$(PYTHON3)/pyconfig.h.in:
 apps/host/$(PYTHON3)/python: apps/host/$(PYTHON3)/pyconfig.h.in
 	cd apps/host/$(PYTHON3) && \
 	./configure
-	make -C apps/host/$(PYTHON3)
+	make -C apps/host/$(PYTHON3) -j $(CPUS)
 
 .PHONY: python3-host
 python3-host: apps/host/$(PYTHON3)/python
