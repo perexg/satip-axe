@@ -599,11 +599,11 @@ nfsutils: apps/$(NFSUTILS)/utils/exportfs/exportfs
 apps/oscam-svn/config.sh:
 	cd apps && svn checkout http://www.streamboard.tv/svn/oscam/trunk oscam-svn -r $(OSCAM_REV)
 
-apps/oscam-svn/Distribution/oscam-1.20-unstable_svn$(OSCAM_REV)-sh4-linux: apps/oscam-svn/config.sh
+apps/oscam-svn/Distribution/oscam-1.20_svn$(OSCAM_REV)-sh4-linux: apps/oscam-svn/config.sh
 	make -C apps/oscam-svn -j $(CPUS) CROSS_DIR=$(TOOLCHAIN)/bin/ CROSS=sh4-linux-
 
 .PHONY: oscam
-oscam: apps/oscam-svn/Distribution/oscam-1.20-unstable_svn$(OSCAM_REV)-sh4-linux
+oscam: apps/oscam-svn/Distribution/oscam-1.20_svn$(OSCAM_REV)-sh4-linux
 
 #
 # nano
