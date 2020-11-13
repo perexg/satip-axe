@@ -74,8 +74,6 @@ PYTHON3_DOWNLOAD=https://www.python.org/ftp/python/$(PYTHON3_VERSION)/$(PYTHON3_
 MULTICAST_RTP_PACKAGE_NAME=multicast-rtp-2
 SENDDSQ_PACKAGE_NAME=senddsq
 
-TVHEADEND_COMMIT=master
-
 # 10663 10937 11234 11398
 OSCAM_REV=11434
 
@@ -611,29 +609,6 @@ apps/senddsq/ok.stamp: tools/senddsq
 
 .PHONY: senddsq
 senddsq: tools/senddsq apps/senddsq/ok.stamp
-
-#
-# tvheadend
-#
-
-apps/tvheadend/Makefile:
-	$(call GIT_CLONE,https://github.com/tvheadend/tvheadend.git,tvheadend,$(TVHEADEND_COMMIT))
-
-apps/tvheadend/build.linux/tvheadend: apps/tvheadend/Makefile
-	cd apps/tvheadend && \
-	  PKG_CONFIG_PATH=$(TOOLCHAIN)/target/usr/lib/pkgconfig \
-	  PKG_CONFIG=$(TOOLPATH)/pkg-config \
-	  ARCH=sh \
-	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
-	./configure \
-	  --disable-dbus_1 \
-	  --disable-imagecache \
-	  --disable-uriparser \
-	  --enable-bundle
-	$(MAKE) -j $(CPUS) -C apps/tvheadend
-
-.PHONY: tvheadend
-tvheadend: apps/tvheadend/build.linux/tvheadend
 
 #
 # clean all
