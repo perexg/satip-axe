@@ -16,7 +16,7 @@ Compilation using Docker:
 
   ```
   docker build -t satip-axe-make .
-  docker run -v $(pwd):/build satip-axe-make all release
+  docker run --rm -v $(pwd):/build satip-axe-make all release
   ```
 
 The release build will be in the `out/` directory. You will end up with a 
