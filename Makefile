@@ -603,6 +603,7 @@ tools/senddsq: tools/senddsq.c
 	$(TOOLCHAIN)/bin/sh4-linux-gcc -o tools/senddsq -Wall -lrt tools/senddsq.c
 
 apps/senddsq/ok.stamp: tools/senddsq
+	mkdir -p apps/senddsq/sbin
 	cp tools/senddsq apps/senddsq/sbin
 	$(call PACKAGE,apps/senddsq,$(SENDDSQ_PACKAGE_NAME),sbin)
 	touch apps/senddsq/ok.stamp
