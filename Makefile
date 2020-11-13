@@ -279,8 +279,7 @@ apps/minisatip/minisatip:
 		--disable-dvbapi \
 		--disable-dvbcsa \
 		--disable-dvbaes \
-		--disable-netcv \
-		--disable-satipc
+		--disable-netcv
 	make -C apps/minisatip -j $(CPUS) \
 	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
 	  EXTRA_CFLAGS="-O2 -I$(CURDIR)/kernel/include"
