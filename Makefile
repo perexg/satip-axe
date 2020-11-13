@@ -540,7 +540,7 @@ apps/$(PYTHON3)/patch.stamp: apps/$(PYTHON3)/pyconfig.h.in apps/host/$(PYTHON3)/
 apps/$(PYTHON3)/compiled.stamp: apps/$(PYTHON3)/patch.stamp
 	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest
 	PYTHONPATH=$(CURDIR)/apps/$(PYTHON3)/Lib \
-        make -C apps/$(PYTHON3) \
+        make -C apps/$(PYTHON3) -j $(CPUS) \
 	  PYINCDIRS="$(CURDIR)/apps/$(PYTHON3):$(CURDIR)/apps/$(PYTHON3)/Include" \
 	  PYLIBS="." \
 	  CROSS_COMPILE=yes \
