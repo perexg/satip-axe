@@ -5,7 +5,6 @@ CURDIR=$(shell pwd)
 STLINUX=/opt/STM/STLinux-2.4
 TOOLPATH=$(STLINUX)/host/bin
 TOOLCHAIN=$(STLINUX)/devkit/sh4
-TOOLCHAIN_KERNEL=$(CURDIR)/toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4
 HOST_ARCH=$(shell uname -m)
 
 EXTRA_AXE_MODULES_DIR=firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32BITS
@@ -199,20 +198,20 @@ out/satip-axe-$(VERSION).fw: kernel/arch/sh/boot/uImage.gz
 # kernel
 #
 
-kernel/.config: patches/kernel.config toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4/bin/sh4-linux-gcc-4.5.3
+kernel/.config: patches/kernel.config
 	cp patches/kernel.config ./kernel/arch/sh/configs/idl4k_defconfig
-	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- idl4k_defconfig
+	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux- idl4k_defconfig
 
-kernel/drivers/usb/serial/cp210x.ko: toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4/bin/sh4-linux-gcc-4.5.3 kernel/.config
-	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- modules
+kernel/drivers/usb/serial/cp210x.ko: kernel/.config
+	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux- modules
 
 kernel/arch/sh/boot/uImage.gz: kernel/drivers/usb/serial/cp210x.ko fs.cpio
 	mv fs.cpio kernel/rootfs-idl4k.cpio
-	make -C kernel -j ${CPUS} PATH="$(PATH):$(TOOLPATH)" \
-	                          ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- uImage.gz
+	make -C kernel -j $(CPUS) PATH="$(PATH):$(TOOLPATH)" \
+	                          ARCH=sh CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux- uImage.gz
 
 tools/i2c_mangle.ko: tools/i2c_mangle.c
-	make -C tools ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- all
+	make -C tools ARCH=sh CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux- all
 
 .PHONY: kernel-modules tools/i2c_mangle.ko
 kernel-modules: kernel/drivers/usb/serial/cp210x.ko
@@ -222,17 +221,7 @@ kernel: kernel/arch/sh/boot/uImage.gz
 
 .PHONY: kernel-mrproper
 kernel-mrproper:
-	make -C kernel -j ${CPUS} ARCH=sh CROSS_COMPILE=$(TOOLCHAIN_KERNEL)/bin/sh4-linux- mrproper
-
-define RPM_UNPACK
-	@mkdir -p $(1)
-	cd $(1) ; rpm2cpio ../$(2) | cpio -idv
-endef
-
-toolchain/4.5.3-99/opt/STM/STLinux-2.4/devkit/sh4/bin/sh4-linux-gcc-4.5.3:
-	$(call RPM_UNPACK,toolchain/4.5.3-99,stlinux24-cross-sh4-binutils-2.24.51.0.3-76.i386.rpm)
-	$(call RPM_UNPACK,toolchain/4.5.3-99,stlinux24-cross-sh4-cpp-4.5.3-99.i386.rpm)
-	$(call RPM_UNPACK,toolchain/4.5.3-99,stlinux24-cross-sh4-gcc-4.5.3-99.i386.rpm)
+	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux- mrproper
 
 #
 # extract kernel modules from firmware
@@ -652,5 +641,4 @@ tvheadend: apps/tvheadend/build.linux/tvheadend
 .PHONY: clean
 clean: kernel-mrproper
 	rm -rf firmware/initramfs
-	rm -rf toolchain/4.5.3-99
 	rm -rf tools/syscall-dump.o* tools/syscall-dump.s*
