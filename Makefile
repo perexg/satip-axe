@@ -67,6 +67,9 @@ NANO_DOWNLOAD=http://www.nano-editor.org/dist/v2.8/$(NANO_FILENAME)
 # 10663 10937 11234 11398
 OSCAM_REV=11434
 
+IPERF=iperf-3.1.3
+IPERF_LIB_FILES=libiperf.so libiperf.so.0 libiperf.so.0.0.0
+
 define GIT_CLONE
 	@mkdir -p apps/host
 	git clone $(1) apps/$(2)
@@ -109,6 +112,7 @@ CPIO_SRCS += tools/senddsq
 CPIO_SRCS += nfsutils
 CPIO_SRCS += nano
 CPIO_SRCS += mtd-utils
+CPIO_SRCS += iperf
 
 fs.cpio: $(CPIO_SRCS)
 	fakeroot tools/do_min_fs.py \
@@ -134,7 +138,9 @@ fs.cpio: $(CPIO_SRCS)
 	  $(foreach f,$(notdir $(wildcard apps/minisatip/html/*)), -e "apps/minisatip/html/$f:usr/share/minisatip/html/$f") \
 	  -e "apps/$(NANO)/src/nano:usr/bin/nano" \
 	  -e "apps/mtd-utils/nandwrite:usr/sbin/nandwrite2" \
-	  -e "apps/oscam-svn/Distribution/oscam-1.20_svn$(OSCAM_REV)-sh4-linux:sbin/oscamd"
+	  -e "apps/oscam-svn/Distribution/oscam-1.20_svn$(OSCAM_REV)-sh4-linux:sbin/oscamd" \
+	  -e "apps/$(IPERF)/src/.libs/iperf3:bin/iperf3" \
+	  $(foreach f,$(IPERF_LIB_FILES), -e "apps/$(IPERF)/src/.libs/$(f):lib/$(f)")
 
 .PHONY: fs-list
 fs-list:
@@ -283,6 +289,26 @@ minisatip: apps/minisatip/minisatip
 .PHONY: minisatip-clean
 minisatip-clean:
 	rm -rf apps/minisatip
+
+#
+# iperf
+#
+
+apps/$(IPERF)/configure:
+	$(call WGET,https://iperf.fr/download/source/$(IPERF)-source.tar.gz,apps/$(IPERF)-source.tar.gz)
+	tar -C apps -xf apps/$(IPERF)-source.tar.gz
+
+apps/$(IPERF)/src/.libs/libiperf.a: apps/$(IPERF)/configure
+	cd apps/$(IPERF) && \
+		CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+		CFLAGS="-O2" \
+		./configure \
+			--host=sh4-linux \
+			--prefix=/
+	make -C apps/$(IPERF) -j $(CPUS)
+
+.PHONY: iperf
+iperf: apps/$(IPERF)/src/.libs/libiperf.a
 
 #
 # busybox
