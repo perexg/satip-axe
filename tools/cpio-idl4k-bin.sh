@@ -33,7 +33,7 @@ extract)
 	#
 	echo ">>>>> Remove header from $UIMAGE"
 	IMAGEOLDGZ='Image.old.gz'
-	dd if=${UIMAGE} bs=1 skip=64 of=${IMAGEOLDGZ}
+	dd if=${UIMAGE} skip=64 of=${IMAGEOLDGZ} iflag=skip_bytes,count_bytes
 
 	#////////////////////////////////////////////////////////////
 	# Extracting kernel from uImage
@@ -60,7 +60,7 @@ extract)
 			echo "initramfs.cpio not found"
 			exit
 	fi
-	dd if=Image.old bs=1 skip=$CPIOSTART count=$CPIOSIZE > initramfs.old.cpio
+	dd if=Image.old skip=$CPIOSTART count=$CPIOSIZE iflag=skip_bytes,count_bytes > initramfs.old.cpio
 	rm -rf $OLDINITRAMFSDIR
 	mkdir -p $OLDINITRAMFSDIR
 	cd $OLDINITRAMFSDIR
