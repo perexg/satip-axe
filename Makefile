@@ -64,8 +64,6 @@ NANO=nano-$(NANO_VERSION)
 NANO_FILENAME=$(NANO).tar.gz
 NANO_DOWNLOAD=http://www.nano-editor.org/dist/v2.8/$(NANO_FILENAME)
 
-SENDDSQ_PACKAGE_NAME=senddsq
-
 # 10663 10937 11234 11398
 OSCAM_REV=11434
 
@@ -78,11 +76,6 @@ endef
 define WGET
 	@mkdir -p apps/host
 	wget --no-verbose --no-check-certificate -O $(2) $(1)
-endef
-
-define PACKAGE
-	-mkdir -p out/packages
-	tar cvz -C $(1) -f out/packages/$(2).tar.gz $(3)
 endef
 
 #
@@ -112,6 +105,7 @@ CPIO_SRCS += ethtool
 CPIO_SRCS += minisatip
 CPIO_SRCS += oscam
 CPIO_SRCS += tools/axehelper
+CPIO_SRCS += tools/senddsq
 CPIO_SRCS += nfsutils
 CPIO_SRCS += nano
 CPIO_SRCS += mtd-utils
@@ -129,6 +123,7 @@ fs.cpio: $(CPIO_SRCS)
 	  -e "tools/i2c_mangle.ko:lib/modules/axe/i2c_mangle.ko" \
 	  $(foreach m,$(KMODULES), -e "kernel/$(m):lib/modules/$(m)") \
 	  -e "tools/axehelper:sbin/axehelper" \
+	  -e "tools/senddsq:sbin/senddsq" \
 	  -e "apps/$(BUSYBOX)/busybox:bin/busybox" \
 	  $(foreach f,$(DROPBEAR_SBIN_FILES), -e "apps/$(DROPBEAR)/$(f):sbin/$(f)") \
 	  $(foreach f,$(DROPBEAR_BIN_FILES), -e "apps/$(DROPBEAR)/$(f):usr/bin/$(f)") \
@@ -227,12 +222,6 @@ firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32BITS/axe_dmx.ko:
 #
 # syscall dump
 #
-
-tools/axehelper: tools/axehelper.c
-	$(TOOLCHAIN)/bin/sh4-linux-gcc -o tools/axehelper -Wall -lrt tools/axehelper.c
-
-tools/axehelper.$(HOST_ARCH): tools/axehelper.c
-	gcc -o tools/axehelper.$(HOST_ARCH) -Wall -lrt tools/axehelper.c
 
 tools/syscall-dump.so: tools/syscall-dump.c
 	$(TOOLCHAIN)/bin/sh4-linux-gcc -o tools/syscall-dump.o -c -fPIC -Wall tools/syscall-dump.c
@@ -482,20 +471,18 @@ apps/$(NANO)/src/nano: apps/$(NANO)/configure
 nano: apps/$(NANO)/src/nano
 
 #
-# senddsq
+# tools/axehelper
+#
+
+tools/axehelper: tools/axehelper.c
+	$(TOOLCHAIN)/bin/sh4-linux-gcc -o tools/axehelper -Wall -lrt tools/axehelper.c
+
+#
+# tools/senddsq
 #
 
 tools/senddsq: tools/senddsq.c
 	$(TOOLCHAIN)/bin/sh4-linux-gcc -o tools/senddsq -Wall -lrt tools/senddsq.c
-
-apps/senddsq/ok.stamp: tools/senddsq
-	mkdir -p apps/senddsq/sbin
-	cp tools/senddsq apps/senddsq/sbin
-	$(call PACKAGE,apps/senddsq,$(SENDDSQ_PACKAGE_NAME),sbin)
-	touch apps/senddsq/ok.stamp
-
-.PHONY: senddsq
-senddsq: tools/senddsq apps/senddsq/ok.stamp
 
 #
 # clean all
