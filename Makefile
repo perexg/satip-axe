@@ -64,14 +64,6 @@ NANO=nano-$(NANO_VERSION)
 NANO_FILENAME=$(NANO).tar.gz
 NANO_DOWNLOAD=http://www.nano-editor.org/dist/v2.8/$(NANO_FILENAME)
 
-PYTHON3_VERSION0=3.5
-PYTHON3_VERSION=$(PYTHON3_VERSION0).6
-PYTHON3=Python-$(PYTHON3_VERSION)
-PYTHON3_PACKAGE_NAME=$(PYTHON3)-1
-PYTHON3_FILENAME=$(PYTHON3).tgz
-PYTHON3_DOWNLOAD=https://www.python.org/ftp/python/$(PYTHON3_VERSION)/$(PYTHON3_FILENAME)
-
-MULTICAST_RTP_PACKAGE_NAME=multicast-rtp-2
 SENDDSQ_PACKAGE_NAME=senddsq
 
 # 10663 10937 11234 11398
@@ -488,112 +480,6 @@ apps/$(NANO)/src/nano: apps/$(NANO)/configure
 
 .PHONY: nano
 nano: apps/$(NANO)/src/nano
-
-#
-# python3-host
-#
-
-apps/host/$(PYTHON3)/pyconfig.h.in:
-	$(call WGET,$(PYTHON3_DOWNLOAD),apps/host/$(PYTHON3_FILENAME))
-	tar -C apps/host -xzf apps/host/$(PYTHON3_FILENAME)
-
-apps/host/$(PYTHON3)/python: apps/host/$(PYTHON3)/pyconfig.h.in
-	cd apps/host/$(PYTHON3) && \
-	./configure
-	make -C apps/host/$(PYTHON3) -j $(CPUS)
-
-.PHONY: python3-host
-python3-host: apps/host/$(PYTHON3)/python
-
-#
-# python3
-#
-
-apps/$(PYTHON3)/pyconfig.h.in:
-	$(call WGET,$(PYTHON3_DOWNLOAD),apps/$(PYTHON3_FILENAME))
-	tar -C apps -xzf apps/$(PYTHON3_FILENAME)
-
-apps/$(PYTHON3)/patch.stamp: apps/$(PYTHON3)/pyconfig.h.in apps/host/$(PYTHON3)/python
-	cd apps/$(PYTHON3) && \
-	  PKG_CONFIG_PATH=$(TOOLCHAIN)/target/usr/lib/pkgconfig \
-	  PKG_CONFIG=$(TOOLPATH)/pkg-config \
-	  ARCH=sh \
-	  CPP=$(TOOLCHAIN)/bin/sh4-linux-cpp \
-	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
-	  READELF=/usr/bin/readelf \
-	  PYTHON_FOR_BUILD=$(CURDIR)/apps/host/$(PYTHON3)/python \
-	  CONFIG_SITE=$(CURDIR)/patches/python3.config.site \
-	./configure \
-	  --host=sh4-linux \
-	  --build=x86_64-redhat-linux \
-	  --target=sh4-linux \
-	  --sysconfdir=/etc \
-	  --prefix=/usr \
-	  --enable-ipv6=no
-	cd apps/$(PYTHON3) && patch -b -p0 < ../../patches/python3-makefile.patch
-	cd apps/$(PYTHON3) && patch -b -p0 < ../../patches/python3-setup.patch
-	cd apps/$(PYTHON3) && patch -b -p0 < ../../patches/python3-ccompiler.patch
-	cd apps/$(PYTHON3) && patch -b -p0 < ../../patches/python3-build-ext.patch
-	cd apps/$(PYTHON3) && patch -b -p0 < ../../patches/python3-getpath.patch
-	touch apps/$(PYTHON3)/patch.stamp
-
-apps/$(PYTHON3)/compiled.stamp: apps/$(PYTHON3)/patch.stamp
-	rm -rf $(CURDIR)/apps/$(PYTHON3)/dest
-	PYTHONPATH=$(CURDIR)/apps/$(PYTHON3)/Lib \
-        make -C apps/$(PYTHON3) -j $(CPUS) \
-	  PYINCDIRS="$(CURDIR)/apps/$(PYTHON3):$(CURDIR)/apps/$(PYTHON3)/Include" \
-	  PYLIBS="." \
-	  CROSS_COMPILE=yes \
-	  ABIFLAGS="" \
-	  PYTHON_FOR_BUILD=$(CURDIR)/apps/host/$(PYTHON3)/python \
-	  PGEN=$(CURDIR)/apps/host/$(PYTHON3)/Parser/pgen \
-	  FREEZE_IMPORTLIB=$(CURDIR)/apps/host/$(PYTHON3)/Programs/_freeze_importlib \
-	  PYTHONPATH=$(CURDIR)/apps/$(PYTHON3)/Lib \
-	  PYTHON_OPTIMIZE="" \
-	  PYTHONDONTWRITEBYTECODE=1 \
-	  _PYTHON_HOST_PLATFORM=linux-sh4 \
-	  DESTDIR=$(CURDIR)/apps/$(PYTHON3)/dest \
-	  sharedmods sharedinstall libinstall bininstall
-	rm -f apps/$(PYTHON3)/dest/usr/bin/python*-config
-	rm -f apps/$(PYTHON3)/dest/usr/bin/2to3*
-	rm -f apps/$(PYTHON3)/dest/usr/bin/idle*
-	$(TOOLCHAIN)/bin/sh4-linux-strip apps/$(PYTHON3)/dest/usr/bin/python3*
-	rm -f apps/$(PYTHON3)/dest/usr/lib/*.a
-	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/test
-	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/ctypes/test
-	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/sqlite3
-	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/turtle*
-	rm -f apps/$(PYTHON3)/dest/usr/lib/python3*/__pycache__/turtle*
-	rm -f apps/$(PYTHON3)/dest/usr/lib/python3*/lib-dynload/*test*
-	rm -f apps/$(PYTHON3)/dest/usr/lib/python3*/lib-dynload/*audio*
-	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/lib2to3
-	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/unittest
-	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/tkinter
-	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/idlelib
-	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/distutils
-	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/ensurepip
-	rm -rf apps/$(PYTHON3)/dest/usr/lib/python3*/curses
-	find $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/ -name "*.opt-[12].pyc" -exec rm {} \;
-	find $(CURDIR)/apps/$(PYTHON3)/dest/usr/lib/ -name "test_*" -exec rm {} \;
-	$(call PACKAGE,apps/$(PYTHON3)/dest,$(PYTHON3_PACKAGE_NAME),usr)
-	touch apps/$(PYTHON3)/compiled.stamp
-
-.PHONY: python3
-python3: apps/$(PYTHON3)/compiled.stamp
-
-#
-# multicast-rtp
-#
-
-apps/multicast-rtp/ok.stamp: tools/multicast-rtp
-	mkdir -p apps/multicast-rtp/sbin apps/multicast-rtp/etc/init.extra
-	cp tools/multicast-rtp apps/multicast-rtp/sbin
-	ln -sf ../../sbin/multicast-rtp apps/multicast-rtp/etc/init.extra/multicast-rtp
-	$(call PACKAGE,apps/multicast-rtp,$(MULTICAST_RTP_PACKAGE_NAME),etc sbin)
-	touch apps/multicast-rtp/ok.stamp
-
-.PHONY: multicast-rtp
-multicast-rtp: apps/multicast-rtp/ok.stamp
 
 #
 # senddsq
