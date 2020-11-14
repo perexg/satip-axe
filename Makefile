@@ -138,7 +138,7 @@ fs.cpio: $(CPIO_SRCS)
 
 .PHONY: fs-list
 fs-list:
-	cpio -itv < kernel/rootfs-idl4k.cpio
+	cpio -it < kernel/rootfs-idl4k.cpio
 
 #
 # uboot
