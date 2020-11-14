@@ -1,0 +1,14 @@
+name: Build firmware
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      
+    - name: Build the firmware with Docker
+      run: |
+        docker build . --file Dockerfile --tag satip-axe-make
+        docker run --rm -v $(pwd):/build satip-axe-make all release
