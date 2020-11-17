@@ -8,6 +8,7 @@ This change log will be updated whenever a new official release is made
 * Use Docker to build new releases, provides a stable reproduceable environment
 * Remove tvheadend and Python support in an attempt to make this easier to maintain
 * Improve build speed by using multi-threading and more efficient file operations
-* Update minisatip to 1.0.4 (`1.0.4-eef7333`), now using upstream directly instead of a fork
-* Disable SAT>IP client support in minisatip
+* Update `minisatip` to 1.0.4 (`1.0.4-eef7333`), now using upstream directly instead of a fork
+  * Previous versions of `minisatip` have been removed. If you've been using `minisatip7` or `minisatip8` you'll need to update your configuration to use `MINISATIP="yes"` and `MINISATIP_OPTS=` instead.
+* Disable SAT>IP client support in    
 * Include iperf3 for debugging ethernet capacity issues
