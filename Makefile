@@ -71,13 +71,13 @@ IPERF=iperf-3.1.3
 IPERF_LIB_FILES=libiperf.so libiperf.so.0 libiperf.so.0.0.0
 
 define GIT_CLONE
-	@mkdir -p apps/host
+	@mkdir -p apps
 	git clone $(1) apps/$(2)
 	cd apps/$(2) && git checkout -b axe $(3)
 endef
 
 define WGET
-	@mkdir -p apps/host
+	@mkdir -p apps
 	wget --no-verbose --no-check-certificate -O $(2) $(1)
 endef
 
