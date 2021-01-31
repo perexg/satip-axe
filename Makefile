@@ -78,7 +78,7 @@ endef
 
 define WGET
 	@mkdir -p apps
-	wget --no-verbose --no-check-certificate -O $(2) $(1)
+	wget -q -O $(2) $(1)
 endef
 
 #
