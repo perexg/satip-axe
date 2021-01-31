@@ -26,7 +26,7 @@ KMODULES = drivers/usb/serial/cp210x.ko \
 	   drivers/usb/serial/io_ti.ko \
 	   drivers/usb/serial/ti_usb_3410_5052.ko \
 	   drivers/usb/serial/io_edgeport.ko \
-           drivers/usb/serial/ftdi_sio.ko \
+	   drivers/usb/serial/ftdi_sio.ko \
 	   drivers/usb/serial/oti6858.ko
 
 MINISATIP_COMMIT=191fe62a7a5aaada03ef274511b24238c210693c
