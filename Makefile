@@ -1,4 +1,4 @@
-BUILD=16
+BUILD=17
 VERSION=$(shell date +%Y%m%d%H%M)-$(BUILD)
 CPUS=$(shell nproc)
 CURDIR=$(shell pwd)
@@ -26,10 +26,10 @@ KMODULES = drivers/usb/serial/cp210x.ko \
 	   drivers/usb/serial/io_ti.ko \
 	   drivers/usb/serial/ti_usb_3410_5052.ko \
 	   drivers/usb/serial/io_edgeport.ko \
-           drivers/usb/serial/ftdi_sio.ko \
+	   drivers/usb/serial/ftdi_sio.ko \
 	   drivers/usb/serial/oti6858.ko
 
-MINISATIP_COMMIT=eef7333b7c026ad41b48ee533aeca3400b4aa70c
+MINISATIP_COMMIT=191fe62a7a5aaada03ef274511b24238c210693c
 
 BUSYBOX=busybox-1.26.2
 
@@ -71,14 +71,14 @@ IPERF=iperf-3.1.3
 IPERF_LIB_FILES=libiperf.so libiperf.so.0 libiperf.so.0.0.0
 
 define GIT_CLONE
-	@mkdir -p apps/host
+	@mkdir -p apps
 	git clone $(1) apps/$(2)
 	cd apps/$(2) && git checkout -b axe $(3)
 endef
 
 define WGET
-	@mkdir -p apps/host
-	wget --no-verbose --no-check-certificate -O $(2) $(1)
+	@mkdir -p apps
+	wget -q -O $(2) $(1)
 endef
 
 #
