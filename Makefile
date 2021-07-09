@@ -1,4 +1,4 @@
-BUILD=17
+BUILD=18
 VERSION=$(shell date +%Y%m%d%H%M)-$(BUILD)
 CPUS=$(shell nproc)
 CURDIR=$(shell pwd)
@@ -29,7 +29,7 @@ KMODULES = drivers/usb/serial/cp210x.ko \
 	   drivers/usb/serial/ftdi_sio.ko \
 	   drivers/usb/serial/oti6858.ko
 
-MINISATIP_COMMIT=191fe62a7a5aaada03ef274511b24238c210693c
+MINISATIP_COMMIT=v1.1.24
 
 BUSYBOX=busybox-1.26.2
 
@@ -64,8 +64,8 @@ NANO=nano-$(NANO_VERSION)
 NANO_FILENAME=$(NANO).tar.gz
 NANO_DOWNLOAD=http://www.nano-editor.org/dist/v2.8/$(NANO_FILENAME)
 
-# 10663 10937 11234 11398
-OSCAM_REV=11434
+# 10663 10937 11234 11398 11434
+OSCAM_REV=11693
 
 IPERF=iperf-3.1.3
 IPERF_LIB_FILES=libiperf.so libiperf.so.0 libiperf.so.0.0.0
