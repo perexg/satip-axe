@@ -70,6 +70,8 @@ OSCAM_REV=11693
 IPERF=iperf-3.1.3
 IPERF_LIB_FILES=libiperf.so libiperf.so.0 libiperf.so.0.0.0
 
+SENDDSQ_COMMIT=6129ccfa3c6e708077a1a527985fe46ecc59e660
+
 define GIT_CLONE
 	@mkdir -p apps
 	git clone $(1) apps/$(2)
@@ -108,11 +110,11 @@ CPIO_SRCS += ethtool
 CPIO_SRCS += minisatip
 CPIO_SRCS += oscam
 CPIO_SRCS += tools/axehelper
-CPIO_SRCS += tools/senddsq
 CPIO_SRCS += nfsutils
 CPIO_SRCS += nano
 CPIO_SRCS += mtd-utils
 CPIO_SRCS += iperf
+CPIO_SRCS += senddsq
 
 fs.cpio: $(CPIO_SRCS)
 	fakeroot tools/do_min_fs.py \
@@ -127,7 +129,6 @@ fs.cpio: $(CPIO_SRCS)
 	  -e "tools/i2c_mangle.ko:lib/modules/axe/i2c_mangle.ko" \
 	  $(foreach m,$(KMODULES), -e "kernel/$(m):lib/modules/$(m)") \
 	  -e "tools/axehelper:sbin/axehelper" \
-	  -e "tools/senddsq:sbin/senddsq" \
 	  -e "apps/$(BUSYBOX)/busybox:bin/busybox" \
 	  $(foreach f,$(DROPBEAR_SBIN_FILES), -e "apps/$(DROPBEAR)/$(f):sbin/$(f)") \
 	  $(foreach f,$(DROPBEAR_BIN_FILES), -e "apps/$(DROPBEAR)/$(f):usr/bin/$(f)") \
@@ -140,7 +141,8 @@ fs.cpio: $(CPIO_SRCS)
 	  -e "apps/mtd-utils/nandwrite:usr/sbin/nandwrite2" \
 	  -e "apps/oscam-svn/Distribution/oscam-1.20_svn$(OSCAM_REV)-sh4-linux:sbin/oscamd" \
 	  -e "apps/$(IPERF)/src/.libs/iperf3:bin/iperf3" \
-	  $(foreach f,$(IPERF_LIB_FILES), -e "apps/$(IPERF)/src/.libs/$(f):lib/$(f)")
+	  $(foreach f,$(IPERF_LIB_FILES), -e "apps/$(IPERF)/src/.libs/$(f):lib/$(f)") \
+		-e "apps/unicable/dsqsend/senddsq:sbin/senddsq"
 
 .PHONY: fs-list
 fs-list:
@@ -497,18 +499,25 @@ apps/$(NANO)/src/nano: apps/$(NANO)/configure
 nano: apps/$(NANO)/src/nano
 
 #
+# senddsq
+#
+
+apps/unicable/dsqsend/senddsq.c:
+	$(call GIT_CLONE,https://github.com/akosinov/unicable.git,unicable,$(SENDDSQ_COMMIT))
+
+apps/unicable/dsqsend/senddsq: apps/unicable/dsqsend/senddsq.c
+	cd apps/unicable && \
+	$(TOOLCHAIN)/bin/sh4-linux-gcc -o dsqsend/senddsq -Wall -lrt dsqsend/senddsq.c
+
+.PHONY: senddsq
+senddsq: apps/unicable/dsqsend/senddsq
+
+#
 # tools/axehelper
 #
 
 tools/axehelper: tools/axehelper.c
 	$(TOOLCHAIN)/bin/sh4-linux-gcc -o tools/axehelper -Wall -lrt tools/axehelper.c
-
-#
-# tools/senddsq
-#
-
-tools/senddsq: tools/senddsq.c
-	$(TOOLCHAIN)/bin/sh4-linux-gcc -o tools/senddsq -Wall -lrt tools/senddsq.c
 
 #
 # clean all

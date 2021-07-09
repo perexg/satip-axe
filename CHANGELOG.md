@@ -5,6 +5,7 @@ This change log will be updated whenever a new official release is made
 ## Build 18
 * Update `oscam` to revision 11693
 * Update `minisatip` to 1.1
+* Replace bundled `senddsq` with upstream (https://github.com/akosinov/unicable, contains one minor fix since last version)
 
 ## Build 17 (Jan 31 2021)
 * Update `minisatip` to `191fe62a7a5aaada03ef274511b24238c210693c`, should fix sending of UDP packets (#3)
