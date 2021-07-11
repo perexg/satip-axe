@@ -2,7 +2,7 @@
 
 This change log will be updated whenever a new official release is made
 
-## Build 18
+## Build 18 (Jul 11 2021)
 * Update `oscam` to revision 11693
 * Update `minisatip` to 1.1
 * Replace bundled `senddsq` with upstream (https://github.com/akosinov/unicable, contains one minor fix since last version)
