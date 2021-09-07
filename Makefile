@@ -29,7 +29,7 @@ KMODULES = drivers/usb/serial/cp210x.ko \
 	   drivers/usb/serial/ftdi_sio.ko \
 	   drivers/usb/serial/oti6858.ko
 
-MINISATIP_COMMIT=v1.1.24
+MINISATIP_COMMIT=v1.1.43
 
 BUSYBOX=busybox-1.26.2
 
