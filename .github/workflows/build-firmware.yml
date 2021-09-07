@@ -15,7 +15,7 @@ jobs:
       
     - name: Build the firmware
       run: |
-        docker build . --file Dockerfile --tag satip-axe-make
+        docker build . --pull --file Dockerfile --tag satip-axe-make
         docker run --rm -v $(pwd):/build satip-axe-make all release
     
     - name: Archive build artifacts
