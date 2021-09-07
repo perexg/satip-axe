@@ -2,28 +2,19 @@
 
 ![Build firmware](https://github.com/Jalle19/satip-axe/workflows/Build%20firmware/badge.svg)
 
-A firmware with minisatip for Inverto IDL-400s/Grundig GSS.BOX/Telestar Digibit R1
-==================================================================================
+A maintained fork of [perexg/satip-axe](https://github.com/perexg/satip-axe), a firmware with minisatip for Inverto IDL-400s/Grundig GSS.BOX/Telestar Digibit R1
 
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](http://paypal.me/perex)
+## Releases
 
-The firmware contains various versions of [minisatip](https://github.com/catalinii/minisatip)
-which is tuned to get the best performance on this hardware. There are many extensions for
-the complex hobby satellite reception (like free input mode - use any tuner with any physical input,
-DVB-S2 multistream support etc.).
+Releases can be found [here](https://github.com/Jalle19/satip-axe/releases)
 
-There is no DLNA server, but there is HTTP and FTP server to server for
-example m3u playlists to clients.
 
-Releases:
----------
 
-  - download from [github releases](https://github.com/perexg/satip-axe/releases)
-  - see to [dist](https://github.com/perexg/satip-axe/tree/master/dist) directory - README file
-  - a TTL USB serial is not required to boot this precompiled firmware
-    from the USB stick or an installation to the internal flash
+## Improvements in this fork
 
-Developers:
------------
+* Uses upstream minisatip without any custom patches
+* Uses newer version of Oscam
+* Reworked build system for easier development
+* Leaner firmware image (obsolete versions of minisatip, tvheadend and Python have been removed)
 
-  - see [debug](https://github.com/perexg/satip-axe/tree/master/debug)
+For build instructions, see [debug/README.md](debug/README.md). For general information, see [upstream's README](https://github.com/perexg/satip-axe#readme).
