@@ -29,7 +29,7 @@ KMODULES = drivers/usb/serial/cp210x.ko \
 	   drivers/usb/serial/ftdi_sio.ko \
 	   drivers/usb/serial/oti6858.ko
 
-MINISATIP_COMMIT=v1.1.24
+MINISATIP_COMMIT=v1.1.43
 
 BUSYBOX=busybox-1.26.2
 
@@ -279,8 +279,7 @@ apps/minisatip/minisatip:
 		--disable-dvbapi \
 		--disable-dvbcsa \
 		--disable-dvbaes \
-		--disable-netcv \
-		--disable-satipc
+		--disable-netcv
 	make -C apps/minisatip -j $(CPUS) \
 	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
 	  EXTRA_CFLAGS="-O2 -I$(CURDIR)/kernel/include"
