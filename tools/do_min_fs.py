@@ -11,7 +11,7 @@ def run_cmd(cmd):
         You can use the builtin 'command' module.
         Like: command.getoutput()
     """
-    print cmd
+    # print cmd
     try:
       cmd = str(cmd) + '  > output.txt'
       # print 'command: ' + cmd
