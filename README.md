@@ -6,15 +6,16 @@ A maintained fork of [perexg/satip-axe](https://github.com/perexg/satip-axe), a 
 
 ## Releases
 
-Releases can be found [here](https://github.com/Jalle19/satip-axe/releases)
-
-
+Releases can be found [here](https://github.com/Jalle19/satip-axe/releases).
 
 ## Improvements in this fork
 
 * Uses upstream minisatip without any custom patches
-* Uses newer version of Oscam
+* DVB-CSA support in minisatip (due to CPU limitations only 1-2 streams can be decoded simultaneously)
+* Uses newer version of OScam
 * Reworked build system for easier development
 * Leaner firmware image (obsolete versions of minisatip, tvheadend and Python have been removed)
 
-For build instructions, see [debug/README.md](debug/README.md). For general information, see [upstream's README](https://github.com/perexg/satip-axe#readme).
+For build instructions, see [debug/README.md](debug/README.md).
+
+For general information, see [upstream's README](https://github.com/perexg/satip-axe#readme).
