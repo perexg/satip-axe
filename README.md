@@ -6,9 +6,7 @@ A maintained fork of [perexg/satip-axe](https://github.com/perexg/satip-axe), a 
 
 ## Releases
 
-Releases can be found [here](https://github.com/Jalle19/satip-axe/releases)
-
-
+Releases can be found [here](https://github.com/Jalle19/satip-axe/releases).
 
 ## Improvements in this fork
 
@@ -17,4 +15,6 @@ Releases can be found [here](https://github.com/Jalle19/satip-axe/releases)
 * Reworked build system for easier development
 * Leaner firmware image (obsolete versions of minisatip, tvheadend and Python have been removed)
 
-For build instructions, see [debug/README.md](debug/README.md). For general information, see [upstream's README](https://github.com/perexg/satip-axe#readme).
+For build instructions, see [debug/README.md](debug/README.md).
+
+For general information, see [upstream's README](https://github.com/perexg/satip-axe#readme).
