@@ -6,7 +6,7 @@ MTDDEV="/dev/mtd3"
 SAFEFILE="/root/new.fw"
 CHECKSTR="Linux-2.6.32.42_stm24_0208-idl4k"
 
-GITHUB1="https://api.github.com/repos/perexg/satip-axe/releases"
+GITHUB1="https://api.github.com/repos/Jalle19/satip-axe/releases"
 
 if test "$PWD" != "/root" -a "$PWD" != "/"; then
   echo "Run this utility from / or /root directory"
