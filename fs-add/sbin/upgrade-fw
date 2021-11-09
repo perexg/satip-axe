@@ -1,0 +1,147 @@
+#!/bin/sh
+
+FILE="$1"
+DOWNLOAD=""
+MTDDEV="/dev/mtd3"
+SAFEFILE="/root/new.fw"
+CHECKSTR="Linux-2.6.32.42_stm24_0208-idl4k"
+
+GITHUB1="https://api.github.com/repos/Jalle19/satip-axe/releases"
+
+if test "$PWD" != "/root" -a "$PWD" != "/"; then
+  echo "Run this utility from / or /root directory"
+  exit 1
+fi
+
+if test "$FILE" = "-h" -o "$FILE" = "--help"; then
+  echo "Usage: $0 FIRMWARE"
+  exit 1
+fi
+
+if ! test -r "$FILE"; then
+  if test -z "$FILE"; then
+    echo "Trying to fetch the list of available firmware files:"
+  else
+    echo "Trying to fetch the URL for the firmware:"
+  fi
+  if ! wget -q -O /root/list.json "$GITHUB1"; then
+    echo "FAILED"
+    exit 1
+  fi
+  cat /root/list.json | grep -E '("name"|"browser_download_url")' | \
+                        grep -v -E '"name":.*.tgz' | \
+                        while IFS="\n" read line
+  do
+    case "$line" in
+      \ *\"name\":*)
+        name=$(echo "$line" | cut -d '"' -f 4)
+        ;;
+      \ *\"browser_download_url\":*)
+        fw=$(echo "$line" | cut -d '/' -f 9 | cut -d '"' -f 1 | cut -d '.' -f 1)
+        fw="$fw.fw"
+        if test -z "$FILE"; then
+          printf "%-40s : %s\n" "$name" "$fw"
+        else
+          if test "$FILE" = "$fw"; then
+            f=$(echo "$line" | cut -d '"' -f 4)
+            echo "$f" > /root/url.txt
+            printf "  %s\n" "$f"
+          fi
+        fi
+        name=''
+        ;;
+    esac
+  done
+  rm /root/list.json
+  if test -z "$FILE"; then
+    exit 0
+  fi
+  if test -r /root/url.txt; then
+    DOWNLOAD=$(cat /root/url.txt)
+  fi
+fi
+
+if test -n "$DOWNLOAD"; then
+  echo "Downloading $FILE from $DOWNLOAD to $SAFEFILE:"
+  if ! wget -O - "$DOWNLOAD" | tar xOzf - "$FILE" > "$SAFEFILE"; then
+    echo "Unable to fetch firmware file $DOWNLOAD / $FILE"
+    exit 1
+  fi
+  if ! test -r "$SAFEFILE"; then
+    echo "Unable to fetch firmware file $DOWNLOAD / $FILE"
+    exit 1
+  fi
+  FILESIZE=$(stat -c "%s" "$SAFEFILE")
+  if test -z "$FILESIZE" -o $FILESIZE -le 0; then
+    echo "Download failed (wrong file size)!"
+  else
+    echo "Downloaded firmware $FILE (file $SAFEFILE size $FILESIZE bytes)..."
+  fi
+  FILE="$SAFEFILE"
+fi
+
+if ! grep "$CHECKSTR" "$FILE" > /dev/null; then
+  echo "$FILE does not appear to be the satip-axe firmware!"
+  exit 1
+fi
+
+if test "$FILE" != "$SAFEFILE"; then
+  if ! cp "$FILE" "$SAFEFILE"; then
+    echo "Copy error..."
+    exit 1
+  fi
+fi
+
+echo "Preparing to flash - killing minisatip, unmounting USB sticks"
+umount /media/*
+touch /tmp/nosatip
+killall -9 minisatip
+sync ; sync
+
+sleep 3
+
+first=true
+second=true
+while test 1 -eq 1; do
+  FILESIZE=$(stat -c "%s" "$SAFEFILE")
+  if test -z "$FILESIZE" -o $FILESIZE -le 0; then
+    echo "Unable to determine file size for $SAFEFILE"
+    exit 1
+  fi
+  echo "Verifying... Dumping current flash contents."
+  nanddump -f "$SAFEFILE.old" -l "$FILESIZE" "$MTDDEV"
+  FILESIZE2=$(stat -c "%s" "$SAFEFILE.old")
+  if test "$FILESIZE" -gt "$FILESIZE2"; then
+    echo "Unable to verify (file sizes does not match - $FILESIZE > $FILESIZE2)"
+    exit 1
+  fi
+  if ! dd if=/dev/null seek="$FILESIZE" bs=1 of="$SAFEFILE.old" 2> /dev/null; then
+    echo "DD truncate failed"
+    exit 1
+  fi
+  FILESIZE2=$(stat -c "%s" "$SAFEFILE.old")
+  if test "$FILESIZE" != "$FILESIZE2"; then
+    echo "Unable to verify (file sizes does not match - $FILESIZE != $FILESIZE2)"
+    exit 1
+  fi
+  result=$(diff "$SAFEFILE.old" "$SAFEFILE")
+  if test -z "$result"; then
+    echo "Verify OK. Flash write successful."
+    echo "Type 'reboot' now..."
+    rm -f "$SAFEFILE" "$SAFEFILE.old"
+    exit 0
+  fi
+  rm -f "$FILESIZE.old"
+  if test "$first" != "true"; then
+    echo "** Flash contents do not match. **"
+    if test "$second" != "true"; then
+      echo "** Flashing failed. Consider to use an USB stick to recover. **"
+    fi
+    echo -n "Repeat the flash write? Use 'Ctrl-C' to abort or Enter to repeat: "
+    read i
+    second=
+  fi
+  echo "Flashing..."
+  nandwrite2 -p "$MTDDEV" "$SAFEFILE"
+  first=
+done
