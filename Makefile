@@ -43,8 +43,6 @@ DROPBEAR_BIN_FILES=dbclient dropbearconvert dropbearkey scp
 
 ETHTOOL=ethtool-3.18
 
-MTD_UTILS_COMMIT=9f107132a6a073cce37434ca9cda6917dd8d866b # v1.5.1
-
 LIBTIRPC_VERSION=0.2.5
 LIBTIRPC=libtirpc-$(LIBTIRPC_VERSION)
 
@@ -116,7 +114,6 @@ CPIO_SRCS += oscam
 CPIO_SRCS += tools/axehelper
 CPIO_SRCS += nfsutils
 CPIO_SRCS += nano
-CPIO_SRCS += mtd-utils
 CPIO_SRCS += iperf
 CPIO_SRCS += senddsq
 
@@ -143,7 +140,6 @@ fs.cpio: $(CPIO_SRCS)
 	  -e "apps/minisatip/minisatip:sbin/minisatip" \
 	  $(foreach f,$(notdir $(wildcard apps/minisatip/html/*)), -e "apps/minisatip/html/$f:usr/share/minisatip/html/$f") \
 	  -e "apps/$(NANO)/src/nano:usr/bin/nano" \
-	  -e "apps/mtd-utils/nandwrite:usr/sbin/nandwrite2" \
 	  -e "apps/oscam-svn/Distribution/oscam-1.20_svn$(OSCAM_REV)-sh4-linux:sbin/oscamd" \
 	  -e "apps/$(IPERF)/src/.libs/iperf3:bin/iperf3" \
 	  $(foreach f,$(IPERF_LIB_FILES), -e "apps/$(IPERF)/src/.libs/$(f):lib/$(f)") \
@@ -379,21 +375,6 @@ apps/$(ETHTOOL)/ethtool: apps/$(ETHTOOL)/configure
 
 .PHONY: ethtool
 ethtool: apps/$(ETHTOOL)/ethtool
-
-#
-# mtd-utils
-#
-
-apps/mtd-utils/Makefile:
-	$(call GIT_CLONE,git://git.infradead.org/mtd-utils.git,mtd-utils,$(MTD_UTILS_COMMIT))
-
-apps/mtd-utils/nanddump: apps/mtd-utils/Makefile
-	make -C apps/mtd-utils -j $(CPUS) \
-	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
-	  CFLAGS="-O2 -I$(CURDIR)/kernel/include"
-
-.PHONY: mtd-utils
-mtd-utils: apps/mtd-utils/nanddump
 
 #
 # libdvbcsa
