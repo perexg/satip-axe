@@ -2,6 +2,13 @@
 
 This change log will be updated whenever a new official release is made
 
+## Build 19 (Nov 26 2021)
+* Update `minisatip` to v1.1.50
+* Re-enable SAT>IP client support in minisatip
+* Enable DVB-CSA support in minisatip (due to CPU limitations only 1-2 streams can be decoded simultaneously)
+* Remove the `upgrade-fw` script and some other unused/obsolete utilities
+* Improve the build process (less verbosity, no root-owned files polluting the working directory)
+
 ## Build 18 (Jul 11 2021)
 * Update `oscam` to revision 11693
 * Update `minisatip` to v1.1.9-bf62510

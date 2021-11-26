@@ -14,16 +14,10 @@ Compilation:
 Compilation using Docker:
 
   ```
-  docker build -t satip-axe-make .
-  docker run --rm -v $(pwd):/build satip-axe-make all release
+  make docker-clean-release
   ```
 
-The release build will be in the `out/` directory. You will end up with a 
-bunch of root-owned files in your working directory.
-
-To perform a full rebuild, run `docker run --rm -v $(pwd):/build satip-axe-make clean`. You might also want to run 
-`sudo git clean -xfd -f` to clean out untracked files from your working directory (sudo required since Docker generates 
-files as root, `-f` required twice to clean out cloned git repositories from `apps/`).
+The release build will be in the `out/` directory.
 
 Booting uImage.gz on Inverto IDL-400S/Grundig GSS.BOX/Telestar Digibit R1 from USB:
 

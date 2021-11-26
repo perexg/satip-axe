@@ -1,4 +1,4 @@
-BUILD=18
+BUILD=19
 VERSION=$(shell date +%Y%m%d%H%M)-$(BUILD)
 CPUS=$(shell nproc)
 CURDIR=$(shell pwd)
@@ -29,11 +29,11 @@ KMODULES = drivers/usb/serial/cp210x.ko \
 	   drivers/usb/serial/ftdi_sio.ko \
 	   drivers/usb/serial/oti6858.ko
 
-LIBDVBCSA_VERSION=1.1.0
-LIBDVBCSA=libdvbcsa-$(LIBDVBCSA_VERSION)
+LIBDVBCSA_COMMIT=bc6c0b164a87ce05e9925785cc6fb3f54c02b026 # latest at the time
+LIBDVBCSA=libdvbcsa-master
 LIBDVBCSA_LIB_FILES=libdvbcsa.so libdvbcsa.so.1 libdvbcsa.so.1.0.1
 
-MINISATIP_COMMIT=v1.1.43
+MINISATIP_COMMIT=v1.1.50
 
 BUSYBOX=busybox-1.26.2
 
@@ -84,6 +84,18 @@ define WGET
 	@mkdir -p apps
 	wget -q -O $(2) $(1)
 endef
+
+#
+# short-hand for building a releases with Docker
+#
+docker-release:
+	docker build -t satip-axe-make .
+	docker run --rm -v $(shell pwd):/build --user $(shell id -u):$(shell id -g) satip-axe-make all release
+
+docker-clean-release:
+	docker build -t satip-axe-make .
+	git clean -xfd -f
+	docker run --rm -v $(shell pwd):/build --user $(shell id -u):$(shell id -g) satip-axe-make clean all release
 
 #
 # all
@@ -380,8 +392,7 @@ ethtool: apps/$(ETHTOOL)/ethtool
 # libdvbcsa
 #
 apps/$(LIBDVBCSA)/bootstrap:
-	$(call GIT_CLONE,https://code.videolan.org/videolan/libdvbcsa.git,$(LIBDVBCSA_VERSION))
-	mv apps/$(LIBDVBCSA_VERSION) apps/$(LIBDVBCSA)
+	$(call GIT_CLONE,https://code.videolan.org/videolan/libdvbcsa.git,$(LIBDVBCSA),$(LIBDVBCSA_COMMIT))
 
 apps/$(LIBDVBCSA)/configure: apps/$(LIBDVBCSA)/bootstrap
 	cd apps/$(LIBDVBCSA) && \
