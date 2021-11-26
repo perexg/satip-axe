@@ -8,4 +8,8 @@ RUN yum -y update && \
                  bzip2 uboot-tools patch fakeroot \
                  svn file autoconf automake libtool
 
+# Required for git operations when container is running as an UID that doesn't exist in /etc/passwd
+ENV GIT_COMMITTER_NAME=nobody
+ENV GIT_COMMITTER_EMAIL=nobody@example.com
+
 ENTRYPOINT [ "make" ]
