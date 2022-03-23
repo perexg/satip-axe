@@ -2,7 +2,7 @@
 
 This change log will be updated whenever a new official release is made
 
-## Build 20 (Mar 23 2021)
+## Build 20 (Mar 23 2022)
 * Update `minisatip` to v1.1.87
 
 ## Build 19 (Nov 26 2021)
