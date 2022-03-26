@@ -2,6 +2,10 @@
 
 This change log will be updated whenever a new official release is made
 
+## Build 21 (Mar 26 2022)
+* Downgrade `minisatip` to v1.1.83 (issues reported in https://github.com/Jalle19/satip-axe/issues/28)
+* Re-instante the `upgrade-fw` script, adapt it to support local upgrades only
+
 ## Build 20 (Mar 23 2022)
 * Update `minisatip` to v1.1.87
 
