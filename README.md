@@ -26,6 +26,13 @@ make docker-clean-release
 
 The release build will be in the `out/` directory.
 
+## Flashing new firmware
+
+There are two ways to flash new firmware to your device:
+
+* using a USB stick (as explained in [upstream's dist/README](https://github.com/perexg/satip-axe/blob/master/dist/README))
+* using the `upgrade-fw` script. Download the `.fw` file you want to flash to your device, then run `upgrade-fw path/to/file.fw`
+
 ## More information
 
-For general information, see [upstream's README](https://github.com/perexg/satip-axe#readme) and [upstream's debug/README](https://github.com/perexg/satip-axe/blob/master/debug/README.md)
+For general information, see [upstream's README](https://github.com/perexg/satip-axe#readme), [upstream's dist/README](https://github.com/perexg/satip-axe/blob/master/dist/README) and [upstream's debug/README](https://github.com/perexg/satip-axe/blob/master/debug/README.md)
