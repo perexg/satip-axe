@@ -37,7 +37,7 @@ MINISATIP_COMMIT=v1.1.83
 
 BUSYBOX=busybox-1.26.2
 
-DROPBEAR=dropbear-2017.75
+DROPBEAR=dropbear-2022.82
 DROPBEAR_SBIN_FILES=dropbear
 DROPBEAR_BIN_FILES=dbclient dropbearconvert dropbearkey scp
 
@@ -350,7 +350,7 @@ busybox: apps/$(BUSYBOX)/busybox
 #
 
 apps/$(DROPBEAR)/configure:
-	$(call WGET,https://matt.ucc.asn.au/dropbear/releases/$(DROPBEAR).tar.bz2,apps/$(DROPBEAR).tar.bz2)
+	$(call WGET,https://mirror.dropbear.nl/mirror/$(DROPBEAR).tar.bz2,apps/$(DROPBEAR).tar.bz2)
 	tar -C apps -xjf apps/$(DROPBEAR).tar.bz2
 
 apps/$(DROPBEAR)/dropbear: apps/$(DROPBEAR)/configure
@@ -364,9 +364,6 @@ apps/$(DROPBEAR)/dropbear: apps/$(DROPBEAR)/configure
           --disable-utmpx \
           --disable-wtmp \
           --disable-wtmpx
-	sed -e 's/DEFAULT_PATH \"\/usr\/bin:\/bin\"/DEFAULT_PATH \"\/sbin:\/usr\/sbin:\/bin:\/usr\/bin:\/usr\/local\/bin\"/g' \
-	  < apps/$(DROPBEAR)/options.h > apps/$(DROPBEAR)/options.h.2
-	mv apps/$(DROPBEAR)/options.h.2 apps/$(DROPBEAR)/options.h
 	make -C apps/$(DROPBEAR) -j $(CPUS) PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp"
 
 .PHONY: dropbear
