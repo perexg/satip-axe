@@ -2,9 +2,9 @@
 
 This change log will be updated whenever a new official release is made
 
-## Build 22 (preview)
+## Build 22 (Aug 9 2022)
 * Upgrade Dropbear to 2022.82
-* Upgrade `minisatip` to v1.2.9 (issues from the previous build have been fixed)
+* Upgrade `minisatip` to v1.2.12 (issues from the previous build have been fixed)
 
 Note that the `-U` option has been replaced by `-A`. For example, `-U 0-2:3` would now be 
 `-A 0:0:0,0:1:0,0:2:0,1:3:0` or `-A 0:0:0,0:1:0,0:2:0,1:3:1`.
