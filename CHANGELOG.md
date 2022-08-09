@@ -2,6 +2,13 @@
 
 This change log will be updated whenever a new official release is made
 
+## Build 22 (Aug 9 2022)
+* Upgrade Dropbear to 2022.82
+* Upgrade `minisatip` to v1.2.12 (issues from the previous build have been fixed)
+
+Note that the `-U` option has been replaced by `-A`. For example, `-U 0-2:3` would now be 
+`-A 0:0:0,0:1:0,0:2:0,1:3:0` or `-A 0:0:0,0:1:0,0:2:0,1:3:1`.
+
 ## Build 21 (Mar 26 2022)
 * Downgrade `minisatip` to v1.1.83 (issues reported in https://github.com/Jalle19/satip-axe/issues/28)
 * Re-instante the `upgrade-fw` script, adapt it to support local upgrades only
