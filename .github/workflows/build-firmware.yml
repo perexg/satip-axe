@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       
     - name: Build the firmware
       run: |
@@ -19,7 +19,7 @@ jobs:
         docker run --rm -v $(pwd):/build satip-axe-make all release
     
     - name: Archive build artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: firmware
         path: out
