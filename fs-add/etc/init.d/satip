@@ -18,6 +18,8 @@ if test "$DEMUXERS_RENICE" = "yes"; then
   renice -15 $a
 fi
 
+mkdir -p /etc/sysconfig/minisatip
+
 cd /tmp
 while test ! -f /tmp/nosatip; do
   while ! test -r /tmp/satip-network; do
@@ -26,7 +28,7 @@ while test ! -f /tmp/nosatip; do
   MINISATIP_PROGRAM=minisatip
   . /etc/sysconfig/config
   if test "$MINISATIP" = "yes"; then
-    nice -5 $MINISATIP_PROGRAM -f -g $MINISATIP_OPTS
+    nice -5 $MINISATIP_PROGRAM -f -g -z /etc/sysconfig/minisatip $MINISATIP_OPTS
     logger -p local0.notice "minisatip exited $?, restarting"
   else
     exit 0
