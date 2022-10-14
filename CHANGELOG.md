@@ -2,6 +2,11 @@
 
 This change log will be updated whenever a new official release is made
 
+## future release
+* Upgrade `minisatip` to v1.2.34
+* Configure `minisatip` to use `/etc/sysconfig/minisatip` as cache directory, 
+  fixes "bootid" being reset every time. Might help with disappearing auto-discovered SAT>IP servers in tvheadend.
+
 ## Build 22 (Aug 9 2022)
 * Upgrade Dropbear to 2022.82
 * Upgrade `minisatip` to v1.2.12 (issues from the previous build have been fixed)
