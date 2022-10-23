@@ -1,27 +1,38 @@
 # satip-axe
 
-A firmware with minisatip for Inverto IDL-400s/Grundig GSS.BOX/Telestar Digibit R1
-==================================================================================
+![Build firmware](https://github.com/Jalle19/satip-axe/workflows/Build%20firmware/badge.svg)
 
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](http://paypal.me/perex)
+A maintained fork of [perexg/satip-axe](https://github.com/perexg/satip-axe), a firmware with minisatip for Inverto IDL-400s/Grundig GSS.BOX/Telestar Digibit R1
 
-The firmware contains various versions of [minisatip](https://github.com/catalinii/minisatip)
-which is tuned to get the best performance on this hardware. There are many extensions for
-the complex hobby satellite reception (like free input mode - use any tuner with any physical input,
-DVB-S2 multistream support etc.).
+## Releases
 
-There is no DLNA server, but there is HTTP and FTP server to server for
-example m3u playlists to clients.
+Releases can be found [here](https://github.com/Jalle19/satip-axe/releases).
 
-Releases:
----------
+## Improvements in this fork
 
-  - download from [github releases](https://github.com/perexg/satip-axe/releases)
-  - see to [dist](https://github.com/perexg/satip-axe/tree/master/dist) directory - README file
-  - a TTL USB serial is not required to boot this precompiled firmware
-    from the USB stick or an installation to the internal flash
+* Uses upstream minisatip without any custom patches
+* DVB-CSA support in minisatip (due to CPU limitations only 1-2 streams can be decoded simultaneously)
+* Uses newer version of OScam
+* Reworked build system for easier development
+* Leaner firmware image (obsolete versions of minisatip, tvheadend and Python have been removed)
 
-Developers:
------------
+## Build instructions
 
-  - see [debug](https://github.com/perexg/satip-axe/tree/master/debug)
+The build system used in this repository uses Docker. To build a new release, simply run:
+
+```bash
+make docker-clean-release
+```
+
+The release build will be in the `out/` directory.
+
+## Flashing new firmware
+
+There are two ways to flash new firmware to your device:
+
+* using a USB stick (as explained in [upstream's dist/README](https://github.com/perexg/satip-axe/blob/master/dist/README))
+* using the `upgrade-fw` script. Download the `.fw` file you want to flash to your device, then run `upgrade-fw path/to/file.fw`
+
+## More information
+
+For general information, see [upstream's README](https://github.com/perexg/satip-axe#readme), [upstream's dist/README](https://github.com/perexg/satip-axe/blob/master/dist/README) and [upstream's debug/README](https://github.com/perexg/satip-axe/blob/master/debug/README.md)

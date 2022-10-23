@@ -1,6 +1,7 @@
 *.cmd
 axehelper
 axehelper.x86_64
+senddsq
 syscall-dump.o
 syscall-dump.o.x86_64
 syscall-dump.so

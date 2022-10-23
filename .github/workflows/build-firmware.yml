@@ -1,0 +1,25 @@
+name: Build firmware
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+      
+    - name: Build the firmware
+      run: |
+        docker build . --pull --file Dockerfile --tag satip-axe-make
+        docker run --rm -v $(pwd):/build satip-axe-make all release
+    
+    - name: Archive build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: debian-package
+        path: ../*.deb

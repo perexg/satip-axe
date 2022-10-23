@@ -1,5 +1,8 @@
 *~
 fs
 apps
+firmware/initramfs
 fs.cpio
 kernel/rootfs-idl4k.cpio
+out
+.vscode
