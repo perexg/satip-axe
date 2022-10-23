@@ -3,7 +3,7 @@
 This change log will be updated whenever a new official release is made
 
 ## future release
-* Upgrade `minisatip` to v1.2.34
+* Upgrade `minisatip` to v1.2.38
 * Configure `minisatip` to use `/etc/sysconfig/minisatip` as cache directory, 
   fixes "bootid" being reset every time. Might help with disappearing auto-discovered SAT>IP servers in tvheadend.
 
