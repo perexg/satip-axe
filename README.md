@@ -31,7 +31,8 @@ The release build will be in the `out/` directory.
 There are two ways to flash new firmware to your device:
 
 * using a USB stick (as explained in [upstream's dist/README](https://github.com/perexg/satip-axe/blob/master/dist/README))
-* using the `upgrade-fw` script. Download the `.fw` file you want to flash to your device, then run `upgrade-fw path/to/file.fw`
+* using the `upgrade-fw` script. Download the `.fw` file you want to flash to your device, then run `upgrade-fw path/to/file.fw`. The script only works for updating installations made to the device's flash memory - if dual-booting from a 
+USB device you should not use it.
 
 ## More information
 
