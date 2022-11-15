@@ -41,6 +41,8 @@ DROPBEAR=dropbear-2022.82
 DROPBEAR_SBIN_FILES=dropbear
 DROPBEAR_BIN_FILES=dbclient dropbearconvert dropbearkey scp
 
+OPENSSH=openssh-9.1p1
+
 ETHTOOL=ethtool-3.18
 
 MTD_UTILS_COMMIT=9f107132a6a073cce37434ca9cda6917dd8d866b # v1.5.1
@@ -122,6 +124,7 @@ dist:
 CPIO_SRCS  = kernel-modules
 CPIO_SRCS += busybox
 CPIO_SRCS += dropbear
+CPIO_SRCS += openssh
 CPIO_SRCS += ethtool
 CPIO_SRCS += minisatip
 CPIO_SRCS += oscam
@@ -148,6 +151,7 @@ fs.cpio: $(CPIO_SRCS)
 	  -e "apps/$(BUSYBOX)/busybox:bin/busybox" \
 	  $(foreach f,$(DROPBEAR_SBIN_FILES), -e "apps/$(DROPBEAR)/$(f):sbin/$(f)") \
 	  $(foreach f,$(DROPBEAR_BIN_FILES), -e "apps/$(DROPBEAR)/$(f):usr/bin/$(f)") \
+	  -e "apps/$(OPENSSH)/sftp-server:usr/libexec/sftp-server" \
 	  -e "apps/$(ETHTOOL)/ethtool:sbin/ethtool" \
 	  $(foreach f,$(RPCBIND_SBIN_FILES), -e "apps/$(RPCBIND)/$(f):usr/sbin/$(f)") \
 	  $(foreach f,$(NFSUTILS_SBIN_FILES), -e "apps/$(NFSUTILS)/$(f):usr/sbin/$(notdir $(f))") \
@@ -368,6 +372,25 @@ apps/$(DROPBEAR)/dropbear: apps/$(DROPBEAR)/configure
 
 .PHONY: dropbear
 dropbear: apps/$(DROPBEAR)/dropbear
+
+#
+# openssh (for sftp-server)
+#
+
+apps/$(OPENSSH)/configure:
+	$(call WGET,https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/${OPENSSH}.tar.gz,apps/${OPENSSH}.tar.gz)
+	tar -C apps -xzf apps/$(OPENSSH).tar.gz
+
+apps/$(OPENSSH)/sftp-server: apps/$(OPENSSH)/configure
+	cd apps/$(OPENSSH) && \
+		CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+	./configure \
+		--host=sh4-linux \
+		--prefix=/
+	make -C apps/$(OPENSSH) -j $(CPUS) sftp-server
+
+.PHONY: openssh
+openssh: apps/$(OPENSSH)/sftp-server
 
 #
 # ethtool
