@@ -248,7 +248,7 @@ def gen_fs(lib_list, init_type):
     """
     print '\t coping libraries  and binary files \n'
     run_cmd('rm -rf fs fs.cpio')
-    for i in ['sbin', 'bin', 'dev', 'sys', 'etc', 'lib/modules', 'tmp', 'proc', 'usr/lib', 'var', 'root']:
+    for i in ['sbin', 'bin', 'dev', 'sys', 'etc', 'lib/modules', 'tmp', 'proc', 'usr/lib', 'usr/libexec', 'var', 'root']:
       run_cmd('mkdir -p fs/' + i)
     for i in ['sbin', 'bin']:
       run_cmd('mkdir -p fs/usr/' + i)
