@@ -2,6 +2,10 @@
 
 This change log will be updated whenever a new official release is made
 
+## future release
+* Upgrade `minisatip` to v1.2.47
+* Add SFTP support to the SSH server for easier file editing and access
+
 ## Build 23 (Oct 23 2022)
 * Upgrade `minisatip` to v1.2.38
 * Configure `minisatip` to use `/etc/sysconfig/minisatip` as cache directory, 
