@@ -31,16 +31,18 @@ KMODULES = drivers/usb/serial/cp210x.ko \
 	   drivers/usb/serial/oti6858.ko
 
 MINISATIP_COMMIT=679b7cafc3d1dc9f710da91ed71a39b96cee7a8d
-MINISATIP_VERSION=1.0.2-axe1
+MINISATIP_VERSION=1.0.2-axe2
 MINISATIP5_COMMIT=67e88c2d743d6df9c4a96aad772414169f61b764
 MINISATIP7_COMMIT=d22ba0dfe3c706c3ab6ad86486d8a9e913080f7e
 MINISATIP8_COMMIT=8e2362435cc8c5e0babc3e7ca67570c7f7dd03c5
 
 BUSYBOX=busybox-1.26.2
 
-DROPBEAR=dropbear-2017.75
+DROPBEAR=dropbear-2022.83
 DROPBEAR_SBIN_FILES=dropbear
 DROPBEAR_BIN_FILES=dbclient dropbearconvert dropbearkey scp
+
+OPENSSH=openssh-9.1p1
 
 ETHTOOL=ethtool-3.18
 
@@ -82,7 +84,10 @@ SENDDSQ_PACKAGE_NAME=senddsq
 TVHEADEND_COMMIT=master
 
 # 10663 10937 11234 11398
-OSCAM_REV=11546
+OSCAM_REV=11693
+
+BINUTILS=binutils-2.39
+BINUTILS_BIN_FILES=addr2line
 
 define GIT_CLONE
 	@mkdir -p apps/host
@@ -123,6 +128,7 @@ dist:
 CPIO_SRCS  = kernel-modules
 CPIO_SRCS += busybox
 CPIO_SRCS += dropbear
+CPIO_SRCS += openssh
 CPIO_SRCS += ethtool
 CPIO_SRCS += minisatip
 CPIO_SRCS += minisatip7
@@ -132,6 +138,7 @@ CPIO_SRCS += tools/axehelper
 CPIO_SRCS += nfsutils
 CPIO_SRCS += nano
 CPIO_SRCS += mtd-utils
+CPIO_SRCS += binutils
 
 fs.cpio: $(CPIO_SRCS)
 	fakeroot tools/do_min_fs.py \
@@ -149,6 +156,7 @@ fs.cpio: $(CPIO_SRCS)
 	  -e "apps/$(BUSYBOX)/busybox:bin/busybox" \
 	  $(foreach f,$(DROPBEAR_SBIN_FILES), -e "apps/$(DROPBEAR)/$(f):sbin/$(f)") \
 	  $(foreach f,$(DROPBEAR_BIN_FILES), -e "apps/$(DROPBEAR)/$(f):usr/bin/$(f)") \
+	  -e "apps/$(OPENSSH)/sftp-server:usr/libexec/sftp-server" \
 	  -e "apps/$(ETHTOOL)/ethtool:sbin/ethtool" \
 	  $(foreach f,$(RPCBIND_SBIN_FILES), -e "apps/$(RPCBIND)/$(f):usr/sbin/$(f)") \
 	  $(foreach f,$(NFSUTILS_SBIN_FILES), -e "apps/$(NFSUTILS)/$(f):usr/sbin/$(notdir $(f))") \
@@ -160,7 +168,8 @@ fs.cpio: $(CPIO_SRCS)
 	  $(foreach f,$(notdir $(wildcard apps/minisatip8/html/*)), -e "apps/minisatip8/html/$f:usr/share/minisatip8/html/$f") \
 	  -e "apps/$(NANO)/src/nano:usr/bin/nano" \
 	  -e "apps/mtd-utils/nandwrite:usr/sbin/nandwrite2" \
-	  -e "apps/oscam-svn/Distribution/oscam-1.20_svn$(OSCAM_REV)-sh4-linux:sbin/oscamd"
+	  -e "apps/oscam-svn/Distribution/oscam-1.20_svn$(OSCAM_REV)-sh4-linux:sbin/oscamd" \
+	  $(foreach f,$(BINUTILS_BIN_FILES), -e "apps/$(BINUTILS)/binutils/$(f):usr/bin/$(f)")
 
 .PHONY: fs-list
 fs-list:
@@ -457,6 +466,25 @@ apps/$(DROPBEAR)/dropbear: apps/$(DROPBEAR)/configure
 dropbear: apps/$(DROPBEAR)/dropbear
 
 #
+# openssh (for sftp-server)
+#
+
+apps/$(OPENSSH)/configure:
+	$(call WGET,https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/${OPENSSH}.tar.gz,apps/${OPENSSH}.tar.gz)
+	tar -C apps -xzf apps/$(OPENSSH).tar.gz
+
+apps/$(OPENSSH)/sftp-server: apps/$(OPENSSH)/configure
+	cd apps/$(OPENSSH) && \
+		CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+	./configure \
+		--host=sh4-linux \
+		--prefix=/
+	make -C apps/$(OPENSSH) -j $(CPUS) sftp-server
+
+.PHONY: openssh
+openssh: apps/$(OPENSSH)/sftp-server
+
+#
 # ethtool
 #
 
@@ -565,6 +593,33 @@ apps/$(NFSUTILS)/utils/exportfs/exportfs: apps/$(RPCBIND)/rpcbind apps/$(NFSUTIL
 
 .PHONY: nfsutils
 nfsutils: apps/$(NFSUTILS)/utils/exportfs/exportfs
+
+#
+# binutils (mainly for addr2line)
+#
+apps/$(BINUTILS)/binutils/configure:
+	$(call WGET,https://ftp.gnu.org/gnu/binutils/$(BINUTILS).tar.gz,apps/$(BINUTILS).tar.gz)
+	tar -C apps -xf apps/$(BINUTILS).tar.gz
+
+# disable as much as possible during configuring, since we only really want one binary...
+apps/$(BINUTILS)/binutils/addr2line: apps/$(BINUTILS)/binutils/configure
+	cd apps/$(BINUTILS) && \
+		AR=$(TOOLCHAIN)/bin/sh4-linux-ar \
+		CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+		CFLAGS="-O2" \
+	./configure \
+		--host=sh4-linux \
+		--prefix=/ \
+		--disable-gold \
+		--disable-ld \
+		--disable-gprofng \
+		--disable-libquadmath \
+		--disable-libada \
+		--disable-libssp
+	make -C apps/$(BINUTILS) -j $(CPUS)
+
+.PHONY: binutils
+binutils: apps/$(BINUTILS)/binutils/addr2line
 
 #
 # oscam

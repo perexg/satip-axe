@@ -250,6 +250,17 @@ Bugs:
 History:
 --------
 
+satip-axe-202301261921-16 - Thu Jan 26 2023
+  - a little work to update dropbear/oscam
+  - minisatip-1.0.2-axe2 (add only extra signal locking, credits to Jalle19)
+  - DROPBEAR=dropbear-2017.75 (generate ed25519 by default)
+  - OPENSSH=openssh-9.1p1 (only sftp-server, credits to Jalle19)
+  - OSCAM_REV=11693
+  - BINUTILS=binutils-2.39 (only addr2line, credits to Jalle19)
+  - The minisatip has not been upgraded. The recent version do not work in my
+    environment and I do not have time to look for the issue. It seems
+    that the PID subscription is wrong. Call my tree as legacy now.
+
 satip-axe-201810211549-15 - Sun Oct 21 2018
   - moved the releases (firmware files) to github
   - added minisatip8

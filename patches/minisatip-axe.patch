@@ -1,3 +1,51 @@
+diff --git a/src/axe.c b/src/axe.c
+index 2822d9b..cba50ac 100644
+--- a/src/axe.c
++++ b/src/axe.c
+@@ -774,6 +774,7 @@ void axe_get_signal(adapter *ad)
+ 		tmp = 0;
+ 	snr = tmp;
+ 	// keep the assignment at the end for the signal thread to get the right values as no locking is done on the adapter
++	adapter_lock(ad->id);
+ 	ad->snr = snr;
+ 	ad->strength = strength;
+ 	ad->status = status;
+@@ -781,10 +782,9 @@ void axe_get_signal(adapter *ad)
+ 
+ 	if (ad->status == 0 && ((ad->tp.diseqc_param.switch_type == SWITCH_JESS) || (ad->tp.diseqc_param.switch_type == SWITCH_UNICABLE)))
+ 	{
+-		adapter_lock(ad->id);
+ 		axe_setup_switch(ad);
+-		adapter_unlock(ad->id);
+ 	}
++	adapter_unlock(ad->id);
+ }
+ 
+ void axe_commit(adapter *a)
+diff --git a/src/dvb.c b/src/dvb.c
+index 2da97f2..4f018ac 100644
+--- a/src/dvb.c
++++ b/src/dvb.c
+@@ -1565,6 +1565,7 @@ void dvb_get_signal(adapter *ad)
+ 		snr = 255;
+ 
+ 	// keep the assignment at the end for the signal thread to get the right values as no locking is done on the adapter
++	adapter_lock(ad->id);
+ 	ad->snr = snr;
+ 	ad->strength = strength;
+ 	ad->status = status;
+@@ -1572,10 +1573,9 @@ void dvb_get_signal(adapter *ad)
+ 
+ 	if (ad->status == 0 && ((ad->tp.diseqc_param.switch_type == SWITCH_JESS) || (ad->tp.diseqc_param.switch_type == SWITCH_UNICABLE)))
+ 	{
+-		adapter_lock(ad->id);
+ 		setup_switch(ad);
+-		adapter_unlock(ad->id);
+ 	}
++	adapter_unlock(ad->id);
+ }
+ 
+ void dvb_commit(adapter *a)
 diff --git a/src/minisatip.h b/src/minisatip.h
 index 0bc83c9..80d8351 100644
 --- a/src/minisatip.h
