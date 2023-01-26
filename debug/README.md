@@ -24,6 +24,16 @@ Compilation:
   - just type 'make'
   - kernel with rootfs is in kernel/arch/sh/boot/uImage.gz
 
+Compilation using Docker:
+
+  ```
+  docker build -t satip-axe .
+  docker run -v $(pwd):/build satip-axe make all release
+  ```
+
+The release build will be in the `out/` directory. You will end up with a 
+bunch of root-owned files in your working directory.
+
 Booting uImage.gz on Inverto IDL-400S/Grundig GSS.BOX/Telestar Digibit R1 from USB:
 
   - connect TTL USB serial adapter to J3 connector (4 pins at the power supply)
