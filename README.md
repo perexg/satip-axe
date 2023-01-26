@@ -25,3 +25,8 @@ Developers:
 -----------
 
   - see [debug](https://github.com/perexg/satip-axe/tree/master/debug)
+
+Forks:
+------
+
+  - https://github.com/Jalle19/satip-axe/ - more updated but different features
