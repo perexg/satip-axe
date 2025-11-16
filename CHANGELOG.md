@@ -2,6 +2,15 @@
 
 This change log will be updated whenever a new official release is made
 
+## Build 27-rc1
+
+* Bump `minisatip` to v1.3.57, the latest 1.3.x version which is the last 
+  version that will support AXE devices
+* Removed telnet and FTP support for improved security
+* Change the HTTP server to read files from `/mnt/data/html`, making it possible 
+  to permanently host files without running a script at boot (which is no longer supported)
+* Change `bigphysarea` kernel parameter to 32000
+
 ## Build 26 (Sep 16 2024)
 * Remove unrecognized `--disable-dvbaes` option when building minisatip
 * Bump `chrony` to 4.5
